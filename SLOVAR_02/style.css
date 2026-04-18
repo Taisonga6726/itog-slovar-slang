@@ -1,12 +1,53 @@
-/* slovar_02.css — стили страницы «Словарь вайбкодера» */
+﻿/* slovar_02.css вЂ” СЃС‚РёР»Рё СЃС‚СЂР°РЅРёС†С‹ В«РЎР»РѕРІР°СЂСЊ РІР°Р№Р±РєРѕРґРµСЂР°В» */
+
+/* Р“Р»РѕР±Р°Р»СЊРЅРѕ СѓР±РёСЂР°РµРј В«РІС‹РїСЂС‹РіРёРІР°СЋС‰РёР№В» AI-Р»РѕРіРѕС‚РёРї Рё РµРіРѕ СЃРІРµС‡РµРЅРёСЏ РЅР° РІСЃРµС… СЌРєСЂР°РЅР°С… */
+#aiLogoHotspot,
+#coverAiRiseRays,
+.cover-ai-logo-rays,
+.cover-ai-logo-rays--above-rings,
+.book-open-ai-logo-rays,
+#tzVibeAiBrand {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* РџРѕР»РЅРѕСЃС‚СЊСЋ СѓР±РёСЂР°РµРј СЌС„С„РµРєС‚С‹ РЅР° РѕР±Р»РѕР¶РєРµ, С‡С‚РѕР±С‹ Р·РѕРЅР° AI Р±С‹Р»Р° СЃС‚Р°С‚РёС‡РЅРѕР№ (Р±РµР· РјРµСЂС†Р°РЅРёСЏ) */
+#screen1 #grainShaderBg,
+#screen1 #coverBookPerimeterCanvas,
+#screen1 #coverAiRiseRays {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* РўРѕР»СЊРєРѕ С€Р°Рі В«РєР°СЂС‚РёРЅРєР° + Р’Р’Р•РЎРўР РЎР›РћР’РћВ»: Р±РµР· СЌР»РµРєС‚СЂРёРєРё/С‡Р°СЃС‚РёС† РЅР°Рґ СЂР°Р·РІРѕСЂРѕС‚РѕРј вЂ” С‚РёС…Р°СЏ Р·РѕРЅР° AI */
+.scene-stage.scene--book-open.scene--step2-visual #bookElectricFxCanvas,
+.scene-stage.scene--book-open.scene--step2-visual .book-electric-fx-canvas,
+.scene-stage.scene--book-open.scene--step2-visual .magic-overlay,
+.scene-stage.scene--book-open.scene--step2-visual #particles,
+.scene-stage.scene--book-open.scene--step2-visual .book-open-ai-logo-rays,
+.scene-stage.scene--book-open.scene--step2-visual .book-open-ai-logo-rays__mask,
+.scene-stage.scene--book-open.scene--step2-visual .book-open-ai-logo-rays__sweep,
+.scene-stage.scene--book-open.scene--step2-visual .ai-logo-hotspot--book,
+.scene-stage.scene--book-open.scene--step2-visual #pageLightBurst,
+.scene-stage.scene--book-open.scene--step2-visual #bookFxFlash,
+.scene-stage.scene--book-open.scene--step2-visual .magic-float-words--book {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  animation: none !important;
+}
 
 /* =============================================================================
-   ШРИФТЫ
+   РЁР РР¤РўР«
    ============================================================================= */
 @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Marck+Script&family=Caveat:wght@400;500;600;700&display=swap");
 
 /* =============================================================================
-   СБРОС И КОРНЕВЫЕ ПЕРЕМЕННЫЕ
+   РЎР‘Р РћРЎ Р РљРћР РќР•Р’Р«Р• РџР•Р Р•РњР•РќРќР«Р•
    ============================================================================= */
 *,
 *::before,
@@ -75,7 +116,7 @@ body {
 }
 
 /* =============================================================================
-   КАРКАС: ПРИЛОЖЕНИЕ, ЭКРАНЫ, УТИЛИТЫ
+   РљРђР РљРђРЎ: РџР РР›РћР–Р•РќРР•, Р­РљР РђРќР«, РЈРўРР›РРўР«
    ============================================================================= */
 .app {
   width: 100%;
@@ -124,7 +165,7 @@ body {
 }
 
 /* =============================================================================
-   ЭКРАН ОБЛОЖКИ (один корень сцены: #sceneStage.scene-stage)
+   Р­РљР РђРќ РћР‘Р›РћР–РљР (РѕРґРёРЅ РєРѕСЂРµРЅСЊ СЃС†РµРЅС‹: #sceneStage.scene-stage)
    ============================================================================= */
 .cover-screen {
   position: relative;
@@ -156,7 +197,7 @@ body {
   cursor: pointer;
 }
 
-/* Слот книги: зона закрытой книги на обложке; при открытии — расширяется под разворот */
+/* РЎР»РѕС‚ РєРЅРёРіРё: Р·РѕРЅР° Р·Р°РєСЂС‹С‚РѕР№ РєРЅРёРіРё РЅР° РѕР±Р»РѕР¶РєРµ; РїСЂРё РѕС‚РєСЂС‹С‚РёРё вЂ” СЂР°СЃС€РёСЂСЏРµС‚СЃСЏ РїРѕРґ СЂР°Р·РІРѕСЂРѕС‚ */
 .book-slot {
   position: absolute;
   left: 50%;
@@ -187,7 +228,7 @@ body {
   filter: drop-shadow(0 10px 26px rgba(255, 195, 120, 0.28));
 }
 
-/* Вариант 1: электрический контур книги при наведении (отключён в пользу Варианта B) */
+/* Р’Р°СЂРёР°РЅС‚ 1: СЌР»РµРєС‚СЂРёС‡РµСЃРєРёР№ РєРѕРЅС‚СѓСЂ РєРЅРёРіРё РїСЂРё РЅР°РІРµРґРµРЅРёРё (РѕС‚РєР»СЋС‡С‘РЅ РІ РїРѕР»СЊР·Сѓ Р’Р°СЂРёР°РЅС‚Р° B) */
 .book-electric-frame {
   position: absolute;
   inset: -2.6%;
@@ -349,7 +390,7 @@ body {
   display: none;
 }
 
-/* Шаг 2: плашка как на первом экране — без сдвига при hover, только свечение и лёгкий scale */
+/* РЁР°Рі 2: РїР»Р°С€РєР° РєР°Рє РЅР° РїРµСЂРІРѕРј СЌРєСЂР°РЅРµ вЂ” Р±РµР· СЃРґРІРёРіР° РїСЂРё hover, С‚РѕР»СЊРєРѕ СЃРІРµС‡РµРЅРёРµ Рё Р»С‘РіРєРёР№ scale */
 .scene-stage.scene--book-open.scene--step2-visual .center-cta-banner--book {
   transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
@@ -371,7 +412,7 @@ body {
   filter: brightness(0.98);
 }
 
-/* Вариант C: логотип PNG по центру верхней зоны обложки / разворота */
+/* Р’Р°СЂРёР°РЅС‚ C: Р»РѕРіРѕС‚РёРї PNG РїРѕ С†РµРЅС‚СЂСѓ РІРµСЂС…РЅРµР№ Р·РѕРЅС‹ РѕР±Р»РѕР¶РєРё / СЂР°Р·РІРѕСЂРѕС‚Р° */
 .ai-logo-hotspot {
   display: flex;
   align-items: center;
@@ -382,14 +423,14 @@ body {
   width: min(27vw, 360px);
   height: min(19vh, 190px);
   transform: translate(-50%, -50%);
-  /* Выше .cover-ai-logo-rays--above-rings (7), чтобы буквы не перекрывались градиентом */
+  /* Р’С‹С€Рµ .cover-ai-logo-rays--above-rings (7), С‡С‚РѕР±С‹ Р±СѓРєРІС‹ РЅРµ РїРµСЂРµРєСЂС‹РІР°Р»РёСЃСЊ РіСЂР°РґРёРµРЅС‚РѕРј */
   z-index: 8;
   border-radius: 14px;
   pointer-events: none;
   background: transparent;
 }
 
-/* Без радиального оверлея на зоне логотипа — только PNG + лучи по маске (.cover-ai-logo-rays) */
+/* Р‘РµР· СЂР°РґРёР°Р»СЊРЅРѕРіРѕ РѕРІРµСЂР»РµСЏ РЅР° Р·РѕРЅРµ Р»РѕРіРѕС‚РёРїР° вЂ” С‚РѕР»СЊРєРѕ PNG + Р»СѓС‡Рё РїРѕ РјР°СЃРєРµ (.cover-ai-logo-rays) */
 .ai-logo-hotspot::before {
   content: none;
   display: none;
@@ -405,7 +446,7 @@ body {
   display: none;
 }
 
-/* Общий блок: images/LOGO.png.png — мягкое свечение + лёгкое «плавание» */
+/* РћР±С‰РёР№ Р±Р»РѕРє: images/LOGO.png.png вЂ” РјСЏРіРєРѕРµ СЃРІРµС‡РµРЅРёРµ + Р»С‘РіРєРѕРµ В«РїР»Р°РІР°РЅРёРµВ» */
 .tz-vibe-ai-logo-wrap {
   position: relative;
   display: flex;
@@ -416,12 +457,12 @@ body {
   z-index: 2;
 }
 
-/* Размытый ореол отключён: визуально дублировал PNG; свечение только у .tz-vibe-ai-logo-img */
+/* Р Р°Р·РјС‹С‚С‹Р№ РѕСЂРµРѕР» РѕС‚РєР»СЋС‡С‘РЅ: РІРёР·СѓР°Р»СЊРЅРѕ РґСѓР±Р»РёСЂРѕРІР°Р» PNG; СЃРІРµС‡РµРЅРёРµ С‚РѕР»СЊРєРѕ Сѓ .tz-vibe-ai-logo-img */
 .tz-vibe-ai-logo__halo {
   display: none;
 }
 
-/* Вертикальные полосы отключены: накладывались на буквы вне маски; подсветка только .cover-ai-logo-rays__* / .book-open-ai-logo-rays__* */
+/* Р’РµСЂС‚РёРєР°Р»СЊРЅС‹Рµ РїРѕР»РѕСЃС‹ РѕС‚РєР»СЋС‡РµРЅС‹: РЅР°РєР»Р°РґС‹РІР°Р»РёСЃСЊ РЅР° Р±СѓРєРІС‹ РІРЅРµ РјР°СЃРєРё; РїРѕРґСЃРІРµС‚РєР° С‚РѕР»СЊРєРѕ .cover-ai-logo-rays__* / .book-open-ai-logo-rays__* */
 .tz-ai-light-flow {
   display: none !important;
 }
@@ -524,7 +565,7 @@ body {
   }
 }
 
-/* Обложка (screen1): #aiLogoHotspot скрыт — лучи отдельно, от зоны «AI» вверх */
+/* РћР±Р»РѕР¶РєР° (screen1): #aiLogoHotspot СЃРєСЂС‹С‚ вЂ” Р»СѓС‡Рё РѕС‚РґРµР»СЊРЅРѕ, РѕС‚ Р·РѕРЅС‹ В«AIВ» РІРІРµСЂС… */
 .cover-ai-rise-rays {
   position: absolute;
   left: 50%;
@@ -559,7 +600,7 @@ body {
   opacity: 0.76;
 }
 
-/* Обложка: лучи по маске PNG — выше колец (6), под PNG логотипа (8) */
+/* РћР±Р»РѕР¶РєР°: Р»СѓС‡Рё РїРѕ РјР°СЃРєРµ PNG вЂ” РІС‹С€Рµ РєРѕР»РµС† (6), РїРѕРґ PNG Р»РѕРіРѕС‚РёРїР° (8) */
 .cover-ai-logo-rays--above-rings {
   position: absolute;
   left: 50%;
@@ -575,7 +616,7 @@ body {
   display: none !important;
 }
 
-/* Разворот book-open.png: та же маска; выше canvas искр (z-index 2) */
+/* Р Р°Р·РІРѕСЂРѕС‚ book-open.png: С‚Р° Р¶Рµ РјР°СЃРєР°; РІС‹С€Рµ canvas РёСЃРєСЂ (z-index 2) */
 .book-open-ai-logo-rays {
   position: absolute;
   left: 50%;
@@ -627,7 +668,7 @@ body {
   will-change: transform;
 }
 
-/* Только движение градиента по маске PNG — без мигания opacity */
+/* РўРѕР»СЊРєРѕ РґРІРёР¶РµРЅРёРµ РіСЂР°РґРёРµРЅС‚Р° РїРѕ РјР°СЃРєРµ PNG вЂ” Р±РµР· РјРёРіР°РЅРёСЏ opacity */
 @keyframes coverAiLogoRaySweep {
   0% {
     transform: translate3d(0, 32%, 0);
@@ -697,19 +738,19 @@ body {
 .ai-logo-c-spark:nth-child(5) { animation-delay: -0.22s; }
 .ai-logo-c-spark:nth-child(6) { animation-delay: -0.4s; }
 
-/* Скрываем только подсветку на обложке; на картинке 2 — .ai-logo-hotspot--book */
+/* РЎРєСЂС‹РІР°РµРј С‚РѕР»СЊРєРѕ РїРѕРґСЃРІРµС‚РєСѓ РЅР° РѕР±Р»РѕР¶РєРµ; РЅР° РєР°СЂС‚РёРЅРєРµ 2 вЂ” .ai-logo-hotspot--book */
 .scene-stage.scene--book-open #aiLogoHotspot {
   display: none;
 }
 
-/* Закрытая обложка: отдельный #aiLogoHotspot скрыт — лишний логотип над формой; при открытии книги — #tzVibeAiBrand */
+/* Р—Р°РєСЂС‹С‚Р°СЏ РѕР±Р»РѕР¶РєР°: РѕС‚РґРµР»СЊРЅС‹Р№ #aiLogoHotspot СЃРєСЂС‹С‚ вЂ” Р»РёС€РЅРёР№ Р»РѕРіРѕС‚РёРї РЅР°Рґ С„РѕСЂРјРѕР№; РїСЂРё РѕС‚РєСЂС‹С‚РёРё РєРЅРёРіРё вЂ” #tzVibeAiBrand */
 #screen1 #sceneStage:not(.scene--book-open) #aiLogoHotspot {
   display: none !important;
 }
 
 /*
- * Логотип AI на развороте: 1:1 с обложкой (vw/vh, top, z-index), те же ::before + искры.
- * У wrap при открытой книге снимаем overflow — иначе обрезается неоновое свечение.
+ * Р›РѕРіРѕС‚РёРї AI РЅР° СЂР°Р·РІРѕСЂРѕС‚Рµ: 1:1 СЃ РѕР±Р»РѕР¶РєРѕР№ (vw/vh, top, z-index), С‚Рµ Р¶Рµ ::before + РёСЃРєСЂС‹.
+ * РЈ wrap РїСЂРё РѕС‚РєСЂС‹С‚РѕР№ РєРЅРёРіРµ СЃРЅРёРјР°РµРј overflow вЂ” РёРЅР°С‡Рµ РѕР±СЂРµР·Р°РµС‚СЃСЏ РЅРµРѕРЅРѕРІРѕРµ СЃРІРµС‡РµРЅРёРµ.
  */
 .ai-logo-hotspot--book {
   left: 50%;
@@ -719,7 +760,7 @@ body {
   z-index: 7;
 }
 
-/* Режим forma_cl: надпись AI по центру верхнего переплёта (картинка 3) */
+/* Р РµР¶РёРј forma_cl: РЅР°РґРїРёСЃСЊ AI РїРѕ С†РµРЅС‚СЂСѓ РІРµСЂС…РЅРµРіРѕ РїРµСЂРµРїР»С‘С‚Р° (РєР°СЂС‚РёРЅРєР° 3) */
 .book-write-ai-logo {
   display: none;
   position: absolute;
@@ -743,7 +784,7 @@ body {
   height: min(11vh, 102px);
 }
 
-/* Открытая книга: только #tzVibeAiBrand сверху — встроенные PNG в развороте скрыты всегда (в т.ч. при step2-visual, иначе дубль) */
+/* РћС‚РєСЂС‹С‚Р°СЏ РєРЅРёРіР°: С‚РѕР»СЊРєРѕ #tzVibeAiBrand СЃРІРµСЂС…Сѓ вЂ” РІСЃС‚СЂРѕРµРЅРЅС‹Рµ PNG РІ СЂР°Р·РІРѕСЂРѕС‚Рµ СЃРєСЂС‹С‚С‹ РІСЃРµРіРґР° (РІ С‚.С‡. РїСЂРё step2-visual, РёРЅР°С‡Рµ РґСѓР±Р»СЊ) */
 .scene-stage.scene--book-open .ai-logo-hotspot--book,
 .scene-stage.scene--book-open .book-write-ai-logo {
   display: none !important;
@@ -831,7 +872,7 @@ body {
   }
 }
 
-/* visible: плавающие слова и неон у краёв не обрезаются (иначе «стоят на месте») */
+/* visible: РїР»Р°РІР°СЋС‰РёРµ СЃР»РѕРІР° Рё РЅРµРѕРЅ Сѓ РєСЂР°С‘РІ РЅРµ РѕР±СЂРµР·Р°СЋС‚СЃСЏ (РёРЅР°С‡Рµ В«СЃС‚РѕСЏС‚ РЅР° РјРµСЃС‚РµВ») */
 .scene-stage.scene--book-open .book-image-wrap {
   overflow: visible;
 }
@@ -855,9 +896,9 @@ body {
   }
 }
 
-/* prefers-reduced-motion: см. блок у .tz-vibe-ai-brand — логотип PNG не скрываем */
+/* prefers-reduced-motion: СЃРј. Р±Р»РѕРє Сѓ .tz-vibe-ai-brand вЂ” Р»РѕРіРѕС‚РёРї PNG РЅРµ СЃРєСЂС‹РІР°РµРј */
 
-/* Кольца курсора (адаптация MagicRings): поверх арта, но без блокировки кликов */
+/* РљРѕР»СЊС†Р° РєСѓСЂСЃРѕСЂР° (Р°РґР°РїС‚Р°С†РёСЏ MagicRings): РїРѕРІРµСЂС… Р°СЂС‚Р°, РЅРѕ Р±РµР· Р±Р»РѕРєРёСЂРѕРІРєРё РєР»РёРєРѕРІ */
 .magic-rings-fx {
   position: absolute;
   inset: 0;
@@ -875,7 +916,7 @@ body {
   mix-blend-mode: screen;
 }
 
-/* По запросу: убираем свечение/неон в открытой книге; кольца у курсора (MagicRings) оставляем */
+/* РџРѕ Р·Р°РїСЂРѕСЃСѓ: СѓР±РёСЂР°РµРј СЃРІРµС‡РµРЅРёРµ/РЅРµРѕРЅ РІ РѕС‚РєСЂС‹С‚РѕР№ РєРЅРёРіРµ; РєРѕР»СЊС†Р° Сѓ РєСѓСЂСЃРѕСЂР° (MagicRings) РѕСЃС‚Р°РІР»СЏРµРј */
 .scene-stage.scene--book-open .magic-overlay,
 .scene-stage.scene--book-open .book-electric-fx-canvas,
 .scene-stage.scene--book-open .light-burst {
@@ -899,7 +940,7 @@ body {
 }
 
 /* =============================================================================
-   Перенос с 1-й картинки: Magic Rings на экранах словаря (3–5), под контентом main
+   РџРµСЂРµРЅРѕСЃ СЃ 1-Р№ РєР°СЂС‚РёРЅРєРё: Magic Rings РЅР° СЌРєСЂР°РЅР°С… СЃР»РѕРІР°СЂСЏ (3вЂ“5), РїРѕРґ РєРѕРЅС‚РµРЅС‚РѕРј main
    ============================================================================= */
 #main-content.app {
   position: relative;
@@ -921,7 +962,7 @@ body {
 body[data-active-screen="screen3"] .magic-rings-fx--global,
 body[data-active-screen="screen4"] .magic-rings-fx--global,
 body[data-active-screen="screen5"] .magic-rings-fx--global,
-/* Открытая книга на первом экране — те же кольца, что на обложке */
+/* РћС‚РєСЂС‹С‚Р°СЏ РєРЅРёРіР° РЅР° РїРµСЂРІРѕРј СЌРєСЂР°РЅРµ вЂ” С‚Рµ Р¶Рµ РєРѕР»СЊС†Р°, С‡С‚Рѕ РЅР° РѕР±Р»РѕР¶РєРµ */
 body[data-active-screen="screen1"]:has(#sceneStage.scene--book-open) .magic-rings-fx--global {
   opacity: 0.72;
   visibility: visible;
@@ -936,7 +977,7 @@ body[data-active-screen="screen1"]:has(#sceneStage.scene--book-open) .magic-ring
   mix-blend-mode: screen;
 }
 
-/* Без «выпрыгивающего» логотипа AI: фиксированный оверлей + лучи по маске PNG не перекрывают сцену и CTA */
+/* Р‘РµР· В«РІС‹РїСЂС‹РіРёРІР°СЋС‰РµРіРѕВ» Р»РѕРіРѕС‚РёРїР° AI: С„РёРєСЃРёСЂРѕРІР°РЅРЅС‹Р№ РѕРІРµСЂР»РµР№ + Р»СѓС‡Рё РїРѕ РјР°СЃРєРµ PNG РЅРµ РїРµСЂРµРєСЂС‹РІР°СЋС‚ СЃС†РµРЅСѓ Рё CTA */
 #tzVibeAiBrand {
   display: none !important;
   visibility: hidden !important;
@@ -953,7 +994,7 @@ body[data-active-screen="screen1"]:has(#sceneStage.scene--book-open) .magic-ring
   visibility: hidden !important;
 }
 
-/* Логотип AI по центру сверху — те же классы свечения/текста, что у разворота книги */
+/* Р›РѕРіРѕС‚РёРї AI РїРѕ С†РµРЅС‚СЂСѓ СЃРІРµСЂС…Сѓ вЂ” С‚Рµ Р¶Рµ РєР»Р°СЃСЃС‹ СЃРІРµС‡РµРЅРёСЏ/С‚РµРєСЃС‚Р°, С‡С‚Рѕ Сѓ СЂР°Р·РІРѕСЂРѕС‚Р° РєРЅРёРіРё */
 .tz-vibe-ai-brand {
   display: none;
   position: fixed;
@@ -966,13 +1007,13 @@ body[data-active-screen="screen1"]:has(#sceneStage.scene--book-open) .magic-ring
   pointer-events: none;
 }
 
-/* screen4–5: наложение PNG. screen1 открытая книга / screen3 — только арт, иначе дубль с картинкой */
+/* screen4вЂ“5: РЅР°Р»РѕР¶РµРЅРёРµ PNG. screen1 РѕС‚РєСЂС‹С‚Р°СЏ РєРЅРёРіР° / screen3 вЂ” С‚РѕР»СЊРєРѕ Р°СЂС‚, РёРЅР°С‡Рµ РґСѓР±Р»СЊ СЃ РєР°СЂС‚РёРЅРєРѕР№ */
 body[data-active-screen="screen4"] .tz-vibe-ai-brand,
 body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   display: flex;
 }
 
-/* JS syncVibeBrandOverlay — надёжнее селекторов по data-screen */
+/* JS syncVibeBrandOverlay вЂ” РЅР°РґС‘Р¶РЅРµРµ СЃРµР»РµРєС‚РѕСЂРѕРІ РїРѕ data-screen */
 .tz-vibe-ai-brand.tz-vibe-ai-brand--visible {
   display: flex !important;
   z-index: 240;
@@ -1008,7 +1049,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   }
 }
 
-/* Кнопки в духе «Войти» (cyan → purple), те же анимации свечения */
+/* РљРЅРѕРїРєРё РІ РґСѓС…Рµ В«Р’РѕР№С‚РёВ» (cyan в†’ purple), С‚Рµ Р¶Рµ Р°РЅРёРјР°С†РёРё СЃРІРµС‡РµРЅРёСЏ */
 .ui-btn--vibe-cover.ui-btn--ghost-nav,
 .ui-btn--vibe-cover.ui-btn--icon {
   border-radius: 999px;
@@ -1049,7 +1090,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   transform: translateY(0) scale(0.97);
 }
 
-/* Кнопка гимна — тот же градиент, что у «Войти» */
+/* РљРЅРѕРїРєР° РіРёРјРЅР° вЂ” С‚РѕС‚ Р¶Рµ РіСЂР°РґРёРµРЅС‚, С‡С‚Рѕ Сѓ В«Р’РѕР№С‚РёВ» */
 .ui-btn--hymn-toggle.ui-btn--vibe-cover {
   background: linear-gradient(
     145deg,
@@ -1075,7 +1116,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
     inset 0 0 0 1px rgba(245, 255, 255, 0.52);
 }
 
-/* Резервные submit/back на форме — тот же стиль (визуально скрыты, но класс единый) */
+/* Р РµР·РµСЂРІРЅС‹Рµ submit/back РЅР° С„РѕСЂРјРµ вЂ” С‚РѕС‚ Р¶Рµ СЃС‚РёР»СЊ (РІРёР·СѓР°Р»СЊРЅРѕ СЃРєСЂС‹С‚С‹, РЅРѕ РєР»Р°СЃСЃ РµРґРёРЅС‹Р№) */
 .ui-btn.ui-btn--vibe-cover:not(.ui-btn--ghost-nav):not(.ui-btn--icon):not(.ui-btn--hymn-toggle) {
   border-radius: 999px;
   border: 1px solid rgba(120, 225, 255, 0.58);
@@ -1108,7 +1149,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
     inset 0 0 0 1px rgba(245, 255, 255, 0.48);
 }
 
-/* За PNG: аналог Paper GrainGradient (Canvas в HTML), поля при contain — через прозрачный wrap */
+/* Р—Р° PNG: Р°РЅР°Р»РѕРі Paper GrainGradient (Canvas РІ HTML), РїРѕР»СЏ РїСЂРё contain вЂ” С‡РµСЂРµР· РїСЂРѕР·СЂР°С‡РЅС‹Р№ wrap */
 .grain-shader-bg {
   position: absolute;
   inset: 0;
@@ -1125,7 +1166,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   height: 100%;
 }
 
-/* Как в demo.tsx: bg-black/20 поверх шейдера */
+/* РљР°Рє РІ demo.tsx: bg-black/20 РїРѕРІРµСЂС… С€РµР№РґРµСЂР° */
 .grain-shader-bg::after {
   content: "";
   position: absolute;
@@ -1134,7 +1175,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   pointer-events: none;
 }
 
-/* Убирает заметные вертикальные полосы по краям при object-fit: contain */
+/* РЈР±РёСЂР°РµС‚ Р·Р°РјРµС‚РЅС‹Рµ РІРµСЂС‚РёРєР°Р»СЊРЅС‹Рµ РїРѕР»РѕСЃС‹ РїРѕ РєСЂР°СЏРј РїСЂРё object-fit: contain */
 .grain-shader-bg::before {
   content: "";
   position: absolute;
@@ -1158,7 +1199,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   pointer-events: none;
 }
 
-/* Один слой фона обложки: без второго «экрана» под картинкой */
+/* РћРґРёРЅ СЃР»РѕР№ С„РѕРЅР° РѕР±Р»РѕР¶РєРё: Р±РµР· РІС‚РѕСЂРѕРіРѕ В«СЌРєСЂР°РЅР°В» РїРѕРґ РєР°СЂС‚РёРЅРєРѕР№ */
 .scene-bg-wrap {
   position: absolute;
   inset: 0;
@@ -1202,7 +1243,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   display: flex;
 }
 
-/* Неон по контуру только на обложке (картинка 1); при открытии книги слой скрыт вместе с .scene-bg-wrap */
+/* РќРµРѕРЅ РїРѕ РєРѕРЅС‚СѓСЂСѓ С‚РѕР»СЊРєРѕ РЅР° РѕР±Р»РѕР¶РєРµ (РєР°СЂС‚РёРЅРєР° 1); РїСЂРё РѕС‚РєСЂС‹С‚РёРё РєРЅРёРіРё СЃР»РѕР№ СЃРєСЂС‹С‚ РІРјРµСЃС‚Рµ СЃ .scene-bg-wrap */
 .cover-book-perimeter-canvas {
   position: absolute;
   left: 0;
@@ -1215,7 +1256,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   mix-blend-mode: screen;
 }
 
-/* Неоновый дым фона (WebGL), без видимых «швов» — виньетка + screen */
+/* РќРµРѕРЅРѕРІС‹Р№ РґС‹Рј С„РѕРЅР° (WebGL), Р±РµР· РІРёРґРёРјС‹С… В«С€РІРѕРІВ» вЂ” РІРёРЅСЊРµС‚РєР° + screen */
 .smoke-bg-fx {
   position: absolute;
   inset: 0;
@@ -1252,22 +1293,22 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   opacity: 0.62;
 }
 
-/* При открытии книги не накладываем две картинки: закрытая обложка скрывается сразу */
+/* РџСЂРё РѕС‚РєСЂС‹С‚РёРё РєРЅРёРіРё РЅРµ РЅР°РєР»Р°РґС‹РІР°РµРј РґРІРµ РєР°СЂС‚РёРЅРєРё: Р·Р°РєСЂС‹С‚Р°СЏ РѕР±Р»РѕР¶РєР° СЃРєСЂС‹РІР°РµС‚СЃСЏ СЃСЂР°Р·Сѓ */
 .scene-stage.scene--book-open .scene-bg-wrap {
   display: none;
 }
 
-/* Маска нижней зоны: приглушает встроенные подписи внизу самой картинки */
+/* РњР°СЃРєР° РЅРёР¶РЅРµР№ Р·РѕРЅС‹: РїСЂРёРіР»СѓС€Р°РµС‚ РІСЃС‚СЂРѕРµРЅРЅС‹Рµ РїРѕРґРїРёСЃРё РІРЅРёР·Сѓ СЃР°РјРѕР№ РєР°СЂС‚РёРЅРєРё */
 .scene-bottom-mask {
   display: none;
 }
 
-/* Локальная заплатка фона поверх нижней подписи на исходной картинке */
+/* Р›РѕРєР°Р»СЊРЅР°СЏ Р·Р°РїР»Р°С‚РєР° С„РѕРЅР° РїРѕРІРµСЂС… РЅРёР¶РЅРµР№ РїРѕРґРїРёСЃРё РЅР° РёСЃС…РѕРґРЅРѕР№ РєР°СЂС‚РёРЅРєРµ */
 .scene-signature-erase {
   display: none;
 }
 
-/* Анимация градиентного текста (кнопка + надписи одежды) */
+/* РђРЅРёРјР°С†РёСЏ РіСЂР°РґРёРµРЅС‚РЅРѕРіРѕ С‚РµРєСЃС‚Р° (РєРЅРѕРїРєР° + РЅР°РґРїРёСЃРё РѕРґРµР¶РґС‹) */
 .gradient-animated-text {
   background-image: linear-gradient(90deg, #5227ff, #94058f, #d4e029, #5227ff);
   background-size: 300% 100%;
@@ -1300,7 +1341,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 }
 
 /*
-  Верхняя центральная колонка: форма доступа — без захода на лица и боковые надписи.
+  Р’РµСЂС…РЅСЏСЏ С†РµРЅС‚СЂР°Р»СЊРЅР°СЏ РєРѕР»РѕРЅРєР°: С„РѕСЂРјР° РґРѕСЃС‚СѓРїР° вЂ” Р±РµР· Р·Р°С…РѕРґР° РЅР° Р»РёС†Р° Рё Р±РѕРєРѕРІС‹Рµ РЅР°РґРїРёСЃРё.
 */
 .cover-overlay {
   position: absolute;
@@ -1450,7 +1491,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   text-align: left;
 }
 
-/* Неоновая «капсула» в стиле AI / вайб-кодинга на обложке */
+/* РќРµРѕРЅРѕРІР°СЏ В«РєР°РїСЃСѓР»Р°В» РІ СЃС‚РёР»Рµ AI / РІР°Р№Р±-РєРѕРґРёРЅРіР° РЅР° РѕР±Р»РѕР¶РєРµ */
 .cover-screen .access-input {
   display: block;
   width: 100%;
@@ -1486,7 +1527,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   backdrop-filter: blur(4px) saturate(1.15);
 }
 
-/* Плейсхолдер не используется (без подсказки с кодом); если появится — почти незаметен */
+/* РџР»РµР№СЃС…РѕР»РґРµСЂ РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ (Р±РµР· РїРѕРґСЃРєР°Р·РєРё СЃ РєРѕРґРѕРј); РµСЃР»Рё РїРѕСЏРІРёС‚СЃСЏ вЂ” РїРѕС‡С‚Рё РЅРµР·Р°РјРµС‚РµРЅ */
 .cover-screen .access-input::placeholder {
   color: rgba(230, 240, 255, 0.14);
   font-weight: 400;
@@ -1531,7 +1572,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 }
 
 /* =============================================================================
-   КНОПКИ И СООБЩЕНИЯ
+   РљРќРћРџРљР Р РЎРћРћР‘Р©Р•РќРРЇ
    ============================================================================= */
 .ghost-btn {
   margin-top: 12px;
@@ -1582,7 +1623,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
     0 1px 6px rgba(0, 0, 0, 0.85);
 }
 
-/* Ошибка встроена в сцену как неоновый элемент (без alert) */
+/* РћС€РёР±РєР° РІСЃС‚СЂРѕРµРЅР° РІ СЃС†РµРЅСѓ РєР°Рє РЅРµРѕРЅРѕРІС‹Р№ СЌР»РµРјРµРЅС‚ (Р±РµР· alert) */
 .cover-login-msg.error {
   color: #ffd4dc;
   border-color: rgba(255, 110, 145, 0.72);
@@ -1681,7 +1722,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
     0 1px 8px rgba(0, 0, 0, 0.92);
 }
 
-/* 1-2 попытки: крупнее, жирнее, с упором на цифру */
+/* 1-2 РїРѕРїС‹С‚РєРё: РєСЂСѓРїРЅРµРµ, Р¶РёСЂРЅРµРµ, СЃ СѓРїРѕСЂРѕРј РЅР° С†РёС„СЂСѓ */
 .cover-login-msg.error.error-attempt {
   font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
   font-weight: 800;
@@ -1766,7 +1807,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 }
 
 /* =============================================================================
-   РАСКРЫТАЯ КНИГА: слой внутри .book-slot (только после входа)
+   Р РђРЎРљР Р«РўРђРЇ РљРќРР“Рђ: СЃР»РѕР№ РІРЅСѓС‚СЂРё .book-slot (С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ РІС…РѕРґР°)
    ============================================================================= */
 .book-open-layer {
   position: absolute;
@@ -1791,7 +1832,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 }
 
 /* =============================================================================
-   КНИГА: СЦЕНА, ИЗОБРАЖЕНИЕ, ВРЕЗКИ СТРАНИЦ
+   РљРќРР“Рђ: РЎР¦Р•РќРђ, РР—РћР‘Р РђР–Р•РќРР•, Р’Р Р•Р—РљР РЎРўР РђРќРР¦
    ============================================================================= */
 .book-scene {
   position: relative;
@@ -1847,7 +1888,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   display: block;
 }
 
-/* Чистый Шаг 2: только картинка 2 + эффекты, без формы/страниц */
+/* Р§РёСЃС‚С‹Р№ РЁР°Рі 2: С‚РѕР»СЊРєРѕ РєР°СЂС‚РёРЅРєР° 2 + СЌС„С„РµРєС‚С‹, Р±РµР· С„РѕСЂРјС‹/СЃС‚СЂР°РЅРёС† */
 .scene-stage.scene--step2-visual .book-image-wrap .book-left,
 .scene-stage.scene--step2-visual .book-image-wrap .book-right {
   display: none !important;
@@ -1857,7 +1898,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   pointer-events: none;
 }
 
-/* Вариант B: неоновые лучи/искры поверх картинки 2 */
+/* Р’Р°СЂРёР°РЅС‚ B: РЅРµРѕРЅРѕРІС‹Рµ Р»СѓС‡Рё/РёСЃРєСЂС‹ РїРѕРІРµСЂС… РєР°СЂС‚РёРЅРєРё 2 */
 .book-electric-fx-canvas {
   position: absolute;
   inset: 0;
@@ -1875,7 +1916,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   opacity: 1;
 }
 
-/* D/E/F: индикаторные изменения интенсивности по режимам */
+/* D/E/F: РёРЅРґРёРєР°С‚РѕСЂРЅС‹Рµ РёР·РјРµРЅРµРЅРёСЏ РёРЅС‚РµРЅСЃРёРІРЅРѕСЃС‚Рё РїРѕ СЂРµР¶РёРјР°Рј */
 .scene-stage.book-fx-mode-d .book-electric-fx-canvas {
   filter: saturate(1.2) brightness(1.18);
 }
@@ -2008,7 +2049,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   }
 }
 
-/* Fallback: разворот книги на «столе» — объём, корешок, фактура бумаги */
+/* Fallback: СЂР°Р·РІРѕСЂРѕС‚ РєРЅРёРіРё РЅР° В«СЃС‚РѕР»РµВ» вЂ” РѕР±СЉС‘Рј, РєРѕСЂРµС€РѕРє, С„Р°РєС‚СѓСЂР° Р±СѓРјР°РіРё */
 .book-image-fallback {
   display: none;
   aspect-ratio: 16 / 10;
@@ -2107,7 +2148,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   display: block;
 }
 
-/* Врезки: расширенная рабочая зона, выше и плотнее к развороту */
+/* Р’СЂРµР·РєРё: СЂР°СЃС€РёСЂРµРЅРЅР°СЏ СЂР°Р±РѕС‡Р°СЏ Р·РѕРЅР°, РІС‹С€Рµ Рё РїР»РѕС‚РЅРµРµ Рє СЂР°Р·РІРѕСЂРѕС‚Сѓ */
 .book-left {
   position: absolute;
   z-index: 4;
@@ -2342,7 +2383,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 }
 
 /* =============================================================================
-   СЛОВАРЬ И ПАГИНАЦИЯ
+   РЎР›РћР’РђР Р¬ Р РџРђР“РРќРђР¦РРЇ
    ============================================================================= */
 .dictionary-page {
   flex: 1;
@@ -2517,7 +2558,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 }
 
 /* =============================================================================
-   ПОДПИСИ ПОД КНИГОЙ (один блок, без наложения строк)
+   РџРћР”РџРРЎР РџРћР” РљРќРР“РћР™ (РѕРґРёРЅ Р±Р»РѕРє, Р±РµР· РЅР°Р»РѕР¶РµРЅРёСЏ СЃС‚СЂРѕРє)
    ============================================================================= */
 .scene-footer {
   display: block !important;
@@ -2541,7 +2582,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 
 
 /* =============================================================================
-   ФОКУС (ДОСТУПНОСТЬ)
+   Р¤РћРљРЈРЎ (Р”РћРЎРўРЈРџРќРћРЎРўР¬)
    ============================================================================= */
 .paper-input:focus-visible,
 .paper-textarea:focus-visible,
@@ -2557,7 +2598,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 }
 
 /* =============================================================================
-   АДАПТИВ
+   РђР”РђРџРўРР’
    ============================================================================= */
 @media (max-width: 1200px) {
   .book-left {
@@ -2657,9 +2698,9 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 }
 
 
-    /* Дополнения: словарь в областях страниц book-open.svg */
+    /* Р”РѕРїРѕР»РЅРµРЅРёСЏ: СЃР»РѕРІР°СЂСЊ РІ РѕР±Р»Р°СЃС‚СЏС… СЃС‚СЂР°РЅРёС† book-open.svg */
 
-    /* Контейнер разворота: картинка снизу, контент — поверх страниц */
+    /* РљРѕРЅС‚РµР№РЅРµСЂ СЂР°Р·РІРѕСЂРѕС‚Р°: РєР°СЂС‚РёРЅРєР° СЃРЅРёР·Сѓ, РєРѕРЅС‚РµРЅС‚ вЂ” РїРѕРІРµСЂС… СЃС‚СЂР°РЅРёС† */
     #bookImageWrap.book-ui {
       position: relative;
       width: 100%;
@@ -2684,8 +2725,8 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
     }
 
     /*
-      Левая страница: x=80, y=60, w=720, h=880 → ~5%, 6%, 45%, 88%
-      Правая: x=800 → 50%, те же размеры (подгонка под book-open.svg)
+      Р›РµРІР°СЏ СЃС‚СЂР°РЅРёС†Р°: x=80, y=60, w=720, h=880 в†’ ~5%, 6%, 45%, 88%
+      РџСЂР°РІР°СЏ: x=800 в†’ 50%, С‚Рµ Р¶Рµ СЂР°Р·РјРµСЂС‹ (РїРѕРґРіРѕРЅРєР° РїРѕРґ book-open.svg)
     */
     #bookImageWrap.book-ui .book-left,
     #bookImageWrap.book-ui .book-right {
@@ -2706,7 +2747,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
     #bookImageWrap.book-ui .book-left {
       left: 5%;
       width: 45%;
-      /* ближе к корешку: больше отступ от внешнего левого края */
+      /* Р±Р»РёР¶Рµ Рє РєРѕСЂРµС€РєСѓ: Р±РѕР»СЊС€Рµ РѕС‚СЃС‚СѓРї РѕС‚ РІРЅРµС€РЅРµРіРѕ Р»РµРІРѕРіРѕ РєСЂР°СЏ */
       padding: 2.5% 5% 3% 8%;
       box-sizing: border-box;
     }
@@ -2714,19 +2755,19 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
     #bookImageWrap.book-ui .book-right {
       left: 50%;
       width: 45%;
-      /* ближе к корешку: больше отступ от внешнего правого края */
+      /* Р±Р»РёР¶Рµ Рє РєРѕСЂРµС€РєСѓ: Р±РѕР»СЊС€Рµ РѕС‚СЃС‚СѓРї РѕС‚ РІРЅРµС€РЅРµРіРѕ РїСЂР°РІРѕРіРѕ РєСЂР°СЏ */
       padding: 2.5% 8% 3% 5%;
       box-sizing: border-box;
     }
 
-/* Режим записи на форме forma_cl.png:
-   левая колонка — к центру левой страницы; правая — к центру правой (к корешку от внешнего края) */
+/* Р РµР¶РёРј Р·Р°РїРёСЃРё РЅР° С„РѕСЂРјРµ forma_cl.png:
+   Р»РµРІР°СЏ РєРѕР»РѕРЅРєР° вЂ” Рє С†РµРЅС‚СЂСѓ Р»РµРІРѕР№ СЃС‚СЂР°РЅРёС†С‹; РїСЂР°РІР°СЏ вЂ” Рє С†РµРЅС‚СЂСѓ РїСЂР°РІРѕР№ (Рє РєРѕСЂРµС€РєСѓ РѕС‚ РІРЅРµС€РЅРµРіРѕ РєСЂР°СЏ) */
 #bookImageWrap.book-ui .book-mode--write .book-left {
   left: 50%;
   top: 18%;
   width: 21%;
   height: 48%;
-  /* к центру левой страницы: поле от внешнего края и у корешка */
+  /* Рє С†РµРЅС‚СЂСѓ Р»РµРІРѕР№ СЃС‚СЂР°РЅРёС†С‹: РїРѕР»Рµ РѕС‚ РІРЅРµС€РЅРµРіРѕ РєСЂР°СЏ Рё Сѓ РєРѕСЂРµС€РєР° */
   padding: 0 4% 0 8%;
   transform: translateX(-100%);
   box-sizing: border-box;
@@ -3027,7 +3068,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   opacity: 0.9;
 }
 
-/* Низ разворота: Далее / Закрыть книгу */
+/* РќРёР· СЂР°Р·РІРѕСЂРѕС‚Р°: Р”Р°Р»РµРµ / Р—Р°РєСЂС‹С‚СЊ РєРЅРёРіСѓ */
 #bookImageWrap.book-ui .book-write-bottom {
   position: absolute;
   left: 5%;
@@ -3097,7 +3138,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
       }
     }
 
-    /* ========== ТЗ: заголовок обложки (outline, glow, letter-spacing) ========== */
+    /* ========== РўР—: Р·Р°РіРѕР»РѕРІРѕРє РѕР±Р»РѕР¶РєРё (outline, glow, letter-spacing) ========== */
     .cover-title-hero {
       margin: 0 auto 10px;
       max-width: 18ch;
@@ -3221,7 +3262,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
       cursor: wait;
     }
 
-    /* ========== ТЗ: div.flash (успех / ошибка) ========== */
+    /* ========== РўР—: div.flash (СѓСЃРїРµС… / РѕС€РёР±РєР°) ========== */
     .flash {
       position: absolute;
       inset: 0;
@@ -3263,9 +3304,9 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
       animation: flashErrorOops 0.58s cubic-bezier(0.2, 0.9, 0.24, 1) forwards;
     }
 
-    /* "УПСС!" внутри сцены — часть красной вспышки */
+    /* "РЈРџРЎРЎ!" РІРЅСѓС‚СЂРё СЃС†РµРЅС‹ вЂ” С‡Р°СЃС‚СЊ РєСЂР°СЃРЅРѕР№ РІСЃРїС‹С€РєРё */
     #sceneFlash.flash--error-pulse::before {
-      content: "УПСС!";
+      content: "РЈРџРЎРЎ!";
       position: absolute;
       left: 50%;
       top: 42%;
@@ -3368,7 +3409,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
       }
     }
 
-    /* ТЗ: shake при неверном пароле */
+    /* РўР—: shake РїСЂРё РЅРµРІРµСЂРЅРѕРј РїР°СЂРѕР»Рµ */
     .cover-access-float.access-shake {
       animation: accessShake 0.45s ease;
     }
@@ -3392,7 +3433,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
       }
     }
 
-    /* ТЗ: Light Burst + crossfade на развороте книги */
+    /* РўР—: Light Burst + crossfade РЅР° СЂР°Р·РІРѕСЂРѕС‚Рµ РєРЅРёРіРё */
     .light-burst {
       position: absolute;
       inset: -8%;
@@ -3485,7 +3526,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
     }
 
 /* =============================================================================
-   ТЗ VIBE Dictionary: экраны 2–5 (тёмный космос, без белого фона)
+   РўР— VIBE Dictionary: СЌРєСЂР°РЅС‹ 2вЂ“5 (С‚С‘РјРЅС‹Р№ РєРѕСЃРјРѕСЃ, Р±РµР· Р±РµР»РѕРіРѕ С„РѕРЅР°)
    ============================================================================= */
 #main-content > .screen:not(.active) {
   display: none !important;
@@ -3909,7 +3950,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   border-color: rgba(123, 97, 255, 0.5);
 }
 
-/* Плавающие слова (форма + разворот книги), только декор */
+/* РџР»Р°РІР°СЋС‰РёРµ СЃР»РѕРІР° (С„РѕСЂРјР° + СЂР°Р·РІРѕСЂРѕС‚ РєРЅРёРіРё), С‚РѕР»СЊРєРѕ РґРµРєРѕСЂ */
 .magic-float-words {
   position: absolute;
   inset: 0;
@@ -3918,10 +3959,10 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   overflow: hidden;
 }
 
-/* Выше .book-image (z:1) и canvas эффектов (z:2), ниже страниц book-left/right (z:4) */
+/* Р’С‹С€Рµ .book-image (z:1) Рё canvas СЌС„С„РµРєС‚РѕРІ (z:2), РЅРёР¶Рµ СЃС‚СЂР°РЅРёС† book-left/right (z:4) */
 .magic-float-words--book {
   z-index: 3;
-  /* Иначе смещение + свечение обрезаются у краёв разворота */
+  /* РРЅР°С‡Рµ СЃРјРµС‰РµРЅРёРµ + СЃРІРµС‡РµРЅРёРµ РѕР±СЂРµР·Р°СЋС‚СЃСЏ Сѓ РєСЂР°С‘РІ СЂР°Р·РІРѕСЂРѕС‚Р° */
   overflow: visible;
 }
 
@@ -3943,7 +3984,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   will-change: transform, opacity;
 }
 
-/* Разворот: одна анимация (движение + неон) — иначе два @keyframes на одном элементе гасят transform в части браузеров */
+/* Р Р°Р·РІРѕСЂРѕС‚: РѕРґРЅР° Р°РЅРёРјР°С†РёСЏ (РґРІРёР¶РµРЅРёРµ + РЅРµРѕРЅ) вЂ” РёРЅР°С‡Рµ РґРІР° @keyframes РЅР° РѕРґРЅРѕРј СЌР»РµРјРµРЅС‚Рµ РіР°СЃСЏС‚ transform РІ С‡Р°СЃС‚Рё Р±СЂР°СѓР·РµСЂРѕРІ */
 .magic-float-words--book .magic-float-word {
   will-change: transform, opacity, filter;
   animation: bookFloatMoveNeon var(--mf-dur, 22s) ease-in-out infinite;
@@ -4025,7 +4066,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   }
 }
 
-/* Плавный цикл: смещение + лёгкий поворот + «дыхание» opacity */
+/* РџР»Р°РІРЅС‹Р№ С†РёРєР»: СЃРјРµС‰РµРЅРёРµ + Р»С‘РіРєРёР№ РїРѕРІРѕСЂРѕС‚ + В«РґС‹С…Р°РЅРёРµВ» opacity */
 @keyframes magicFloatBookDrift {
   0%,
   100% {
@@ -4051,7 +4092,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Не обнулять animation целиком — иначе слова «мертвые» и без свечения визуально */
+  /* РќРµ РѕР±РЅСѓР»СЏС‚СЊ animation С†РµР»РёРєРѕРј вЂ” РёРЅР°С‡Рµ СЃР»РѕРІР° В«РјРµСЂС‚РІС‹РµВ» Рё Р±РµР· СЃРІРµС‡РµРЅРёСЏ РІРёР·СѓР°Р»СЊРЅРѕ */
   .magic-float-word {
     animation-duration: 90s !important;
     animation-timing-function: linear !important;
@@ -4069,7 +4110,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 }
 
 /* =============================================================================
-   screen3 (forma_cl): плавающие слова — только края кадра, не трогаем --book
+   screen3 (forma_cl): РїР»Р°РІР°СЋС‰РёРµ СЃР»РѕРІР° вЂ” С‚РѕР»СЊРєРѕ РєСЂР°СЏ РєР°РґСЂР°, РЅРµ С‚СЂРѕРіР°РµРј --book
    ============================================================================= */
 .magic-float-words--forma {
   z-index: 2;
@@ -4083,7 +4124,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   animation: formaFloatWord var(--mf-dur, 36s) ease-in-out infinite;
   animation-delay: var(--mf-delay, 0s);
   will-change: transform, opacity;
-  /* Неон + читаемая плотность; filter усиливает свечение в WebKit/Chromium */
+  /* РќРµРѕРЅ + С‡РёС‚Р°РµРјР°СЏ РїР»РѕС‚РЅРѕСЃС‚СЊ; filter СѓСЃРёР»РёРІР°РµС‚ СЃРІРµС‡РµРЅРёРµ РІ WebKit/Chromium */
   color: rgba(230, 210, 255, 0.98);
   text-shadow:
     0 0 12px rgba(180, 120, 255, 0.95),
@@ -4135,7 +4176,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   }
 }
 
-/* --- FINAL ТЗ: единая «магическая книга», фоновые изображения, LOGO --- */
+/* --- FINAL РўР—: РµРґРёРЅР°СЏ В«РјР°РіРёС‡РµСЃРєР°СЏ РєРЅРёРіР°В», С„РѕРЅРѕРІС‹Рµ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ, LOGO --- */
 .tz-bg-img {
   display: block;
   width: 100%;
@@ -4145,7 +4186,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   margin: 0 auto;
 }
 
-/* Обрезка краёв PNG-баннеров: без видимой «рамки» файла на тёмном фоне экрана */
+/* РћР±СЂРµР·РєР° РєСЂР°С‘РІ PNG-Р±Р°РЅРЅРµСЂРѕРІ: Р±РµР· РІРёРґРёРјРѕР№ В«СЂР°РјРєРёВ» С„Р°Р№Р»Р° РЅР° С‚С‘РјРЅРѕРј С„РѕРЅРµ СЌРєСЂР°РЅР° */
 .tz-bg-img-wrap--safe-crop {
   position: relative;
   z-index: 1;
@@ -4166,7 +4207,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   transform-origin: center center;
 }
 
-/* Разворот: высота блока = высота PNG → left/top/% у формы совпадают с пергаментом */
+/* Р Р°Р·РІРѕСЂРѕС‚: РІС‹СЃРѕС‚Р° Р±Р»РѕРєР° = РІС‹СЃРѕС‚Р° PNG в†’ left/top/% Сѓ С„РѕСЂРјС‹ СЃРѕРІРїР°РґР°СЋС‚ СЃ РїРµСЂРіР°РјРµРЅС‚РѕРј */
 .tz-forma-book-layer {
   position: relative;
   width: 100%;
@@ -4195,7 +4236,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   box-sizing: border-box;
 }
 
-/* Искры и частицы у переплёта (screen3, центр разворота на иллюстрации) */
+/* РСЃРєСЂС‹ Рё С‡Р°СЃС‚РёС†С‹ Сѓ РїРµСЂРµРїР»С‘С‚Р° (screen3, С†РµРЅС‚СЂ СЂР°Р·РІРѕСЂРѕС‚Р° РЅР° РёР»Р»СЋСЃС‚СЂР°С†РёРё) */
 .tz-forma-spine-magic {
   position: absolute;
   left: 50%;
@@ -4402,7 +4443,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   }
 }
 
-/* Краткий «всплеск» при сохранении (~0.85s), переплёт по центру иллюстрации */
+/* РљСЂР°С‚РєРёР№ В«РІСЃРїР»РµСЃРєВ» РїСЂРё СЃРѕС…СЂР°РЅРµРЅРёРё (~0.85s), РїРµСЂРµРїР»С‘С‚ РїРѕ С†РµРЅС‚СЂСѓ РёР»Р»СЋСЃС‚СЂР°С†РёРё */
 .tz-forma-spine-magic--save-burst .tz-spine-core {
   animation: tzSpineBurstCore 0.85s ease-out forwards;
 }
@@ -4544,7 +4585,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   z-index: 4;
 }
 
-/* Левая страница: по центру левой половины разворота, внутри орнамента */
+/* Р›РµРІР°СЏ СЃС‚СЂР°РЅРёС†Р°: РїРѕ С†РµРЅС‚СЂСѓ Р»РµРІРѕР№ РїРѕР»РѕРІРёРЅС‹ СЂР°Р·РІРѕСЂРѕС‚Р°, РІРЅСѓС‚СЂРё РѕСЂРЅР°РјРµРЅС‚Р° */
 .tz-forma-book-layer .tz-forma-form {
   position: absolute;
   left: 25%;
@@ -4564,13 +4605,13 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   scrollbar-width: thin;
 }
 
-/* Форма как страница книги: без «серых полей», рукописный текст */
+/* Р¤РѕСЂРјР° РєР°Рє СЃС‚СЂР°РЅРёС†Р° РєРЅРёРіРё: Р±РµР· В«СЃРµСЂС‹С… РїРѕР»РµР№В», СЂСѓРєРѕРїРёСЃРЅС‹Р№ С‚РµРєСЃС‚ */
 .tz-forma-form--spellbook {
   position: absolute;
   padding-bottom: clamp(28px, 4vh, 40px);
 }
 
-/* Резервные submit/back: скрыты визуально, доступны для отправки формы по Enter */
+/* Р РµР·РµСЂРІРЅС‹Рµ submit/back: СЃРєСЂС‹С‚С‹ РІРёР·СѓР°Р»СЊРЅРѕ, РґРѕСЃС‚СѓРїРЅС‹ РґР»СЏ РѕС‚РїСЂР°РІРєРё С„РѕСЂРјС‹ РїРѕ Enter */
 .tz-forma-reserve-btns {
   position: absolute;
   width: 1px;
@@ -4605,13 +4646,13 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   outline: none;
   resize: vertical;
   caret-color: #2a2460;
-  /* Мягкий «перообразный» курсор, цвет чернил */
+  /* РњСЏРіРєРёР№ В«РїРµСЂРѕРѕР±СЂР°Р·РЅС‹Р№В» РєСѓСЂСЃРѕСЂ, С†РІРµС‚ С‡РµСЂРЅРёР» */
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='26' viewBox='0 0 22 26'%3E%3Cpath fill='%232a2460' fill-opacity='0.88' d='M11 3 L12.5 21 L11 24 L9.5 21 Z'/%3E%3C/svg%3E")
       11 24,
     text;
 }
 
-/* Одна строка, крупнее */
+/* РћРґРЅР° СЃС‚СЂРѕРєР°, РєСЂСѓРїРЅРµРµ */
 #screen3 .tz-input--spellbook-word {
   font-size: clamp(1.45rem, 3.6vw, 1.85rem);
   line-height: 1.2;
@@ -4622,7 +4663,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
     0 0 18px rgba(100, 80, 160, 0.18);
 }
 
-/* Многострочное описание: увеличенный интерлиньяж */
+/* РњРЅРѕРіРѕСЃС‚СЂРѕС‡РЅРѕРµ РѕРїРёСЃР°РЅРёРµ: СѓРІРµР»РёС‡РµРЅРЅС‹Р№ РёРЅС‚РµСЂР»РёРЅСЊСЏР¶ */
 #screen3 .tz-textarea--spellbook-desc {
   font-size: clamp(1.15rem, 2.8vw, 1.45rem);
   line-height: 1.75;
@@ -4657,7 +4698,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   text-shadow: 0 0 12px rgba(90, 75, 150, 0.32) !important;
 }
 
-/* «сохранить | редактировать» — только текст */
+/* В«СЃРѕС…СЂР°РЅРёС‚СЊ | СЂРµРґР°РєС‚РёСЂРѕРІР°С‚СЊВ» вЂ” С‚РѕР»СЊРєРѕ С‚РµРєСЃС‚ */
 .tz-forma-text-actions {
   display: flex;
   flex-wrap: wrap;
@@ -4838,7 +4879,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   line-height: 1.5;
 }
 
-/* Правая страница: явный формат «1. слово — описание», тёмный текст */
+/* РџСЂР°РІР°СЏ СЃС‚СЂР°РЅРёС†Р°: СЏРІРЅС‹Р№ С„РѕСЂРјР°С‚ В«1. СЃР»РѕРІРѕ вЂ” РѕРїРёСЃР°РЅРёРµВ», С‚С‘РјРЅС‹Р№ С‚РµРєСЃС‚ */
 .tz-ink-block {
   margin: 0;
   padding: 0;
@@ -4946,7 +4987,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 }
 
 /* =============================================================================
-   Финальная сборка: энергия на обложке, ui-btn, вход экрана
+   Р¤РёРЅР°Р»СЊРЅР°СЏ СЃР±РѕСЂРєР°: СЌРЅРµСЂРіРёСЏ РЅР° РѕР±Р»РѕР¶РєРµ, ui-btn, РІС…РѕРґ СЌРєСЂР°РЅР°
    ============================================================================= */
 
 .cover-energy-burst {
@@ -5080,7 +5121,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
     0 4px 18px rgba(74, 108, 255, 0.35);
 }
 
-/* Кнопка гимна: screen3–5, правый верх */
+/* РљРЅРѕРїРєР° РіРёРјРЅР°: screen3вЂ“5, РїСЂР°РІС‹Р№ РІРµСЂС… */
 .ui-btn--hymn-toggle {
   position: fixed;
   top: clamp(10px, 2.5vh, 22px);
@@ -5166,7 +5207,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   }
 }
 
-/* Резерв под свечение книги (сейчас выключено; анимации добавим отдельно) */
+/* Р РµР·РµСЂРІ РїРѕРґ СЃРІРµС‡РµРЅРёРµ РєРЅРёРіРё (СЃРµР№С‡Р°СЃ РІС‹РєР»СЋС‡РµРЅРѕ; Р°РЅРёРјР°С†РёРё РґРѕР±Р°РІРёРј РѕС‚РґРµР»СЊРЅРѕ) */
 .cover-book-glow {
   position: absolute;
   inset: 0;
@@ -5175,3 +5216,4 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   opacity: 0;
   visibility: hidden;
 }
+
