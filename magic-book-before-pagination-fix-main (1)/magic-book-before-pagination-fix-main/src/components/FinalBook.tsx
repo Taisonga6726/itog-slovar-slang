@@ -17,6 +17,12 @@ interface PageNav {
   onNext: () => void;
 }
 
+/** Сдвиг влево для N-й строки на странице (0…) — выпрямляет «лесенку» на текстуре финальной книги */
+const FINAL_ROW_NUDGE_PX = [0, 5, 10, 15, 20] as const;
+function finalRowNudgePx(localIndex: number): number {
+  return FINAL_ROW_NUDGE_PX[Math.min(Math.max(0, localIndex), FINAL_ROW_NUDGE_PX.length - 1)];
+}
+
 interface FinalBookProps {
   entries: Entry[];
   setEntries: React.Dispatch<React.SetStateAction<Entry[]>>;
@@ -63,14 +69,31 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
       const result: Entry[][] = [[]];
       let currentHeight = 0;
 
-      for (let i = 0; i < entries.length; i++) {
+      const decodeImagesInMeasure = async () => {
+        const imgs = Array.from(measure.querySelectorAll("img"));
+        await Promise.all(imgs.map((img) =>
+          (img as HTMLImageElement).decode
+            ? (img as HTMLImageElement).decode().catch(() => {})
+            : new Promise<void>((r) => {
+                if ((img as HTMLImageElement).complete) r();
+                else {
+                  const el = img as HTMLImageElement;
+                  el.onload = () => r();
+                  el.onerror = () => r();
+                }
+              })
+        ));
+      };
+
+      const appendEntryDom = (entryIndex: number, localIndex: number) => {
         const wrap = document.createElement("div");
-        wrap.style.cssText = `margin-bottom:0.6em;width:100%;box-sizing:border-box;display:grid;grid-template-columns:${ENTRY_GRID_COLS};column-gap:0.4rem;align-items:start;justify-items:stretch`;
+        const nudge = finalRowNudgePx(localIndex);
+        wrap.style.cssText = `margin-bottom:0.6em;width:100%;box-sizing:border-box;display:grid;grid-template-columns:${ENTRY_GRID_COLS};column-gap:0.4rem;align-items:start;justify-items:stretch;contain:layout;transform:translateX(-${nudge}px)`;
 
         const numCell = document.createElement("div");
         numCell.style.cssText =
           "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif;color:#120c34";
-        numCell.textContent = `${i + 1}.`;
+        numCell.textContent = `${entryIndex + 1}.`;
         wrap.appendChild(numCell);
 
         const body = document.createElement("div");
@@ -79,17 +102,17 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
         const title = document.createElement("div");
         title.style.cssText =
           "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:left;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
-        title.textContent = entries[i].word;
+        title.textContent = entries[entryIndex].word;
         body.appendChild(title);
 
-        if (entries[i].description) {
+        if (entries[entryIndex].description) {
           const desc = document.createElement("div");
           desc.style.cssText = "font-size:1rem;line-height:1.2;text-align:left;overflow-wrap:anywhere;word-break:break-word";
-          desc.textContent = `— ${entries[i].description.replace(/^[—-]\s*/, "").replace(/\s+/g, " ").trim()}`;
+          desc.textContent = `— ${entries[entryIndex].description.replace(/^[—-]\s*/, "").replace(/\s+/g, " ").trim()}`;
           body.appendChild(desc);
         }
 
-        (entries[i].images ?? []).forEach((src) => {
+        (entries[entryIndex].images ?? []).forEach((src) => {
           const img = document.createElement("img");
           img.src = src;
           img.style.cssText = `display:block;max-width:100%;max-height:${ENTRY_IMAGE_MAX_HEIGHT}px;height:auto;object-fit:contain;margin:6px 0`;
@@ -98,33 +121,35 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
 
         const reactions = document.createElement("div");
         reactions.style.cssText = "display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;font-size:13px;line-height:1.1;color:#1a1440";
-        reactions.textContent = `🔥 ${entries[i].reactions?.fire || 0}  ❤️ ${entries[i].reactions?.love || 0}  🚀 ${entries[i].reactions?.rocket || 0}  😂 ${entries[i].reactions?.laugh || 0}  👍 ${entries[i].reactions?.like || 0}`;
+        reactions.textContent = `🔥 ${entries[entryIndex].reactions?.fire || 0}  ❤️ ${entries[entryIndex].reactions?.love || 0}  🚀 ${entries[entryIndex].reactions?.rocket || 0}  😂 ${entries[entryIndex].reactions?.laugh || 0}  👍 ${entries[entryIndex].reactions?.like || 0}`;
         body.appendChild(reactions);
 
         wrap.appendChild(body);
+        return wrap;
+      };
 
-
+      const mountAndMeasure = async (entryIndex: number, localIndex: number) => {
         measure.innerHTML = "";
-        measure.appendChild(wrap);
+        measure.appendChild(appendEntryDom(entryIndex, localIndex));
+        await decodeImagesInMeasure();
+        if (cancelled) return 0;
+        return measure.offsetHeight;
+      };
 
-        const imgs = Array.from(measure.querySelectorAll("img"));
-        await Promise.all(imgs.map((img) =>
-          (img as HTMLImageElement).decode
-            ? (img as HTMLImageElement).decode().catch(() => {})
-            : new Promise<void>((r) => {
-                if ((img as HTMLImageElement).complete) r();
-                else { img.onload = () => r(); img.onerror = () => r(); }
-              })
-        ));
+      for (let i = 0; i < entries.length; i++) {
+        const tail = result[result.length - 1];
+        const localIdx = tail.length;
 
+        let h = await mountAndMeasure(i, localIdx);
         if (cancelled) return;
-        const h = measure.offsetHeight;
 
-        if (currentHeight + h > availableHeight && result[result.length - 1].length > 0) {
+        if (currentHeight + h > availableHeight && tail.length > 0) {
+          h = await mountAndMeasure(i, 0);
+          if (cancelled) return;
           result.push([entries[i]]);
           currentHeight = h;
         } else {
-          result[result.length - 1].push(entries[i]);
+          tail.push(entries[i]);
           currentHeight += h;
         }
       }
@@ -185,7 +210,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
 
   const descText = (raw: string) => raw.replace(/^[—-]\s*/, "").replace(/\s+/g, " ").trim();
 
-  const renderEntry = (entry: Entry, globalIdx: number) => (
+  const renderEntry = (entry: Entry, globalIdx: number, localIdx: number) => (
     <div
       key={globalIdx}
       className="w-full box-border"
@@ -197,6 +222,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
         alignItems: "start",
         justifyItems: "stretch",
         contain: "layout",
+        transform: `translateX(-${finalRowNudgePx(localIdx)}px)`,
       }}
     >
       <div
@@ -287,26 +313,26 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
             ref={leftContentRef}
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
-               left: "22.25%", top: "20.35%", width: "22.8%", height: "54.9%",
-               padding: "10px 6px 22px 58px",
+               left: "21.88%", top: "20.35%", width: "22.8%", height: "54.9%",
+               padding: "10px 7px 22px 50px",
                boxSizing: "border-box",
                overflowWrap: "break-word", wordBreak: "break-word",
             }}
           >
-            {leftPageEntries.map((entry) => renderEntry(entry, getGlobalIndex(entry)))}
+            {leftPageEntries.map((entry, i) => renderEntry(entry, getGlobalIndex(entry), i))}
           </div>
 
           {/* Right page */}
           <div
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
-              left: "50.68%", top: "20.35%", width: "22.35%", height: "54.9%",
-              padding: "10px 24px 22px 0px",
+              left: "51.08%", top: "20.35%", width: "22.35%", height: "54.9%",
+              padding: "10px 26px 22px 0px",
               boxSizing: "border-box",
               overflowWrap: "break-word", wordBreak: "break-word",
             }}
           >
-            {rightPageEntries.map((entry) => renderEntry(entry, getGlobalIndex(entry)))}
+            {rightPageEntries.map((entry, i) => renderEntry(entry, getGlobalIndex(entry), i))}
           </div>
         </div>
       </div>
