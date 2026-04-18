@@ -288,7 +288,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
                left: "21.05%", top: "20.35%", width: "22.8%", height: "54.9%",
-               padding: "10px 8px 22px 24px",
+               padding: "10px 8px 22px 26px",
                boxSizing: "border-box",
                overflowWrap: "break-word", wordBreak: "break-word",
             }}
@@ -301,7 +301,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
               left: "51.72%", top: "20.35%", width: "22.35%", height: "54.9%",
-              padding: "10px 10px 22px 0px",
+              padding: "10px 22px 22px 0px",
               boxSizing: "border-box",
               overflowWrap: "break-word", wordBreak: "break-word",
             }}

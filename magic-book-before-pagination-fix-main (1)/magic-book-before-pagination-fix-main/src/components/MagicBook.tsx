@@ -347,7 +347,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
           top: "20.35%",
           width: "22.8%",
           height: "54.9%",
-          padding: "10px 10px 22px 18px",
+          padding: "10px 10px 22px 24px",
           boxSizing: "border-box",
           overflow: "hidden",
           display: "flex",
@@ -486,7 +486,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
           top: "20.35%",
           width: "22.35%",
           height: "54.9%",
-          padding: "10px 10px 22px 0px",
+          padding: "10px 22px 22px 0px",
           boxSizing: "border-box",
           overflow: "hidden", overflowWrap: "break-word", wordBreak: "break-word",
         }}
