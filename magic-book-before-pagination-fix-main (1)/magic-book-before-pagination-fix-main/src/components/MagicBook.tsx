@@ -50,6 +50,13 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
   const rightContentRef = useRef<HTMLDivElement>(null);
   const prevPageBreaksLen = useRef(1);
 
+  useEffect(() => {
+    const t = window.setTimeout(() => {
+      wordInputRef.current?.focus();
+    }, 80);
+    return () => window.clearTimeout(t);
+  }, []);
+
   const playPenSound = useCallback(() => {
     if (!penAudio.current) {
       penAudio.current = new Audio("/pen-scratch.mp3");

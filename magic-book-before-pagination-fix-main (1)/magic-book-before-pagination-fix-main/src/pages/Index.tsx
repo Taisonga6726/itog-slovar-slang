@@ -202,7 +202,7 @@ const Index = () => {
       )}
       </div>
 
-      {mode !== "intro" && <VibeAiBrand />}
+      {(mode === "reading" || mode === "final") && <VibeAiBrand />}
 
       {mode !== "intro" && (
         <ControlBar
