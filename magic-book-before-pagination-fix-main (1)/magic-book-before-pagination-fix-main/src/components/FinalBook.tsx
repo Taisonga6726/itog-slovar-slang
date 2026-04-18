@@ -1,4 +1,4 @@
-import { useCallback, useRef, useEffect, useState } from "react";
+﻿import { useCallback, useRef, useEffect, useState } from "react";
 import bookFinalImg from "@/assets/book.png";
 import SpineEffect from "./SpineEffect";
 import FinalBookMagicFX from "./FinalBookMagicFX";
@@ -25,6 +25,10 @@ interface FinalBookProps {
 }
 
 const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) => {
+  const requestMusicDuck = useCallback((holdMs = 1000) => {
+    window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
+  }, []);
+
   const flipAudio = useRef<HTMLAudioElement | null>(null);
   const [currentSpread, setCurrentSpread] = useState(0);
   const [pages, setPages] = useState<Entry[][]>([]);
@@ -32,10 +36,10 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
 
   useEffect(() => {
     flipAudio.current = new Audio("/page-flip.mp3");
-    flipAudio.current.volume = 0.5;
+    flipAudio.current.volume = 0.92;
   }, []);
 
-  // Dynamic pagination — measure entry heights like MagicBook
+  // Dynamic pagination вЂ” measure entry heights like MagicBook
   useEffect(() => {
     if (entries.length === 0) {
       setPages([]);
@@ -67,8 +71,8 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
 
         if (entries[i].description) {
           const desc = document.createElement("div");
-          desc.style.cssText = "font-size:1rem;line-height:1.15;text-align:left";
-          desc.textContent = `— ${entries[i].description.replace(/^[—–-]\s*/, "")}`;
+          desc.style.cssText = "font-size:1rem;line-height:1.2;text-align:left";
+          desc.textContent = `— ${entries[i].description.replace(/^[—-]\s*/, "")}`;
           wrap.appendChild(desc);
         }
 
@@ -79,10 +83,6 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
           wrap.appendChild(img);
         });
 
-        const reactions = document.createElement("div");
-        reactions.style.cssText = "font-size:13px;text-align:right";
-        reactions.textContent = "🔥 0 ❤️ 0 🚀 0 😂 0 👍 0";
-        wrap.appendChild(reactions);
 
         measure.innerHTML = "";
         measure.appendChild(wrap);
@@ -123,11 +123,12 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
   }, []);
 
   const playFlipSound = useCallback(() => {
+    requestMusicDuck(1100);
     if (flipAudio.current) {
       flipAudio.current.currentTime = 0;
       flipAudio.current.play().catch(() => {});
     }
-  }, []);
+  }, [requestMusicDuck]);
 
   const totalSpreads = Math.max(1, Math.ceil(pages.length / 2));
 
@@ -146,22 +147,6 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
     setTimeout(() => onBack(), 400);
   }, [playFlipSound, onBack]);
 
-  const renderInkWord = (text: string) => (
-    <span>
-      {text.split("").map((ch, i) => (
-        <span key={i} style={{ opacity: 0.85 + Math.random() * 0.15 }}>{ch}</span>
-      ))}
-    </span>
-  );
-
-  const updateReaction = useCallback((globalIdx: number, type: "fire" | "love" | "rocket" | "laugh" | "like") => {
-    setEntries((prev) =>
-      prev.map((w, i) =>
-        i === globalIdx ? { ...w, reactions: { ...w.reactions, [type]: (w.reactions?.[type] || 0) + 1 } } : w
-      )
-    );
-  }, [setEntries]);
-
   // Get global index for an entry
   const getGlobalIndex = (entry: Entry) => entries.indexOf(entry);
 
@@ -169,41 +154,33 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
   const rightPageIdx = currentSpread * 2 + 1;
   const leftPageEntries = pages[leftPageIdx] || [];
   const rightPageEntries = pages[rightPageIdx] || [];
-  const leftPageNum = leftPageIdx + 1;
-  const rightPageNum = rightPageIdx + 1;
 
   const renderEntry = (entry: Entry, globalIdx: number) => (
     <div key={globalIdx} className="w-full" style={{ marginBottom: "0.6em" }}>
       <div
         className="text-xl font-bold w-full"
         style={{
-          color: "#1a1440",
+          color: "#120c34",
           fontFamily: "'Cormorant Garamond', serif",
-          fontStyle: "italic",
-          lineHeight: "1.15",
+          fontStyle: "normal",
+          lineHeight: "1.22",
           textAlign: "left",
+          fontWeight: 800,
         }}
       >
-        <span style={{ fontWeight: 700 }}>{globalIdx + 1}.</span> {renderInkWord(entry.word)}
+        <span style={{ fontWeight: 700 }}>{globalIdx + 1}.</span> {entry.word}
       </div>
       {entry.description && (
         <div
           className="text-base font-handwriting w-full"
-          style={{ color: "#1a1030", textAlign: "left", lineHeight: "1.15" }}
+          style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600 }}
         >
-          — {entry.description.replace(/^[—–-]\s*/, "")}
+          — {entry.description.replace(/^[—-]\s*/, "")}
         </div>
       )}
       {entry.images?.map((src, k) => (
         <img key={k} src={src} alt="" style={{ display: "block", maxWidth: "100%", height: "auto", margin: "8px 0" }} />
       ))}
-      <div className="flex gap-2 text-[13px] w-full justify-end" style={{ color: "#1a1440" }}>
-        <button type="button" onClick={() => updateReaction(globalIdx, "fire")} className="cursor-pointer hover:scale-110 transition-transform">🔥 {entry.reactions?.fire || 0}</button>
-        <button type="button" onClick={() => updateReaction(globalIdx, "love")} className="cursor-pointer hover:scale-110 transition-transform">❤️ {entry.reactions?.love || 0}</button>
-        <button type="button" onClick={() => updateReaction(globalIdx, "rocket")} className="cursor-pointer hover:scale-110 transition-transform">🚀 {entry.reactions?.rocket || 0}</button>
-        <button type="button" onClick={() => updateReaction(globalIdx, "laugh")} className="cursor-pointer hover:scale-110 transition-transform">😂 {entry.reactions?.laugh || 0}</button>
-        <button type="button" onClick={() => updateReaction(globalIdx, "like")} className="cursor-pointer hover:scale-110 transition-transform">👍 {entry.reactions?.like || 0}</button>
-      </div>
     </div>
   );
 
@@ -231,32 +208,22 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
             ref={leftContentRef}
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
-               left: "20%", top: "19%", width: "26%", height: "60%",
-               padding: "8px 2px 20px 2px",
+               left: "21.2%", top: "20.9%", width: "23%", height: "56.2%",
+               padding: "8px 6px 20px 6px",
             }}
           >
             {leftPageEntries.map((entry) => renderEntry(entry, getGlobalIndex(entry)))}
-            <div className="absolute bottom-[4px] left-0 right-0 flex justify-center select-none"
-                 style={{ color: "#0f0a2a", fontFamily: "'Cormorant Garamond', serif", fontWeight: "bold", fontStyle: "italic", fontSize: "16px", opacity: 0.9, letterSpacing: "1px" }}>
-              — {leftPageNum} —
-            </div>
           </div>
 
           {/* Right page */}
           <div
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
-              left: "54%", top: "19%", width: "26%", height: "60%",
-              padding: "8px 4px 20px 4px",
+              left: "54.8%", top: "20.9%", width: "23%", height: "56.2%",
+              padding: "8px 6px 20px 6px",
             }}
           >
             {rightPageEntries.map((entry) => renderEntry(entry, getGlobalIndex(entry)))}
-            {rightPageEntries.length > 0 && (
-              <div className="absolute bottom-[4px] left-0 right-0 flex justify-center select-none"
-                   style={{ color: "#0f0a2a", fontFamily: "'Cormorant Garamond', serif", fontWeight: "bold", fontStyle: "italic", fontSize: "16px", opacity: 0.9, letterSpacing: "1px" }}>
-                — {rightPageNum} —
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -265,3 +232,4 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
 };
 
 export default FinalBook;
+

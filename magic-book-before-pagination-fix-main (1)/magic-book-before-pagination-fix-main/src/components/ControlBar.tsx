@@ -9,14 +9,15 @@ interface PageNav {
 }
 
 interface ControlBarProps {
-  mode: "intro" | "form" | "preview" | "reading" | "final";
-  setMode: (mode: "intro" | "form" | "preview" | "reading" | "final") => void;
+  mode: "intro" | "form" | "awakening" | "hands" | "reading" | "final";
+  setMode: (mode: "intro" | "form" | "awakening" | "hands" | "reading" | "final") => void;
   onAddWord: () => void;
+  onReadBook: () => void;
   onShare: () => void;
   pageNav?: PageNav | null;
 }
 
-const ControlBar: React.FC<ControlBarProps> = ({ mode, setMode, onAddWord, onShare, pageNav }) => {
+const ControlBar: React.FC<ControlBarProps> = ({ mode, setMode, onAddWord, onReadBook, onShare, pageNav }) => {
   return (
     <div
       style={{
@@ -44,14 +45,7 @@ const ControlBar: React.FC<ControlBarProps> = ({ mode, setMode, onAddWord, onSha
           {pageNav?.hasNext && (
             <NeonGlassButton onClick={pageNav.onNext}>далее →</NeonGlassButton>
           )}
-          <NeonGlassButton onClick={() => setMode("preview")}>📖 читать книгу</NeonGlassButton>
-          <NeonGlassButton onClick={() => setMode("final")}>✦ завершить</NeonGlassButton>
-        </>
-      )}
-
-      {mode === "preview" && (
-        <>
-          <NeonGlassButton accent onClick={() => setMode("form")}>✏️ внести слово</NeonGlassButton>
+          <NeonGlassButton onClick={onReadBook}>📖 читать книгу</NeonGlassButton>
         </>
       )}
 
