@@ -69,11 +69,14 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
       penAudio.current = new Audio("/pen-scratch.mp3");
       penAudio.current.volume = 0.72;
     }
-    if (penAudio.current.paused) {
-      requestMusicDuck(900);
+    // Каждое нажатие клавиши: перезапускаем звук (раньше играл только пока paused — почти один раз)
+    requestMusicDuck(900);
+    try {
       penAudio.current.currentTime = 0;
-      penAudio.current.play().catch(() => {});
+    } catch {
+      /* ignore */
     }
+    void penAudio.current.play().catch(() => {});
     if (stopTimer.current) clearTimeout(stopTimer.current);
     stopTimer.current = window.setTimeout(() => {
       penAudio.current?.pause();
@@ -260,6 +263,8 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
       ]);
     }
 
+    playPenSound();
+
     setBurst(false);
     requestAnimationFrame(() => setBurst(true));
     setTimeout(() => setBurst(false), 1200);
@@ -270,7 +275,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
     setShowSavedOverlay(true);
     setTimeout(() => setShowSavedOverlay(false), 1500);
-  }, [word, description, editIdx, pastedImages, setEntries]);
+  }, [word, description, editIdx, pastedImages, setEntries, playPenSound]);
 
   const handleEdit = useCallback(() => {
     if (entries.length === 0) return;
