@@ -26,8 +26,8 @@ interface FinalBookProps {
 
 const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) => {
   const ENTRY_IMAGE_MAX_HEIGHT = 112;
-  /** Колонка номера фиксированной ширины + tabular-nums — начало слова на одной вертикали для всех строк */
-  const ENTRY_GRID_COLS = "3.75rem minmax(0, 1fr)";
+  /** Жёсткая колонка номера (minmax фиксирует ширину трека) + tabular-nums — одна вертикаль для начала слов */
+  const ENTRY_GRID_COLS = "minmax(4.25rem, 4.25rem) minmax(0, 1fr)";
   const requestMusicDuck = useCallback((holdMs = 1000) => {
     window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
   }, []);
@@ -65,7 +65,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
 
       for (let i = 0; i < entries.length; i++) {
         const wrap = document.createElement("div");
-        wrap.style.cssText = `margin-bottom:0.6em;width:100%;display:grid;grid-template-columns:${ENTRY_GRID_COLS};column-gap:0.35rem;align-items:start`;
+        wrap.style.cssText = `margin-bottom:0.6em;width:100%;box-sizing:border-box;display:grid;grid-template-columns:${ENTRY_GRID_COLS};column-gap:0.4rem;align-items:start;justify-items:stretch`;
 
         const numCell = document.createElement("div");
         numCell.style.cssText =
@@ -74,7 +74,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
         wrap.appendChild(numCell);
 
         const body = document.createElement("div");
-        body.style.cssText = "min-width:0";
+        body.style.cssText = "min-width:0;direction:ltr;unicode-bidi:plaintext";
 
         const title = document.createElement("div");
         title.style.cssText =
@@ -85,7 +85,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
         if (entries[i].description) {
           const desc = document.createElement("div");
           desc.style.cssText = "font-size:1rem;line-height:1.2;text-align:left;overflow-wrap:anywhere;word-break:break-word";
-          desc.textContent = `— ${entries[i].description.replace(/^[—-]\s*/, "")}`;
+          desc.textContent = `— ${entries[i].description.replace(/^[—-]\s*/, "").replace(/\s+/g, " ").trim()}`;
           body.appendChild(desc);
         }
 
@@ -183,16 +183,19 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
   const leftPageEntries = pages[leftPageIdx] || [];
   const rightPageEntries = pages[rightPageIdx] || [];
 
+  const descText = (raw: string) => raw.replace(/^[—-]\s*/, "").replace(/\s+/g, " ").trim();
+
   const renderEntry = (entry: Entry, globalIdx: number) => (
     <div
       key={globalIdx}
-      className="w-full"
+      className="w-full box-border"
       style={{
         marginBottom: "0.6em",
         display: "grid",
         gridTemplateColumns: ENTRY_GRID_COLS,
-        columnGap: "0.35rem",
+        columnGap: "0.4rem",
         alignItems: "start",
+        justifyItems: "stretch",
       }}
     >
       <div
@@ -209,7 +212,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
       >
         {globalIdx + 1}.
       </div>
-      <div style={{ minWidth: 0 }}>
+      <div style={{ minWidth: 0, direction: "ltr", unicodeBidi: "plaintext" }}>
         <div
           className="text-xl font-bold w-full"
           style={{
@@ -221,6 +224,8 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
             fontWeight: 800,
             overflowWrap: "anywhere",
             wordBreak: "break-word",
+            whiteSpace: "normal",
+            wordSpacing: "normal",
           }}
         >
           {entry.word}
@@ -228,9 +233,18 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
         {entry.description && (
           <div
             className="text-base font-handwriting w-full"
-            style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600, overflowWrap: "anywhere", wordBreak: "break-word" }}
+            style={{
+              color: "#1a103a",
+              textAlign: "left",
+              lineHeight: "1.24",
+              fontWeight: 600,
+              overflowWrap: "anywhere",
+              wordBreak: "break-word",
+              whiteSpace: "normal",
+              wordSpacing: "normal",
+            }}
           >
-            — {entry.description.replace(/^[—-]\s*/, "")}
+            — {descText(entry.description)}
           </div>
         )}
         {entry.images?.map((src, k) => (
@@ -273,6 +287,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
             style={{
                left: "21.05%", top: "20.35%", width: "22.8%", height: "54.9%",
                padding: "10px 8px 22px 30px",
+               boxSizing: "border-box",
                overflowWrap: "break-word", wordBreak: "break-word",
             }}
           >
@@ -283,8 +298,9 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
           <div
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
-              left: "52.45%", top: "20.35%", width: "22.35%", height: "54.9%",
-              padding: "10px 16px 22px 8px",
+              left: "52.15%", top: "20.35%", width: "22.35%", height: "54.9%",
+              padding: "10px 14px 22px 4px",
+              boxSizing: "border-box",
               overflowWrap: "break-word", wordBreak: "break-word",
             }}
           >

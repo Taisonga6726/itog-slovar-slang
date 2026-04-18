@@ -28,7 +28,7 @@ interface MagicBookProps {
 const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: MagicBookProps) => {
   /** Скрины в правой колонке (каталог) — меньше, чтобы не заходить на орнамент справа */
   const CATALOG_IMAGE_MAX_HEIGHT = 112;
-  const ENTRY_GRID_COLS = "3.75rem minmax(0, 1fr)";
+  const ENTRY_GRID_COLS = "minmax(4.25rem, 4.25rem) minmax(0, 1fr)";
   const requestMusicDuck = useCallback((holdMs = 1000) => {
     window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
   }, []);
@@ -150,7 +150,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
       for (let i = 0; i < entries.length; i++) {
         const wrap = document.createElement("div");
-        wrap.style.cssText = `margin-bottom:0.6em;display:grid;grid-template-columns:${ENTRY_GRID_COLS};column-gap:0.35rem;align-items:start`;
+        wrap.style.cssText = `margin-bottom:0.6em;width:100%;box-sizing:border-box;display:grid;grid-template-columns:${ENTRY_GRID_COLS};column-gap:0.4rem;align-items:start;justify-items:stretch`;
 
         const numCell = document.createElement("div");
         numCell.style.cssText =
@@ -159,7 +159,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
         wrap.appendChild(numCell);
 
         const body = document.createElement("div");
-        body.style.cssText = "min-width:0";
+        body.style.cssText = "min-width:0;direction:ltr;unicode-bidi:plaintext";
 
         const title = document.createElement("div");
         title.style.cssText =
@@ -170,7 +170,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
         if (entries[i].description) {
           const desc = document.createElement("div");
           desc.style.cssText = "font-size:1rem;line-height:1.18;text-align:left;overflow-wrap:anywhere;word-break:break-word";
-          desc.textContent = `— ${entries[i].description.replace(/^[—-]\s*/, "")}`;
+          desc.textContent = `— ${entries[i].description.replace(/^[—-]\s*/, "").replace(/\s+/g, " ").trim()}`;
           body.appendChild(desc);
         }
 
@@ -347,7 +347,8 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
           top: "20.35%",
           width: "22.8%",
           height: "54.9%",
-          padding: "10px 10px 22px 28px",
+          padding: "10px 10px 22px 24px",
+          boxSizing: "border-box",
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
@@ -359,7 +360,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
             style={{
               display: "grid",
               gridTemplateColumns: ENTRY_GRID_COLS,
-              columnGap: "0.35rem",
+              columnGap: "0.4rem",
               alignItems: "center",
               marginBottom: "0.45rem",
             }}
@@ -381,7 +382,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
           <div
             className="writing-zone rounded-sm flex-1 min-h-0 mt-0"
-            style={{ display: "grid", gridTemplateColumns: ENTRY_GRID_COLS, columnGap: "0.35rem", alignItems: "stretch" }}
+            style={{ display: "grid", gridTemplateColumns: ENTRY_GRID_COLS, columnGap: "0.4rem", alignItems: "stretch" }}
           >
             <div aria-hidden="true" />
             <div className="min-w-0 min-h-0 h-full">
@@ -481,16 +482,16 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
       <div
         className="absolute z-[15] font-handwriting no-scroll"
         style={{
-          left: "52.45%",
+          left: "52.15%",
           top: "20.35%",
           width: "22.35%",
           height: "54.9%",
-          padding: "10px 16px 22px 8px",
+          padding: "10px 14px 22px 4px",
+          boxSizing: "border-box",
           overflow: "hidden", overflowWrap: "break-word", wordBreak: "break-word",
-          perspective: "1200px",
         }}
       >
-        <div ref={rightContentRef} style={{ height: "100%", overflow: "hidden" }}>
+        <div ref={rightContentRef} style={{ height: "100%", overflow: "hidden", perspective: "1200px" }}>
           <div className={flipping ? "page-flip-anim" : ""} style={{ transformOrigin: "left center" }}>
             {pageEntries.length === 0 && !liveText ? (
               <p className="font-handwriting text-xl mt-1 text-left" style={{ color: "hsl(var(--ink) / 0.25)" }}>
@@ -505,13 +506,14 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                   return (
                     <div
                       key={globalIdx}
-                      className="text-ink"
+                      className="text-ink box-border w-full"
                       style={{
                         marginBottom: "0.6em",
                         display: "grid",
                         gridTemplateColumns: ENTRY_GRID_COLS,
-                        columnGap: "0.35rem",
+                        columnGap: "0.4rem",
                         alignItems: "start",
+                        justifyItems: "stretch",
                       }}
                     >
                       <div
@@ -520,13 +522,39 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                       >
                         {globalIdx + 1}.
                       </div>
-                      <div style={{ minWidth: 0 }}>
-                        <div className="text-xl leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", color: "#120c34", textAlign: "left", lineHeight: "1.22", fontWeight: 800, overflowWrap: "anywhere", wordBreak: "break-word" }}>
+                      <div style={{ minWidth: 0, direction: "ltr", unicodeBidi: "plaintext" }}>
+                        <div
+                          className="text-xl leading-tight"
+                          style={{
+                            fontFamily: "'Cormorant Garamond', serif",
+                            fontStyle: "italic",
+                            color: "#120c34",
+                            textAlign: "left",
+                            lineHeight: "1.22",
+                            fontWeight: 800,
+                            overflowWrap: "anywhere",
+                            wordBreak: "break-word",
+                            whiteSpace: "normal",
+                            wordSpacing: "normal",
+                          }}
+                        >
                           {entry.word}
                         </div>
                         {entry.description && (
-                          <div className="font-handwriting text-base" style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600, overflowWrap: "anywhere", wordBreak: "break-word" }}>
-                            — {entry.description.replace(/^[—-]\s*/, "")}
+                          <div
+                            className="font-handwriting text-base"
+                            style={{
+                              color: "#1a103a",
+                              textAlign: "left",
+                              lineHeight: "1.24",
+                              fontWeight: 600,
+                              overflowWrap: "anywhere",
+                              wordBreak: "break-word",
+                              whiteSpace: "normal",
+                              wordSpacing: "normal",
+                            }}
+                          >
+                            — {entry.description.replace(/^[—-]\s*/, "").replace(/\s+/g, " ").trim()}
                           </div>
                         )}
                         {entry.images?.map((src, k) => (
@@ -539,13 +567,14 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
                 {isLastPage && liveText && (
                   <div
-                    className="text-ink"
+                    className="text-ink box-border w-full"
                     style={{
                       marginBottom: "0.6em",
                       display: "grid",
                       gridTemplateColumns: ENTRY_GRID_COLS,
-                      columnGap: "0.35rem",
+                      columnGap: "0.4rem",
                       alignItems: "start",
+                      justifyItems: "stretch",
                     }}
                   >
                     <div
@@ -554,13 +583,39 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                     >
                       {editIdx !== null ? editIdx + 1 : entries.length + 1}.
                     </div>
-                    <div style={{ minWidth: 0 }}>
-                      <div className="text-xl leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", color: "#120c34", textAlign: "left", lineHeight: "1.22", fontWeight: 800, overflowWrap: "anywhere", wordBreak: "break-word" }}>
+                    <div style={{ minWidth: 0, direction: "ltr", unicodeBidi: "plaintext" }}>
+                      <div
+                        className="text-xl leading-tight"
+                        style={{
+                          fontFamily: "'Cormorant Garamond', serif",
+                          fontStyle: "italic",
+                          color: "#120c34",
+                          textAlign: "left",
+                          lineHeight: "1.22",
+                          fontWeight: 800,
+                          overflowWrap: "anywhere",
+                          wordBreak: "break-word",
+                          whiteSpace: "normal",
+                          wordSpacing: "normal",
+                        }}
+                      >
                         <InkWriteEffect text={word} className="ink-fresh" />
                       </div>
                       {description && (
-                        <div className="font-handwriting text-base ink-fresh" style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600, overflowWrap: "anywhere", wordBreak: "break-word" }}>
-                          — <InkWriteEffect text={description} className="" />
+                        <div
+                          className="font-handwriting text-base ink-fresh"
+                          style={{
+                            color: "#1a103a",
+                            textAlign: "left",
+                            lineHeight: "1.24",
+                            fontWeight: 600,
+                            overflowWrap: "anywhere",
+                            wordBreak: "break-word",
+                            whiteSpace: "normal",
+                            wordSpacing: "normal",
+                          }}
+                        >
+                          — <InkWriteEffect text={description.replace(/\s+/g, " ").trim()} className="" />
                         </div>
                       )}
                     </div>
