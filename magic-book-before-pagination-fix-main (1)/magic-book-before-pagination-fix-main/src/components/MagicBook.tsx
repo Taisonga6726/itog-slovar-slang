@@ -348,11 +348,11 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
       <div
         className="absolute z-[25] font-handwriting no-scroll"
         style={{
-          left: "21.05%",
+          left: "21.95%",
           top: "20.35%",
           width: "22.8%",
           height: "54.9%",
-          padding: "10px 10px 22px 28px",
+          padding: "10px 8px 22px 36px",
           boxSizing: "border-box",
           overflow: "hidden",
           display: "flex",
@@ -487,11 +487,11 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
       <div
         className="absolute z-[15] font-handwriting no-scroll"
         style={{
-          left: "51.42%",
+          left: "50.68%",
           top: "20.35%",
           width: "22.35%",
           height: "54.9%",
-          padding: "10px 26px 22px 0px",
+          padding: "10px 24px 22px 0px",
           boxSizing: "border-box",
           overflow: "hidden", overflowWrap: "break-word", wordBreak: "break-word",
         }}
