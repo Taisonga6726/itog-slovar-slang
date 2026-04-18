@@ -353,6 +353,8 @@
   resize: none;
   color: hsl(var(--ink));
   cursor: default;
+  padding: 0;
+  margin: 0;
 }
 .magic-textarea::placeholder {
   font-style: italic;
@@ -370,6 +372,8 @@
   outline: none;
   color: hsl(var(--ink));
   cursor: default;
+  padding: 0;
+  margin: 0;
 }
 .magic-input::placeholder {
   font-style: italic;

@@ -26,8 +26,8 @@ interface FinalBookProps {
 
 const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) => {
   const ENTRY_IMAGE_MAX_HEIGHT = 112;
-  /** Колонка номера фиксированной ширины — цифры в одну вертикаль, без «лесенки» */
-  const ENTRY_GRID_COLS = "3rem 1fr";
+  /** Колонка номера фиксированной ширины + tabular-nums — начало слова на одной вертикали для всех строк */
+  const ENTRY_GRID_COLS = "3.75rem minmax(0, 1fr)";
   const requestMusicDuck = useCallback((holdMs = 1000) => {
     window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
   }, []);
@@ -69,7 +69,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
 
         const numCell = document.createElement("div");
         numCell.style.cssText =
-          "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:right;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
+          "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif;color:#120c34";
         numCell.textContent = `${i + 1}.`;
         wrap.appendChild(numCell);
 
@@ -196,7 +196,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
       }}
     >
       <div
-        className="text-xl tabular-nums"
+        className="text-xl tabular-nums whitespace-nowrap"
         style={{
           color: "#120c34",
           fontFamily: "'Cormorant Garamond', serif",
@@ -204,6 +204,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
           lineHeight: "1.22",
           fontWeight: 800,
           textAlign: "right",
+          fontVariantNumeric: "tabular-nums",
         }}
       >
         {globalIdx + 1}.
@@ -282,7 +283,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
           <div
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
-              left: "52.55%", top: "20.35%", width: "22.35%", height: "54.9%",
+              left: "52.45%", top: "20.35%", width: "22.35%", height: "54.9%",
               padding: "10px 16px 22px 8px",
               overflowWrap: "break-word", wordBreak: "break-word",
             }}

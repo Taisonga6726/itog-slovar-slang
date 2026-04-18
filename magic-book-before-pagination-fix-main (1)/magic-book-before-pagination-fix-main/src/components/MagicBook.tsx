@@ -28,7 +28,7 @@ interface MagicBookProps {
 const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: MagicBookProps) => {
   /** Скрины в правой колонке (каталог) — меньше, чтобы не заходить на орнамент справа */
   const CATALOG_IMAGE_MAX_HEIGHT = 112;
-  const ENTRY_GRID_COLS = "3rem 1fr";
+  const ENTRY_GRID_COLS = "3.75rem minmax(0, 1fr)";
   const requestMusicDuck = useCallback((holdMs = 1000) => {
     window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
   }, []);
@@ -154,7 +154,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
         const numCell = document.createElement("div");
         numCell.style.cssText =
-          "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:right;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
+          "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif;color:#120c34";
         numCell.textContent = `${i + 1}.`;
         wrap.appendChild(numCell);
 
@@ -353,31 +353,50 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
           flexDirection: "column",
         }}
       >
-        <div style={{ flex: "1 1 auto", minHeight: 0 }}>
-          <input
-            id="magicBookWord"
-            ref={wordInputRef}
-            type="text"
-            value={word}
-            onChange={(e) => { setWord(e.target.value); playPenSound(); }}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); descRef.current?.focus(); } }}
-            placeholder="Слово"
-            aria-label="Слово"
-            className="magic-input w-full text-2xl font-semibold font-handwriting mb-2 text-ink"
-          />
-
-          <div className="writing-zone rounded-sm mt-1" style={{ height: "calc(100% - 44px)" }}>
-            <textarea
-              id="magicBookDesc"
-              ref={descRef}
-              value={description}
-              onChange={(e) => { setDescription(e.target.value); playPenSound(); }}
-              onPaste={handleDescPaste}
-              placeholder="Описание..."
-              aria-label="Описание"
-              className="magic-textarea w-full h-full font-handwriting text-lg notebook-lines"
-              style={{ minHeight: "150px", lineHeight: "22px" }}
+        <div style={{ flex: "1 1 auto", minHeight: 0, display: "flex", flexDirection: "column" }}>
+          {/* Та же сетка, что у строк каталога: курсор «Слово» = начало колонки слова после номера */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: ENTRY_GRID_COLS,
+              columnGap: "0.35rem",
+              alignItems: "center",
+              marginBottom: "0.45rem",
+            }}
+          >
+            <div aria-hidden="true" style={{ minHeight: "1.35rem" }} />
+            <input
+              id="magicBookWord"
+              ref={wordInputRef}
+              type="text"
+              value={word}
+              onChange={(e) => { setWord(e.target.value); playPenSound(); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); descRef.current?.focus(); } }}
+              placeholder="Слово"
+              aria-label="Слово"
+              className="magic-input w-full min-w-0 text-2xl font-semibold font-handwriting text-ink"
+              style={{ paddingLeft: 0, paddingRight: 0 }}
             />
+          </div>
+
+          <div
+            className="writing-zone rounded-sm flex-1 min-h-0 mt-0"
+            style={{ display: "grid", gridTemplateColumns: ENTRY_GRID_COLS, columnGap: "0.35rem", alignItems: "stretch" }}
+          >
+            <div aria-hidden="true" />
+            <div className="min-w-0 min-h-0 h-full">
+              <textarea
+                id="magicBookDesc"
+                ref={descRef}
+                value={description}
+                onChange={(e) => { setDescription(e.target.value); playPenSound(); }}
+                onPaste={handleDescPaste}
+                placeholder="Описание..."
+                aria-label="Описание"
+                className="magic-textarea w-full h-full font-handwriting text-lg notebook-lines"
+                style={{ minHeight: "150px", lineHeight: "22px", paddingLeft: 0, paddingRight: 0 }}
+              />
+            </div>
           </div>
         </div>
 
@@ -496,7 +515,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                       }}
                     >
                       <div
-                        className="text-xl tabular-nums leading-tight"
+                        className="text-xl tabular-nums leading-tight whitespace-nowrap"
                         style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", color: "#120c34", textAlign: "right", lineHeight: "1.22", fontWeight: 800 }}
                       >
                         {globalIdx + 1}.
@@ -530,7 +549,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                     }}
                   >
                     <div
-                      className="text-xl tabular-nums leading-tight ink-fresh"
+                      className="text-xl tabular-nums leading-tight whitespace-nowrap ink-fresh"
                       style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", color: "#120c34", textAlign: "right", lineHeight: "1.22", fontWeight: 800 }}
                     >
                       {editIdx !== null ? editIdx + 1 : entries.length + 1}.
