@@ -18,6 +18,16 @@ interface Entry {
   images?: string[];
 }
 
+interface LegacyVibeWord {
+  text?: string;
+  reactions?: {
+    fire?: number;
+    like?: number;
+    funny?: number;
+    wow?: number;
+  };
+}
+
 interface PageNav {
   hasPrev: boolean;
   hasNext: boolean;
@@ -26,11 +36,72 @@ interface PageNav {
 }
 
 const Index = () => {
+  const parseLegacyVibeWords = (): Entry[] => {
+    const legacyRaw = localStorage.getItem("vibe_dictionary_words");
+    if (!legacyRaw) return [];
+    try {
+      const parsed = JSON.parse(legacyRaw);
+      const words = Array.isArray(parsed?.words) ? parsed.words : [];
+      return words
+        .map((item: LegacyVibeWord) => {
+          const rawText = String(item?.text || "").trim();
+          if (!rawText) return null;
+          const splitMatch = rawText.split(/\s+[—-]\s+/);
+          const word = (splitMatch[0] || "").trim();
+          const description = splitMatch.slice(1).join(" — ").trim();
+          if (!word) return null;
+          return {
+            word,
+            description,
+            reactions: {
+              fire: Number(item?.reactions?.fire || 0),
+              love: Number(item?.reactions?.like || 0),
+              rocket: Number(item?.reactions?.wow || 0),
+              laugh: Number(item?.reactions?.funny || 0),
+              like: Number(item?.reactions?.like || 0),
+            },
+            images: [],
+          };
+        })
+        .filter((entry: Entry | null): entry is Entry => Boolean(entry));
+    } catch {
+      return [];
+    }
+  };
+
+  const wordKey = (w: string) => w.trim().toLowerCase().replace(/\s+/g, " ");
+
+  const mergeUniqueByWord = (primary: Entry[], extra: Entry[]): Entry[] => {
+    const map = new Map<string, Entry>();
+    for (const e of primary) {
+      const k = wordKey(e.word);
+      if (!k) continue;
+      if (!map.has(k)) map.set(k, e);
+    }
+    for (const e of extra) {
+      const k = wordKey(e.word);
+      if (!k) continue;
+      if (!map.has(k)) map.set(k, e);
+    }
+    return Array.from(map.values());
+  };
+
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<"intro" | "form" | "preview" | "reading" | "final">("intro");
   const [entries, setEntries] = useState<Entry[]>(() => {
-    const saved = localStorage.getItem("magic-book-entries");
-    return saved ? JSON.parse(saved) : [];
+    const legacy = parseLegacyVibeWords();
+    const savedRaw = localStorage.getItem("magic-book-entries");
+    if (savedRaw) {
+      try {
+        const parsed = JSON.parse(savedRaw);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return mergeUniqueByWord(parsed as Entry[], legacy);
+        }
+      } catch {
+        // ниже — миграция из словаря
+      }
+    }
+    return legacy;
   });
 
 
@@ -41,11 +112,42 @@ const Index = () => {
   const [introEffect, setIntroEffect] = useState(false);
   
   const flipAudio = useRef<HTMLAudioElement | null>(null);
+  const hymnAudio = useRef<HTMLAudioElement | null>(null);
+  const hymnStartedRef = useRef(false);
 
   useEffect(() => {
     flipAudio.current = new Audio("/page-flip.mp3");
     flipAudio.current.volume = 0.5;
   }, []);
+
+  const tryStartHymn = useCallback(() => {
+    if (hymnStartedRef.current) return;
+    if (!hymnAudio.current) return;
+    hymnStartedRef.current = true;
+    hymnAudio.current.play().catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    hymnAudio.current = new Audio("/slovar/assets/sounds/versiya%205_hard-rok%20Tanya.mp3");
+    hymnAudio.current.loop = true;
+    hymnAudio.current.volume = 0.55;
+
+    const onDocGesture = () => { tryStartHymn(); };
+    const opts: AddEventListenerOptions = { capture: true };
+
+    window.addEventListener("pointerdown", onDocGesture, opts);
+    window.addEventListener("keydown", onDocGesture, opts);
+
+    return () => {
+      window.removeEventListener("pointerdown", onDocGesture, opts);
+      window.removeEventListener("keydown", onDocGesture, opts);
+      if (hymnAudio.current) {
+        hymnAudio.current.pause();
+        hymnAudio.current = null;
+      }
+      hymnStartedRef.current = false;
+    };
+  }, [tryStartHymn]);
 
   const playFlipSound = useCallback(() => {
     if (flipAudio.current) {
@@ -110,7 +212,9 @@ const Index = () => {
 
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black">
-      {mode === "intro" && <IntroSlovarEmbed onOpenForm={handleOpenFormFromIntro} />}
+      {mode === "intro" && (
+        <IntroSlovarEmbed onOpenForm={handleOpenFormFromIntro} onUserGesture={tryStartHymn} />
+      )}
 
       {/* Preload video and cover image to eliminate black screen / delays */}
       <video src="/videos/book-intro.mp4" preload="auto" className="hidden" />
@@ -126,7 +230,7 @@ const Index = () => {
             draggable={false}
           />
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm pointer-events-none z-10" />
-          <MagicRingsGlobal />
+          {mode !== "form" && <MagicRingsGlobal />}
           <HeroWave />
           <FloatingWords />
         </>

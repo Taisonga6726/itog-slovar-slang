@@ -1295,7 +1295,29 @@
         setupImageSourceChain(dom.bookImage, dom.bookImageWrap, CONFIG.images.bookSources);
       }
 
+      /** Первый жест внутри iframe не всплывает в `window` родителя — шлём сигнал для autoplay-аудио наверху */
+      function bindParentUserGestureBridge() {
+        let sent = false;
+        const notify = () => {
+          if (sent) return;
+          sent = true;
+          if (!window.parent || window.parent === window) return;
+          try {
+            window.parent.postMessage({ type: "SLOVAR_USER_GESTURE" }, window.location.origin);
+          } catch (e) {
+            try {
+              window.parent.postMessage({ type: "SLOVAR_USER_GESTURE" }, "*");
+            } catch (e2) {
+              // ignore
+            }
+          }
+        };
+        window.addEventListener("pointerdown", notify, { capture: true, once: true });
+        window.addEventListener("keydown", notify, { capture: true, once: true });
+      }
+
       function bindEvents() {
+        bindParentUserGestureBridge();
         dom.accessForm.addEventListener("submit", handleAccessSubmit);
 
         dom.bookHitZone.addEventListener("click", handleBookOpenClick);

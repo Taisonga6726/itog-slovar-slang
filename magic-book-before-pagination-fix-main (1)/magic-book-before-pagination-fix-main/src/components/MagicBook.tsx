@@ -317,14 +317,18 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
       <SpineEffect burst={burst} />
 
-      {/* Left page — input */}
+      {/* Left page — input (поверх правой страницы: иначе правая перекрывает поля ввода) */}
       <div
-        className="absolute font-handwriting no-scroll"
-        style={{ left: "18%", top: "20%", width: "30%", height: "58%", padding: "10px 14px 40px 24px", overflow: "hidden" }}
+        className="absolute z-[25] font-handwriting no-scroll"
+        style={{
+          left: "18%",
+          top: "20%",
+          width: "30%",
+          height: "58%",
+          padding: "10px 14px 40px 24px",
+          overflow: "hidden",
+        }}
       >
-        <label className="mb-form-label" htmlFor="magicBookWord">
-          Слово
-        </label>
         <input
           id="magicBookWord"
           ref={wordInputRef}
@@ -333,12 +337,10 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
           onChange={(e) => { setWord(e.target.value); playPenSound(); }}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); descRef.current?.focus(); } }}
           placeholder="Слово"
+          aria-label="Слово"
           className="magic-input w-full text-2xl font-semibold font-handwriting mb-4 text-ink"
         />
 
-        <label className="mb-form-label" htmlFor="magicBookDesc">
-          Описание
-        </label>
         <div className="writing-zone rounded-sm mt-2" style={{ minHeight: "55%" }}>
           <textarea
             id="magicBookDesc"
@@ -346,7 +348,8 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
             value={description}
             onChange={(e) => { setDescription(e.target.value); playPenSound(); }}
             onPaste={handleDescPaste}
-            placeholder="Описание"
+            placeholder="Описание…"
+            aria-label="Описание"
             className="magic-textarea w-full h-full font-handwriting text-lg notebook-lines"
             style={{ minHeight: "160px", lineHeight: "22px" }}
           />
@@ -431,9 +434,12 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
       {/* Right page — results */}
       <div
-        className="absolute font-handwriting no-scroll"
+        className="absolute z-[15] font-handwriting no-scroll"
         style={{
-          left: "54%", top: "18%", width: "26%", height: "60%",
+          left: "54%",
+          top: "18%",
+          width: "26%",
+          height: "60%",
           padding: "12px 2px 40px 4px",
           overflow: "hidden", overflowWrap: "break-word", wordBreak: "break-word",
           perspective: "1200px",
