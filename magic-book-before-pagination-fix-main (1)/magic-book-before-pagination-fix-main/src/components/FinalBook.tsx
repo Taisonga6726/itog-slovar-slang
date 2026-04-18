@@ -27,7 +27,7 @@ interface FinalBookProps {
 const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) => {
   const ENTRY_IMAGE_MAX_HEIGHT = 112;
   /** Жёсткая колонка номера (minmax фиксирует ширину трека) + tabular-nums — одна вертикаль для начала слов */
-  const ENTRY_GRID_COLS = "minmax(4.5rem, 4.5rem) minmax(0, 1fr)";
+  const ENTRY_GRID_COLS = "minmax(4.75rem, 4.75rem) minmax(0, 1fr)";
   const requestMusicDuck = useCallback((holdMs = 1000) => {
     window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
   }, []);
@@ -288,7 +288,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
                left: "21.05%", top: "20.35%", width: "22.8%", height: "54.9%",
-               padding: "10px 8px 22px 26px",
+               padding: "10px 8px 22px 30px",
                boxSizing: "border-box",
                overflowWrap: "break-word", wordBreak: "break-word",
             }}
@@ -300,8 +300,8 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
           <div
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
-              left: "51.72%", top: "20.35%", width: "22.35%", height: "54.9%",
-              padding: "10px 22px 22px 0px",
+              left: "51.42%", top: "20.35%", width: "22.35%", height: "54.9%",
+              padding: "10px 26px 22px 0px",
               boxSizing: "border-box",
               overflowWrap: "break-word", wordBreak: "break-word",
             }}
