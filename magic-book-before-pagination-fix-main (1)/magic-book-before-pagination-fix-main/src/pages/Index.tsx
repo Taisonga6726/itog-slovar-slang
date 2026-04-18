@@ -8,6 +8,7 @@ import ControlBar from "@/components/ControlBar";
 import HeroWave from "@/components/ui/dynamic-wave-canvas-background";
 import MagicRingsGlobal from "@/components/MagicRingsGlobal";
 import VibeAiBrand from "@/components/VibeAiBrand";
+import IntroSlovarEmbed from "@/components/IntroSlovarEmbed";
 import { toast } from "@/hooks/use-toast";
 
 interface Entry {
@@ -26,7 +27,7 @@ interface PageNav {
 
 const Index = () => {
   const [searchParams] = useSearchParams();
-  const [mode, setMode] = useState<"form" | "preview" | "reading" | "final">("form");
+  const [mode, setMode] = useState<"intro" | "form" | "preview" | "reading" | "final">("intro");
   const [entries, setEntries] = useState<Entry[]>(() => {
     const saved = localStorage.getItem("magic-book-entries");
     return saved ? JSON.parse(saved) : [];
@@ -74,6 +75,14 @@ const Index = () => {
     }
   }, [searchParams]);
 
+  const handleOpenFormFromIntro = useCallback(() => {
+    setMode("form");
+    setVideoFinished(false);
+    setIntroEffect(false);
+    setFlipping(false);
+    setActivating(false);
+  }, []);
+
   const handleAddWord = () => {
     setMode("form");
   };
@@ -101,23 +110,27 @@ const Index = () => {
 
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black">
+      {mode === "intro" && <IntroSlovarEmbed onOpenForm={handleOpenFormFromIntro} />}
+
       {/* Preload video and cover image to eliminate black screen / delays */}
       <video src="/videos/book-intro.mp4" preload="auto" className="hidden" />
       <img src="/images/cover-book.png" className="hidden" alt="" />
       <img src="/images/final-screen.png" className="hidden" alt="" />
 
-      <img
-        src="/images/open-book.png"
-        alt=""
-        className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-40 select-none pointer-events-none"
-        draggable={false}
-      />
-      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm pointer-events-none z-10" />
-
-      <MagicRingsGlobal />
-
-      <HeroWave />
-      <FloatingWords />
+      {mode !== "intro" && (
+        <>
+          <img
+            src="/images/open-book.png"
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 opacity-40 select-none pointer-events-none"
+            draggable={false}
+          />
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm pointer-events-none z-10" />
+          <MagicRingsGlobal />
+          <HeroWave />
+          <FloatingWords />
+        </>
+      )}
 
       <div className="relative z-20 w-full h-full">
       {mode === "form" && (
@@ -189,15 +202,17 @@ const Index = () => {
       )}
       </div>
 
-      <VibeAiBrand />
+      {mode !== "intro" && <VibeAiBrand />}
 
-      <ControlBar
-        mode={mode}
-        setMode={setMode}
-        onAddWord={handleAddWord}
-        onShare={handleShare}
-        pageNav={pageNav}
-      />
+      {mode !== "intro" && (
+        <ControlBar
+          mode={mode}
+          setMode={setMode}
+          onAddWord={handleAddWord}
+          onShare={handleShare}
+          pageNav={pageNav}
+        />
+      )}
     </div>
   );
 };

@@ -9,8 +9,8 @@ interface PageNav {
 }
 
 interface ControlBarProps {
-  mode: "form" | "preview" | "reading" | "final";
-  setMode: (mode: "form" | "preview" | "reading" | "final") => void;
+  mode: "intro" | "form" | "preview" | "reading" | "final";
+  setMode: (mode: "intro" | "form" | "preview" | "reading" | "final") => void;
   onAddWord: () => void;
   onShare: () => void;
   pageNav?: PageNav | null;

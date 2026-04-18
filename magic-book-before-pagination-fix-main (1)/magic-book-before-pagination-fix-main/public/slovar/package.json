@@ -1,0 +1,26 @@
+{
+  "name": "slovar_02",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "http-server . -p 5173 -o /index.html",
+    "start": "http-server . -p 5173 -o /index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Taisonga6726/SLOVAR_02.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Taisonga6726/SLOVAR_02/issues"
+  },
+  "homepage": "https://github.com/Taisonga6726/SLOVAR_02#readme",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

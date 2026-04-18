@@ -169,9 +169,19 @@
        */
       function getMagicBookFormUrl() {
         var custom = typeof window !== "undefined" && window.MAGIC_BOOK_URL;
-        var href;
+        var href = "";
         if (custom && String(custom).trim()) {
           href = String(custom).trim();
+        } else if (
+          window.location.protocol === "file:" ||
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1"
+        ) {
+          /* Локальный режим склейки: Magic Book уже поднят отдельным сервером dist на :5501 */
+          href = "http://localhost:5501/";
+        } else if (window.location.hostname.indexOf("github.io") !== -1) {
+          /* GitHub Pages: собранный Magic Book лежит в корне Pages сайта */
+          href = "/itog-slovar-slang/";
         } else {
           href = new URL(
             "../magic-book-before-pagination-fix-main (1)/magic-book-before-pagination-fix-main/dist/index.html",

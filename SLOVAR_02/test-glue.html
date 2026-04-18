@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Тест склейки проекта — чек-лист</title>
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f1020;
+      color: #f3f5ff;
+      line-height: 1.45;
+    }
+    .wrap {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1, h2 {
+      margin: 0 0 12px;
+    }
+    .card {
+      background: #171a33;
+      border: 1px solid #2d315f;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .muted {
+      color: #b8bde6;
+    }
+    .ok {
+      color: #74f0a2;
+      font-weight: 700;
+    }
+    .todo {
+      color: #ffd278;
+      font-weight: 700;
+    }
+    .fail {
+      color: #ff9090;
+      font-weight: 700;
+    }
+    ul {
+      margin: 8px 0 0 20px;
+      padding: 0;
+    }
+    code {
+      background: #0d1028;
+      border: 1px solid #2d315f;
+      border-radius: 6px;
+      padding: 2px 6px;
+    }
+    a {
+      color: #8ec8ff;
+    }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <h1>Склейка итогового проекта — по шагам</h1>
+    <p class="muted">Рабочий тестовый файл для фиксации этапов интеграции.</p>
+
+    <section class="card">
+      <h2>Быстрые ссылки для проверки</h2>
+      <ul>
+        <li>SLOVAR (локально): <a href="http://localhost:5500/SLOVAR_02/" target="_blank" rel="noreferrer">http://localhost:5500/SLOVAR_02/</a></li>
+        <li>Magic Book (локально): <a href="http://localhost:5501/" target="_blank" rel="noreferrer">http://localhost:5501/</a></li>
+        <li>Magic Book (сразу форма): <a href="http://localhost:5501/?entry=slovar&screen=form" target="_blank" rel="noreferrer">http://localhost:5501/?entry=slovar&screen=form</a></li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Шаги и статус</h2>
+      <ul>
+        <li><span class="ok">[ГОТОВО]</span> Переход из <code>#bookCtaBanner</code> в SLOVAR идет по клику, не по анимации.</li>
+        <li><span class="ok">[ГОТОВО]</span> Текст CTA: «ВВЕСТИ СЛОВО».</li>
+        <li><span class="ok">[ГОТОВО]</span> Вход в Magic Book с entry-сигналом: <code>?entry=slovar&screen=form</code>.</li>
+        <li><span class="ok">[ГОТОВО]</span> После перехода сразу открывается форма внесения слов.</li>
+        <li><span class="ok">[ГОТОВО]</span> Курсор: default, pointer только на интерактиве, кольца как overlay.</li>
+        <li><span class="ok">[ГОТОВО]</span> Логотип и кольца подключены глобально в Magic Book.</li>
+        <li><span class="todo">[ДАЛЕЕ]</span> Новые шаги утверждаем и добавляем в этот чек-лист последовательно.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>Правило работы</h2>
+      <p>Добавляем только следующий утвержденный шаг, проверяем визуально, фиксируем статус, и переходим дальше.</p>
+    </section>
+  </main>
+</body>
+</html>

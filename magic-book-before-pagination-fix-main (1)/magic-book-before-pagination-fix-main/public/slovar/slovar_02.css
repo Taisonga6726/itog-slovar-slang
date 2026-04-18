@@ -1,0 +1,2953 @@
+/* slovar_02.css — стили страницы «Словарь вайбкодера» */
+
+/* =============================================================================
+   ШРИФТЫ
+   ============================================================================= */
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Marck+Script&family=Caveat:wght@400;500;600;700&display=swap");
+
+/* =============================================================================
+   СБРОС И КОРНЕВЫЕ ПЕРЕМЕННЫЕ
+   ============================================================================= */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-1: #25045a;
+  --bg-2: #25045a;
+  --gold: #f0d28a;
+  --gold-soft: rgba(240, 210, 138, 0.18);
+  --paper-ink: #5a2f17;
+  --paper-ink-soft: rgba(90, 47, 23, 0.7);
+  --paper-cream: #faf3e4;
+  --paper-cream-mid: #f0e6d2;
+  --paper-edge: rgba(180, 140, 90, 0.35);
+  --light-text: #f7ead5;
+  --error: #ffb2b2;
+  --success: #d4ffbc;
+  --focus: rgba(240, 210, 138, 0.92);
+  --focus-ring: 2px solid var(--focus);
+  --panel-dark: rgba(48, 9, 90, 0.788);
+  --panel-border: rgba(241, 205, 129, 0.2);
+  --dur-cover-open: 1.45s;
+  --dur-book-in: 0.9s;
+  --dur-page-turn: 0.85s;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --book-drop:
+    0 32px 64px rgba(0, 0, 0, 0.62),
+    0 14px 28px rgba(0, 0, 0, 0.295),
+    0 0 1px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --page-inset: inset 0 2px 5px rgba(255, 255, 255, 0.5), inset 0 -4px 14px rgba(74, 42, 18, 0.14);
+  --paper-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --dur-cover-open: 0.01ms;
+    --dur-book-in: 0.01ms;
+    --dur-page-turn: 0.01ms;
+  }
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  background:
+    radial-gradient(ellipse 90% 55% at 50% -8%, rgba(200, 160, 255, 0.14), transparent 52%),
+    radial-gradient(ellipse 70% 45% at 85% 75%, rgba(255, 170, 90, 0.1), transparent 48%),
+    radial-gradient(ellipse 55% 40% at 12% 60%, rgba(116, 52, 185, 0.12), transparent 45%),
+    linear-gradient(168deg, #150a24 0%, var(--bg-2) 42%, var(--bg-1) 100%);
+  font-family: "Cormorant Garamond", serif;
+  color: var(--light-text);
+  overflow-x: hidden;
+  padding-bottom: var(--safe-bottom);
+  cursor: default;
+}
+
+/* =============================================================================
+   КАРКАС: ПРИЛОЖЕНИЕ, ЭКРАНЫ, УТИЛИТЫ
+   ============================================================================= */
+.app {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 0;
+}
+
+.screen {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  z-index: 9999;
+  padding: 12px 16px;
+  background: var(--gold);
+  color: var(--bg-1);
+  font-size: 18px;
+  text-decoration: none;
+  border-radius: 8px;
+}
+
+.skip-link:focus {
+  left: 12px;
+  top: 12px;
+}
+
+/* =============================================================================
+   ЭКРАН ОБЛОЖКИ (один корень сцены: #sceneStage.scene-stage)
+   ============================================================================= */
+.cover-screen {
+  position: relative;
+  overflow: visible;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.scene-stage {
+  width: min(100vw, calc(100dvh * 16 / 9));
+  max-width: none;
+  aspect-ratio: 16 / 9;
+  height: auto;
+  max-height: 100dvh;
+  position: relative;
+  border-radius: 0;
+  overflow: visible;
+  box-shadow:
+    0 22px 50px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 220, 160, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  cursor: default;
+}
+
+.scene-stage.cover-ready .book-hit-zone {
+  cursor: pointer;
+}
+
+/* Слот книги: зона закрытой книги на обложке; при открытии — расширяется под разворот */
+.book-slot {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  width: min(52%, 440px);
+  height: 40%;
+  z-index: 4;
+  pointer-events: none;
+  transition: none;
+}
+
+.scene-stage.scene--book-open .book-slot {
+  left: 50%;
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  width: min(96%, 1440px);
+  max-width: 96vw;
+  height: auto;
+  min-height: 0;
+  aspect-ratio: 1600 / 1000;
+  max-height: min(82vh, 920px);
+}
+
+.scene-stage.cover-ready .book-slot {
+  filter: drop-shadow(0 10px 26px rgba(255, 195, 120, 0.28));
+}
+
+/* Вариант 1: электрический контур книги при наведении (отключён в пользу Варианта B) */
+.book-electric-frame {
+  position: absolute;
+  inset: -2.6%;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0 !important;
+  transition: opacity 0.16s ease;
+}
+
+.book-electric-frame svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  display: block;
+  filter:
+    drop-shadow(0 0 6px rgba(88, 255, 255, 0.82))
+    drop-shadow(0 0 14px rgba(150, 90, 255, 0.62))
+    drop-shadow(0 0 22px rgba(255, 132, 214, 0.45));
+}
+
+.book-electric-frame rect {
+  fill: none;
+  stroke: rgba(170, 245, 255, 0.96);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 12 8;
+  stroke-dashoffset: 0;
+}
+
+/* intentionally disabled */
+
+.scene-stage.scene--book-open .book-electric-frame {
+  display: none !important;
+}
+
+@keyframes bookElectricRun {
+  to {
+    stroke-dashoffset: -120;
+  }
+}
+
+@keyframes bookElectricFlicker {
+  0%,
+  100% {
+    stroke-opacity: 0.74;
+    stroke-width: 1.7;
+  }
+  48% {
+    stroke-opacity: 1;
+    stroke-width: 2.3;
+  }
+}
+
+.book-hit-zone {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 1;
+  border-radius: 12px;
+}
+
+.scene-stage.scene--book-open .book-hit-zone {
+  display: none !important;
+}
+
+.scene-stage[aria-busy="true"] {
+  cursor: wait;
+  pointer-events: none;
+}
+
+.scene-stage .access-input {
+  cursor: text;
+  pointer-events: auto;
+}
+
+.center-cta-banner {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 6;
+  min-width: min(58vw, 460px);
+  max-width: min(72vw, 620px);
+  padding: clamp(10px, 1.2vw, 14px) clamp(16px, 2vw, 24px);
+  border: 1px solid rgba(155, 230, 255, 0.78);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(145, 120, 255, 0.36), rgba(56, 128, 255, 0.2) 58%, rgba(24, 10, 60, 0.42) 100%),
+    linear-gradient(145deg, rgba(64, 208, 255, 0.24), rgba(94, 98, 255, 0.26) 50%, rgba(196, 95, 255, 0.22));
+  color: rgba(220, 248, 255, 0.98);
+  font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+  font-size: clamp(14px, 1.4vw, 22px);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  line-height: 1.25;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: normal;
+  text-wrap: balance;
+  text-shadow:
+    0 0 8px rgba(124, 235, 255, 0.72),
+    0 0 18px rgba(176, 120, 255, 0.52),
+    0 1px 4px rgba(0, 0, 0, 0.85);
+  box-shadow:
+    inset 0 0 0 1px rgba(215, 245, 255, 0.22),
+    inset 0 10px 22px rgba(178, 122, 255, 0.14),
+    0 0 18px rgba(92, 208, 255, 0.5),
+    0 0 34px rgba(163, 100, 255, 0.34);
+  backdrop-filter: blur(3px) saturate(1.18);
+  pointer-events: none;
+}
+
+.center-cta-banner--book {
+  top: 35%;
+  min-width: min(20vw, 220px);
+  max-width: min(24vw, 265px);
+  min-height: clamp(46px, 5.2vw, 62px);
+  padding: clamp(6px, 0.7vw, 8px) clamp(10px, 1.1vw, 14px);
+  font-size: clamp(10px, 1vw, 14px);
+  letter-spacing: 0.015em;
+  line-height: 1.1;
+  z-index: 4;
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.scene-stage:not(.scene--book-open) .center-cta-banner--book {
+  display: none;
+}
+
+.scene-stage.scene--book-open:not(.scene--step2-visual) .center-cta-banner--book {
+  display: none;
+}
+
+/* Вариант C: hover-эффект по AI логотипу */
+.ai-logo-hotspot {
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 13%;
+  width: min(27vw, 360px);
+  height: min(19vh, 190px);
+  transform: translate(-50%, -50%);
+  z-index: 7;
+  border-radius: 14px;
+  pointer-events: none;
+  background: transparent;
+}
+
+.ai-logo-hotspot::before {
+  content: none;
+  display: none;
+}
+
+.ai-logo-hotspot::after {
+  display: none;
+}
+
+.ai-logo-c-spark {
+  position: absolute;
+  width: 2px;
+  height: 18px;
+  border-radius: 2px;
+  opacity: 0;
+  background: linear-gradient(180deg, rgba(120, 235, 255, 0.96), rgba(255, 104, 220, 0.78));
+  box-shadow:
+    0 0 8px rgba(120, 245, 255, 0.9),
+    0 0 16px rgba(196, 100, 255, 0.72);
+  transform-origin: center center;
+}
+
+.ai-logo-c-spark:nth-child(1) { left: 22%; top: 16%; transform: rotate(-28deg); }
+.ai-logo-c-spark:nth-child(2) { left: 38%; top: 8%; transform: rotate(-12deg); }
+.ai-logo-c-spark:nth-child(3) { left: 56%; top: 10%; transform: rotate(10deg); }
+.ai-logo-c-spark:nth-child(4) { left: 72%; top: 18%; transform: rotate(26deg); }
+.ai-logo-c-spark:nth-child(5) { left: 30%; top: 58%; transform: rotate(-22deg); }
+.ai-logo-c-spark:nth-child(6) { left: 66%; top: 56%; transform: rotate(18deg); }
+
+.ai-logo-c-spark {
+  display: none !important;
+  animation: none !important;
+}
+.ai-logo-c-spark:nth-child(2) { animation-delay: -0.16s; }
+.ai-logo-c-spark:nth-child(3) { animation-delay: -0.28s; }
+.ai-logo-c-spark:nth-child(4) { animation-delay: -0.35s; }
+.ai-logo-c-spark:nth-child(5) { animation-delay: -0.22s; }
+.ai-logo-c-spark:nth-child(6) { animation-delay: -0.4s; }
+
+/* Скрываем только подсветку на обложке; на картинке 2 — .ai-logo-hotspot--book */
+.scene-stage.scene--book-open #aiLogoHotspot {
+  display: none;
+}
+
+/*
+ * Логотип AI на развороте: 1:1 с обложкой (vw/vh, top, z-index), те же ::before + искры.
+ * У wrap при открытой книге снимаем overflow — иначе обрезается неоновое свечение.
+ */
+.ai-logo-hotspot--book {
+  left: 50%;
+  top: 9%;
+  width: min(16vw, 210px);
+  height: min(10vh, 95px);
+  z-index: 7;
+}
+
+/* Режим forma_cl: надпись AI по центру верхнего переплёта (картинка 3) */
+.book-write-ai-logo {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 9.5%;
+  transform: translate(-50%, -35%);
+  z-index: 9;
+  pointer-events: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+#bookImageWrap.book-ui.book-mode--write-active .book-write-ai-logo {
+  display: flex;
+}
+
+#bookImageWrap.book-ui.book-mode--write-active .ai-logo-hotspot--book {
+  top: 9.5%;
+  width: min(18vw, 230px);
+  height: min(11vh, 102px);
+}
+
+/* Открытая книга: только глобальный логотип сверху — встроенные PNG в развороте скрыты (в т.ч. при step2-visual) */
+.scene-stage.scene--book-open .ai-logo-hotspot--book,
+.scene-stage.scene--book-open .book-write-ai-logo {
+  display: none !important;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.scene-stage.scene--book-open:not(.scene--step2-visual) .word-reactions {
+  display: none !important;
+}
+
+.scene-stage.scene--book-open:not(.scene--step2-visual) .write-list-title,
+.scene-stage.scene--book-open:not(.scene--step2-visual) #writeWordList {
+  display: none !important;
+}
+
+.scene-stage.scene--book-open:not(.scene--step2-visual) #writeBtn {
+  display: none !important;
+}
+
+.book-write-ai-logo__glow {
+  position: absolute;
+  left: 50%;
+  top: 55%;
+  width: min(42vw, 280px);
+  height: min(22vh, 120px);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse 52% 48% at 50% 50%,
+    rgba(120, 235, 255, 0.34) 0%,
+    rgba(186, 102, 255, 0.22) 42%,
+    rgba(255, 116, 210, 0.12) 62%,
+    transparent 78%
+  );
+  filter: blur(2px);
+  opacity: 0.95;
+  pointer-events: none;
+}
+
+.book-write-ai-logo__text {
+  position: relative;
+  display: block;
+  font-family: system-ui, "Segoe UI", sans-serif;
+  font-size: clamp(22px, 2.65vw, 40px);
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: transparent;
+  background-image: linear-gradient(
+    115deg,
+    #b8f6ff 0%,
+    #6edcfd 18%,
+    #c084fc 45%,
+    #ff6bcb 68%,
+    #7ef3ff 100%
+  );
+  background-size: 220% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter:
+    drop-shadow(0 0 10px rgba(120, 240, 255, 0.9))
+    drop-shadow(0 0 22px rgba(180, 100, 255, 0.55))
+    drop-shadow(0 2px 4px rgba(0, 0, 0, 0.75));
+  animation: bookWriteAiLogoShimmer 5s ease-in-out infinite;
+}
+
+@keyframes bookWriteAiLogoShimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book-write-ai-logo__text {
+    animation: none;
+    background-position: 40% 50%;
+  }
+}
+
+.scene-stage.scene--book-open .book-image-wrap {
+  overflow: hidden;
+}
+
+.scene-stage.scene--book-open .book-image-wrap > .book-image {
+  border-radius: 18px 22px 22px 18px;
+}
+
+@keyframes aiLogoSparkBurstC {
+  0% {
+    opacity: 0;
+    transform: translateY(3px) scaleY(0.7);
+  }
+  28% {
+    opacity: 1;
+    transform: translateY(-3px) scaleY(1.1);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px) scaleY(0.9);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ai-logo-hotspot {
+    display: none;
+  }
+}
+
+/* Кольца курсора (адаптация MagicRings): поверх арта, но без блокировки кликов */
+.magic-rings-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.86;
+  transition: opacity 0.35s ease;
+}
+
+.magic-rings-fx canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  mix-blend-mode: screen;
+}
+
+/* По запросу: убираем свечение/неон в открытой книге; кольца у курсора (MagicRings) оставляем */
+.scene-stage.scene--book-open .magic-overlay,
+.scene-stage.scene--book-open .book-electric-fx-canvas,
+.scene-stage.scene--book-open .light-burst {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+.scene-stage.scene--book-open .magic-rings-fx {
+  display: block !important;
+  opacity: 0.52 !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .magic-rings-fx {
+    display: none;
+  }
+}
+
+/* За PNG: аналог Paper GrainGradient (Canvas в HTML), поля при contain — через прозрачный wrap */
+.grain-shader-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.78;
+  transition: opacity 0.45s ease;
+}
+
+.grain-shader-bg canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Как в demo.tsx: bg-black/20 поверх шейдера */
+.grain-shader-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+/* Убирает заметные вертикальные полосы по краям при object-fit: contain */
+.grain-shader-bg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(7, 2, 18, 0.92) 0%,
+      rgba(7, 2, 18, 0.76) 9%,
+      rgba(7, 2, 18, 0.25) 20%,
+      rgba(7, 2, 18, 0.08) 50%,
+      rgba(7, 2, 18, 0.25) 80%,
+      rgba(7, 2, 18, 0.76) 91%,
+      rgba(7, 2, 18, 0.92) 100%
+    );
+  pointer-events: none;
+}
+
+.scene-stage.scene--book-open .grain-shader-bg {
+  opacity: 0.78;
+  pointer-events: none;
+}
+
+/* Один слой фона обложки: без второго «экрана» под картинкой */
+.scene-bg-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: transparent;
+}
+
+.scene-stage.grain-shader-off .scene-bg-wrap {
+  background-color: var(--bg-1);
+}
+
+.scene-bg-wrap.image-error {
+  background-color: var(--bg-1);
+}
+
+.scene-bg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  pointer-events: none;
+}
+
+.scene-bg-wrap.image-error .scene-bg {
+  opacity: 0;
+}
+
+.scene-bg-wrap.image-error .scene-bg-fallback {
+  display: flex;
+}
+
+/* Неон по контуру только на обложке (картинка 1); при открытии книги слой скрыт вместе с .scene-bg-wrap */
+.cover-book-perimeter-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  mix-blend-mode: screen;
+}
+
+/* Неоновый дым фона (WebGL), без видимых «швов» — виньетка + screen */
+.smoke-bg-fx {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  opacity: 0.62;
+  transition: opacity 0.45s ease;
+}
+
+.smoke-bg-fx canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  mix-blend-mode: screen;
+  filter: saturate(1.25) brightness(1.08);
+}
+
+.smoke-bg-fx__vignette {
+  position: absolute;
+  inset: -2%;
+  background: radial-gradient(
+    ellipse 72% 68% at 50% 48%,
+    rgba(6, 2, 14, 0) 0%,
+    rgba(6, 2, 14, 0.25) 55%,
+    rgba(6, 2, 14, 0.78) 100%
+  );
+  mix-blend-mode: multiply;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.scene-stage.scene--book-open .smoke-bg-fx {
+  opacity: 0.62;
+}
+
+/* При открытии книги не накладываем две картинки: закрытая обложка скрывается сразу */
+.scene-stage.scene--book-open .scene-bg-wrap {
+  display: none;
+}
+
+/* Маска нижней зоны: приглушает встроенные подписи внизу самой картинки */
+.scene-bottom-mask {
+  display: none;
+}
+
+/* Локальная заплатка фона поверх нижней подписи на исходной картинке */
+.scene-signature-erase {
+  display: none;
+}
+
+/* Анимация градиентного текста (кнопка + надписи одежды) */
+.gradient-animated-text {
+  background-image: linear-gradient(90deg, #5227ff, #94058f, #d4e029, #5227ff);
+  background-size: 300% 100%;
+  background-repeat: repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: fashionGradientShift 6s linear infinite;
+}
+
+@keyframes fashionGradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes fashionGlowPulse {
+  0%,
+  100% {
+    opacity: 0.78;
+    filter: brightness(0.95) saturate(1);
+  }
+  50% {
+    opacity: 1;
+    filter: brightness(1.2) saturate(1.2);
+  }
+}
+
+/*
+  Верхняя центральная колонка: форма доступа — без захода на лица и боковые надписи.
+*/
+.cover-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  padding: 0 clamp(26%, 30vw, 34%);
+  pointer-events: none;
+}
+
+.cover-access-float {
+  position: absolute;
+  left: 50%;
+  top: clamp(26%, 31%, 36%);
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  width: min(234px, 46.8vw);
+  max-width: 100%;
+  padding: 0;
+  text-align: center;
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.cover-tap-hint {
+  margin: clamp(10px, 1.8vmin, 18px) 0 0;
+  display: none;
+  justify-content: center;
+  align-items: center;
+  line-height: 1;
+}
+
+.scene-stage.cover-ready .cover-tap-hint {
+  display: flex;
+}
+
+.cover-tap-arrow {
+  display: block;
+  font-size: clamp(30px, 4.5vw, 46px);
+  line-height: 1;
+  color: #7ef3ff;
+  filter: drop-shadow(0 0 12px rgba(120, 255, 255, 0.85)) drop-shadow(0 0 22px rgba(180, 100, 255, 0.65))
+    drop-shadow(0 2px 6px rgba(0, 0, 0, 0.6));
+  animation: coverArrowNudge 1.6s ease-in-out infinite;
+}
+
+@media (max-width: 520px) {
+  .cover-overlay {
+    padding: 0 clamp(20%, 24vw, 30%);
+  }
+
+  .cover-access-float {
+    top: clamp(24%, 29%, 34%);
+    width: min(225px, 61.2vw);
+  }
+
+  .scene-stage:not(.scene--book-open) .book-slot {
+    width: min(58%, 360px);
+    height: 36%;
+  }
+
+  .center-cta-banner {
+    min-width: 80vw;
+    max-width: 90vw;
+    padding: 10px 14px;
+    font-size: clamp(12px, 3.4vw, 16px);
+    letter-spacing: 0.06em;
+  }
+
+  .center-cta-banner--book {
+    top: 34%;
+    min-width: 38vw;
+    max-width: 46vw;
+    min-height: clamp(42px, 8.2vw, 56px);
+    font-size: clamp(9px, 2.2vw, 12px);
+    line-height: 1.1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cover-tap-arrow {
+    animation: none;
+  }
+}
+
+@keyframes coverArrowNudge {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 0.88;
+  }
+}
+
+.cover-image-fallback {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 30px;
+  color: rgba(255, 238, 210, 0.88);
+  background: linear-gradient(145deg, #2a1838 0%, #140a1c 45%, #0a050e 100%);
+  font-size: clamp(20px, 2vw, 34px);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6), 0 0 24px rgba(240, 200, 120, 0.15);
+  box-shadow: inset 0 0 80px rgba(0, 0, 0, 0.35);
+}
+
+.cover-image-fallback::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.2;
+  background-image: var(--paper-noise);
+}
+
+.cover-screen .access-subtitle {
+  margin: 0 auto 16px;
+  max-width: 24ch;
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(20px, 2.35vw, 30px);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  line-height: 1.25;
+  text-align: center;
+  color: #fff0dd;
+  text-shadow:
+    0 0 12px rgba(130, 255, 255, 0.55),
+    0 0 22px rgba(200, 120, 255, 0.5),
+    0 0 32px rgba(255, 180, 90, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.85);
+}
+
+.field-label {
+  display: block;
+  margin: 0 0 6px;
+  font-size: clamp(15px, 1.3vw, 18px);
+  font-weight: 500;
+  color: rgba(255, 236, 201, 0.78);
+  text-align: left;
+}
+
+/* Неоновая «капсула» в стиле AI / вайб-кодинга на обложке */
+.cover-screen .access-input {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: 48px;
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 999px;
+  border: 1px solid rgba(120, 225, 255, 0.62);
+  background: linear-gradient(
+    145deg,
+    rgba(20, 170, 255, 0.26) 0%,
+    rgba(56, 84, 255, 0.24) 52%,
+    rgba(185, 84, 255, 0.28) 100%
+  );
+  color: #fff9ef;
+  font-size: clamp(16px, 1.65vw, 20px);
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: center;
+  outline: none;
+  padding: 0 22px;
+  font-family: inherit;
+  cursor: text;
+  transition: box-shadow 0.28s ease, border-color 0.28s ease, transform 0.2s ease;
+  box-shadow:
+    inset 0 0 0 1px rgba(220, 248, 255, 0.2),
+    0 0 14px rgba(100, 225, 255, 0.55),
+    0 0 30px rgba(90, 120, 255, 0.42),
+    0 0 44px rgba(180, 95, 255, 0.36),
+    0 4px 16px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px) saturate(1.15);
+}
+
+/* Плейсхолдер не используется (без подсказки с кодом); если появится — почти незаметен */
+.cover-screen .access-input::placeholder {
+  color: rgba(230, 240, 255, 0.14);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+}
+
+.cover-screen .access-input:hover:not(:disabled) {
+  border-color: rgba(180, 240, 255, 0.55);
+  box-shadow:
+    inset 0 0 0 1px rgba(230, 252, 255, 0.26),
+    0 0 18px rgba(120, 235, 255, 0.7),
+    0 0 36px rgba(105, 130, 255, 0.54),
+    0 0 52px rgba(195, 105, 255, 0.46),
+    0 6px 20px rgba(0, 0, 0, 0.46);
+}
+
+.cover-screen .access-input[aria-invalid="true"] {
+  border-color: rgba(255, 120, 160, 0.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 22px rgba(255, 80, 120, 0.45),
+    0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.cover-screen .access-input:focus-visible {
+  outline: none;
+  border-color: rgba(200, 255, 255, 0.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 0 0 2px rgba(100, 220, 255, 0.35),
+    0 0 38px rgba(130, 210, 255, 0.55),
+    0 0 58px rgba(200, 120, 255, 0.4),
+    0 4px 22px rgba(0, 0, 0, 0.55);
+}
+
+.access-input::placeholder {
+  color: rgba(255, 236, 201, 0.18);
+}
+
+.access-input[aria-invalid="true"] {
+  border-color: rgba(255, 140, 140, 0.55);
+}
+
+/* =============================================================================
+   КНОПКИ И СООБЩЕНИЯ
+   ============================================================================= */
+.ghost-btn {
+  margin-top: 12px;
+  border: 1px solid rgba(245, 212, 141, 0.18);
+  background: rgba(245, 212, 141, 0.05);
+  color: rgba(255, 238, 207, 0.82);
+  border-radius: 999px;
+  padding: 9px 16px;
+  cursor: pointer;
+  font-size: 18px;
+  font-family: "Cormorant Garamond", serif;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+.cover-screen .helper-text {
+  margin-top: 8px;
+}
+
+.cover-login-msg {
+  display: inline-block;
+  min-width: min(50.4vw, 234px);
+  max-width: 100%;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(120, 225, 255, 0.5);
+  background: linear-gradient(
+    145deg,
+    rgba(20, 160, 255, 0.22) 0%,
+    rgba(60, 84, 255, 0.2) 50%,
+    rgba(175, 85, 255, 0.24) 100%
+  );
+  font-size: clamp(14px, 1.3vw, 18px);
+  font-weight: 700;
+  text-align: center;
+  color: #fff4dc;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.95);
+  box-shadow:
+    inset 0 0 0 1px rgba(218, 246, 255, 0.18),
+    0 0 12px rgba(100, 220, 255, 0.42),
+    0 0 24px rgba(170, 95, 255, 0.28);
+  backdrop-filter: blur(4px) saturate(1.12);
+}
+
+.cover-login-msg.success {
+  color: #b8fff0;
+  text-shadow:
+    0 0 12px rgba(100, 255, 220, 0.45),
+    0 1px 6px rgba(0, 0, 0, 0.85);
+}
+
+/* Ошибка встроена в сцену как неоновый элемент (без alert) */
+.cover-login-msg.error {
+  color: #ffd4dc;
+  border-color: rgba(255, 110, 145, 0.72);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 48, 94, 0.24) 0%,
+    rgba(178, 40, 72, 0.2) 52%,
+    rgba(122, 20, 44, 0.26) 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 170, 188, 0.22),
+    0 0 12px rgba(255, 84, 130, 0.58),
+    0 0 28px rgba(255, 46, 96, 0.34);
+  text-shadow:
+    0 0 8px rgba(255, 90, 140, 0.65),
+    0 1px 6px rgba(0, 0, 0, 0.88);
+}
+
+.cover-login-msg.error.msg-animate {
+  animation: loginErrorIn 0.34s cubic-bezier(0.2, 0.85, 0.25, 1) both;
+}
+
+.cover-login-msg.error.error-pop {
+  color: #ffffff;
+  border-color: rgba(255, 228, 245, 0.96);
+  background: linear-gradient(
+    145deg,
+    rgba(35, 40, 86, 0.58) 0%,
+    rgba(68, 42, 120, 0.52) 52%,
+    rgba(40, 26, 95, 0.56) 100%
+  );
+  font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: clamp(16px, 1.75vw, 25px);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 243, 250, 0.34),
+    0 0 18px rgba(126, 210, 255, 0.8),
+    0 0 38px rgba(156, 124, 255, 0.78),
+    0 0 62px rgba(223, 100, 255, 0.48);
+  text-shadow:
+    0 0 10px rgba(206, 242, 255, 0.9),
+    0 0 22px rgba(170, 150, 255, 0.92),
+    0 0 36px rgba(214, 104, 255, 0.7),
+    0 1px 8px rgba(0, 0, 0, 0.88);
+}
+
+.cover-login-msg.error.error-pop.msg-animate {
+  animation:
+    loginErrorPop 0.46s cubic-bezier(0.12, 0.9, 0.22, 1.1) both,
+    popNeonShift 1.6s linear infinite;
+}
+
+.cover-login-msg.error.error-pop .login-msg-pop-text {
+  color: transparent;
+  background-image: linear-gradient(90deg, #66e8ff 0%, #8ca0ff 34%, #f05cff 68%, #66e8ff 100%);
+  background-size: 240% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  filter: saturate(1.25) brightness(1.18);
+  text-shadow: none;
+}
+
+.cover-login-msg.error.error-pop .login-msg-emoji {
+  color: #fff8cf;
+  font-size: 1.05em;
+  line-height: 1;
+  text-shadow:
+    0 0 6px rgba(255, 240, 160, 0.95),
+    0 0 16px rgba(255, 210, 95, 0.85),
+    0 0 28px rgba(255, 175, 60, 0.62),
+    0 1px 6px rgba(0, 0, 0, 0.9);
+}
+
+.cover-login-msg.error.error-hard {
+  color: #ffe7ec;
+  border-color: rgba(255, 86, 132, 0.92);
+  background: linear-gradient(
+    145deg,
+    rgba(255, 34, 88, 0.36) 0%,
+    rgba(210, 24, 62, 0.28) 52%,
+    rgba(120, 10, 34, 0.34) 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 184, 206, 0.24),
+    0 0 18px rgba(255, 54, 104, 0.8),
+    0 0 36px rgba(255, 32, 86, 0.62),
+    0 0 56px rgba(255, 14, 70, 0.34);
+  text-shadow:
+    0 0 12px rgba(255, 78, 136, 0.85),
+    0 0 22px rgba(255, 46, 106, 0.62),
+    0 1px 8px rgba(0, 0, 0, 0.92);
+}
+
+/* 1-2 попытки: крупнее, жирнее, с упором на цифру */
+.cover-login-msg.error.error-attempt {
+  font-family: "Segoe UI", "Trebuchet MS", Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-size: clamp(15px, 1.45vw, 21px);
+}
+
+.cover-login-msg.error.error-attempt .login-msg-number {
+  display: inline-block;
+  margin: 0 2px;
+  font-size: 1.5em;
+  line-height: 0.95;
+  font-weight: 900;
+  color: #fff6fb;
+  text-shadow:
+    0 0 8px rgba(255, 170, 215, 0.9),
+    0 0 18px rgba(255, 90, 150, 0.95),
+    0 0 30px rgba(255, 42, 112, 0.7);
+  transform: translateY(1px);
+}
+
+.ghost-btn:hover:not(:disabled) {
+  background: rgba(245, 212, 141, 0.12);
+  color: rgba(255, 241, 219, 0.98);
+}
+
+.ghost-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.helper-text {
+  min-height: 24px;
+  margin: 8px 0 0;
+  font-size: 18px;
+}
+
+.helper-text.error {
+  color: #ffd2d2;
+}
+
+.helper-text.success {
+  color: var(--success);
+}
+
+@keyframes loginErrorIn {
+  0% {
+    opacity: 0;
+    transform: translateY(5px) scale(0.94);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes loginErrorPop {
+  0% {
+    opacity: 0;
+    transform: translateY(8px) scale(0.84);
+  }
+  46% {
+    opacity: 1;
+    transform: translateY(-2px) scale(1.1);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes popNeonShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* =============================================================================
+   РАСКРЫТАЯ КНИГА: слой внутри .book-slot (только после входа)
+   ============================================================================= */
+.book-open-layer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  transform: none;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.book-open-layer:not(.hidden) {
+  pointer-events: auto;
+}
+
+.book-open-layer.hidden {
+  display: none !important;
+}
+
+/* =============================================================================
+   КНИГА: СЦЕНА, ИЗОБРАЖЕНИЕ, ВРЕЗКИ СТРАНИЦ
+   ============================================================================= */
+.book-scene {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  animation: none;
+  filter: drop-shadow(0 26px 56px rgba(0, 0, 0, 0.58)) drop-shadow(0 4px 12px rgba(0, 0, 0, 0.35));
+}
+
+@keyframes bookFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.book-image-wrap {
+  position: relative;
+  border-radius: 18px 22px 22px 18px;
+  overflow: hidden;
+  box-shadow: var(--book-drop);
+  background: linear-gradient(145deg, #1a0d08 0%, #2d1810 40%, #1f120c 100%);
+}
+
+.book-image-wrap::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 100px rgba(0, 0, 0, 0.32),
+    inset 0 2px 0 rgba(255, 248, 230, 0.07),
+    inset 0 -30px 60px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+.book-image-wrap .book-left,
+.book-image-wrap .book-right {
+  pointer-events: auto;
+}
+
+.book-mode {
+  display: none;
+}
+
+.book-mode.is-active {
+  display: block;
+}
+
+/* Чистый Шаг 2: только картинка 2 + эффекты, без формы/страниц */
+.scene-stage.scene--step2-visual .book-image-wrap .book-left,
+.scene-stage.scene--step2-visual .book-image-wrap .book-right {
+  display: none !important;
+}
+
+.scene-stage.scene--step2-visual .book-open-layer:not(.hidden) {
+  pointer-events: none;
+}
+
+/* Вариант B: неоновые лучи/искры поверх картинки 2 */
+.book-electric-fx-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.scene-stage.scene--book-open .book-electric-fx-canvas {
+  opacity: 1;
+}
+
+/* D/E/F: индикаторные изменения интенсивности по режимам */
+.scene-stage.book-fx-mode-d .book-electric-fx-canvas {
+  filter: saturate(1.2) brightness(1.18);
+}
+
+.scene-stage.book-fx-mode-f .book-electric-fx-canvas {
+  filter: saturate(1) brightness(1.02);
+}
+
+.book-image {
+  width: 100%;
+  display: block;
+  user-select: none;
+  -webkit-user-drag: none;
+  background: linear-gradient(180deg, #3d2618, #2a1810);
+}
+
+.magic-overlay {
+  position: absolute;
+  left: 50%;
+  top: 58%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  height: 400px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.glow {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, rgba(255, 150, 0, 0.8), rgba(255, 0, 200, 0.4), transparent);
+  filter: blur(40px);
+  animation: pulse 3s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 1;
+  }
+}
+
+.aura {
+  position: absolute;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(255, 0, 255, 0.2), transparent);
+  filter: blur(80px);
+  animation: auraMove 6s ease-in-out infinite;
+}
+
+@keyframes auraMove {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.rays {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(to top, rgba(255, 255, 255, 0.2), transparent);
+  filter: blur(20px);
+  animation: raysMove 4s linear infinite;
+}
+
+@keyframes raysMove {
+  0% {
+    transform: translateY(20px);
+  }
+  100% {
+    transform: translateY(-40px);
+  }
+}
+
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  background: white;
+  border-radius: 50%;
+  animation: floatUp linear infinite;
+}
+
+@keyframes floatUp {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-150px);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .magic-overlay {
+    width: 250px;
+    height: 250px;
+    top: 60%;
+  }
+
+  .glow {
+    width: 120px;
+    height: 120px;
+    filter: blur(25px);
+  }
+
+  .aura {
+    width: 180px;
+    height: 180px;
+    filter: blur(50px);
+  }
+
+  .particle {
+    width: 2px;
+    height: 2px;
+  }
+}
+
+/* Fallback: разворот книги на «столе» — объём, корешок, фактура бумаги */
+.book-image-fallback {
+  display: none;
+  aspect-ratio: 16 / 10;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 100%, rgba(0, 0, 0, 0.45), transparent 55%),
+    radial-gradient(ellipse 80% 50% at 30% 20%, rgba(255, 200, 120, 0.08), transparent 50%),
+    repeating-linear-gradient(
+      90deg,
+      #3d2818 0px,
+      #4a3320 2px,
+      #352418 4px,
+      #2a1a12 8px
+    ),
+    linear-gradient(180deg, #5c4030 0%, #2d1e14 50%, #1a100a 100%);
+  box-shadow: inset 0 0 0 1px rgba(255, 230, 190, 0.12);
+}
+
+.book-fallback-spine {
+  position: absolute;
+  left: 50%;
+  top: 5%;
+  bottom: 5%;
+  width: 3.2%;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    90deg,
+    rgba(20, 12, 8, 0.95),
+    rgba(55, 38, 26, 0.9) 45%,
+    rgba(30, 20, 14, 0.95) 55%,
+    rgba(15, 10, 7, 0.98)
+  );
+  box-shadow:
+    inset 0 0 12px rgba(0, 0, 0, 0.6),
+    -4px 0 14px rgba(0, 0, 0, 0.35),
+    4px 0 14px rgba(0, 0, 0, 0.35);
+  border-radius: 3px;
+  z-index: 2;
+}
+
+.book-image-fallback::before,
+.book-image-fallback::after {
+  content: "";
+  position: absolute;
+  top: 5.5%;
+  bottom: 5.5%;
+  width: 38%;
+  border-radius: 3px 10px 12px 4px;
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 252, 245, 0.95) 0%,
+      var(--paper-cream) 22%,
+      var(--paper-cream-mid) 55%,
+      #e8dcc4 100%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 1.05em,
+      rgba(139, 90, 43, 0.07) 1.05em,
+      rgba(139, 90, 43, 0.07) 1.08em
+    );
+  box-shadow:
+    var(--page-inset),
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.2),
+    inset -1px 0 0 rgba(180, 140, 90, 0.2);
+  z-index: 1;
+}
+
+.book-image-fallback::before {
+  left: 8%;
+  transform: rotate(-0.4deg);
+}
+
+.book-image-fallback::after {
+  right: 8%;
+  transform: rotate(0.45deg);
+  border-radius: 10px 3px 4px 12px;
+  box-shadow:
+    var(--page-inset),
+    0 8px 24px rgba(0, 0, 0, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.2),
+    inset 1px 0 0 rgba(180, 140, 90, 0.18);
+}
+
+.book-image-wrap.image-error .book-image {
+  display: none;
+}
+
+.book-image-wrap.image-error .book-image-fallback {
+  display: block;
+}
+
+/* Врезки: расширенная рабочая зона, выше и плотнее к развороту */
+.book-left {
+  position: absolute;
+  z-index: 3;
+  left: 30.6%;
+  top: 23.8%;
+  width: 18.6%;
+  height: 52%;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.book-right {
+  position: absolute;
+  z-index: 3;
+  left: 50.1%;
+  top: 23.8%;
+  width: 19%;
+  height: 52%;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.book-page-surface {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  position: relative;
+  padding: clamp(6px, 0.65vw, 12px) clamp(5px, 0.55vw, 10px);
+  border-radius: 4px 6px 6px 4px;
+  background:
+    radial-gradient(ellipse 90% 55% at 20% 15%, rgba(255, 255, 255, 0.55), transparent 52%),
+    linear-gradient(168deg, #fdf8ee 0%, #f0e4d0 45%, #e4d4bc 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 1.08em,
+      rgba(110, 72, 40, 0.078) 1.08em,
+      rgba(110, 72, 40, 0.078) 1.11em
+    );
+  box-shadow:
+    var(--page-inset),
+    0 5px 18px rgba(35, 18, 8, 0.22),
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    inset 0 0 0 1px rgba(95, 58, 28, 0.12);
+  border: 1px solid rgba(78, 44, 20, 0.16);
+}
+
+.book-page-surface::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image: var(--paper-noise);
+  mix-blend-mode: multiply;
+}
+
+.book-page-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.05) 0%, transparent 9%, transparent 91%, rgba(0, 0, 0, 0.045) 100%);
+  opacity: 0.85;
+}
+
+.book-page-surface--right {
+  border-radius: 6px 4px 4px 6px;
+  background:
+    radial-gradient(ellipse 85% 50% at 78% 12%, rgba(255, 255, 255, 0.42), transparent 50%),
+    linear-gradient(188deg, #fcf6ea 0%, #ebe0cc 55%, #dfd2b8 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 1.08em,
+      rgba(105, 70, 38, 0.07) 1.08em,
+      rgba(105, 70, 38, 0.07) 1.11em
+    );
+}
+
+.handwriting {
+  font-family: "Marck Script", cursive;
+}
+
+.book-page-surface > * {
+  position: relative;
+  z-index: 1;
+}
+
+.paper-label {
+  display: block;
+  margin: 0 0 4px;
+  font-size: clamp(10px, 0.9vw, 13px);
+  line-height: 1.15;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(62, 32, 14, 0.68);
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 600;
+}
+
+.paper-input,
+.paper-textarea {
+  width: 100%;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--paper-ink);
+  caret-color: #5c2a12;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.28);
+  font-family: "Marck Script", cursive;
+  transition: box-shadow 0.2s ease, background 0.2s ease;
+  border-radius: 2px;
+  padding: 3px 5px;
+  cursor: text;
+  box-shadow: none;
+}
+
+.paper-input::placeholder,
+.paper-textarea::placeholder {
+  color: rgba(106, 53, 26, 0.28);
+  font-style: normal;
+}
+
+.paper-input[aria-invalid="true"],
+.paper-textarea[aria-invalid="true"] {
+  box-shadow: inset 0 -1px 0 0 rgba(160, 50, 50, 0.55);
+}
+
+.paper-input {
+  font-size: clamp(19px, 1.55vw, 30px);
+  line-height: 1.1;
+  margin-top: 0;
+  flex-shrink: 0;
+  border-bottom: 1px dashed rgba(90, 47, 23, 0.28);
+  padding: 2px 4px 6px;
+}
+
+.paper-textarea {
+  margin-top: 6px;
+  flex: 1;
+  min-height: clamp(64px, 12vh, 120px);
+  resize: none;
+  font-size: clamp(15px, 1.28vw, 24px);
+  line-height: 1.22;
+  border: none;
+  border-left: 2px solid rgba(139, 90, 43, 0.2);
+  padding: 4px 6px 6px 8px;
+  background: rgba(255, 252, 245, 0.22);
+}
+
+.actions-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  margin-top: auto;
+  padding-top: clamp(5px, 0.55vw, 9px);
+  gap: 8px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+#backToViewBtn {
+  align-self: flex-start;
+  margin-bottom: 6px;
+}
+
+#writingPreview {
+  flex: 1;
+  min-height: 0;
+  color: var(--paper-ink);
+  font-family: "Caveat", cursive;
+  font-size: clamp(18px, 1.45vw, 28px);
+  line-height: 1.35;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 2px 2px 8px 0;
+}
+
+.book-btn {
+  margin-top: 0;
+  padding: 8px 20px;
+  font-size: clamp(15px, 1.15vw, 19px);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: rgba(52, 26, 10, 0.95);
+  border: 1px solid rgba(85, 48, 22, 0.35);
+  background: linear-gradient(180deg, rgba(255, 248, 230, 0.95), rgba(218, 198, 168, 0.75));
+  box-shadow:
+    0 2px 8px rgba(35, 18, 8, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.book-btn:hover:not(:disabled) {
+  color: rgba(50, 26, 12, 0.98);
+  background: linear-gradient(180deg, rgba(255, 252, 245, 0.95), rgba(238, 224, 200, 0.7));
+}
+
+.book-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.form-helper {
+  margin-top: 4px;
+  font-size: clamp(11px, 0.85vw, 14px);
+  line-height: 1.25;
+  color: rgba(72, 38, 18, 0.88);
+}
+
+.right-input-area {
+  margin-bottom: 8px;
+}
+
+.right-input-area .paper-label {
+  margin-bottom: 6px;
+}
+
+.right-input-area .paper-textarea {
+  min-height: clamp(72px, 10vh, 120px);
+  margin-top: 0;
+  background: rgba(255, 252, 245, 0.28);
+}
+
+/* =============================================================================
+   СЛОВАРЬ И ПАГИНАЦИЯ
+   ============================================================================= */
+.dictionary-page {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  transform-style: preserve-3d;
+  padding: 1px 2px 4px 0;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(90, 47, 23, 0.35) rgba(255, 248, 238, 0.3);
+}
+
+.dictionary-page::-webkit-scrollbar {
+  width: 5px;
+}
+
+.dictionary-page::-webkit-scrollbar-thumb {
+  background: rgba(90, 47, 23, 0.35);
+  border-radius: 4px;
+}
+
+.dictionary-page.turn-next {
+  animation: turnNext var(--dur-page-turn) cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.dictionary-page.turn-prev {
+  animation: turnPrev var(--dur-page-turn) cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@keyframes turnNext {
+  0% {
+    transform: perspective(1200px) rotateY(0deg);
+    opacity: 1;
+  }
+  42% {
+    transform: perspective(1200px) rotateY(-88deg);
+    opacity: 0.1;
+  }
+  58% {
+    transform: perspective(1200px) rotateY(88deg);
+    opacity: 0.08;
+  }
+  100% {
+    transform: perspective(1200px) rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes turnPrev {
+  0% {
+    transform: perspective(1200px) rotateY(0deg);
+    opacity: 1;
+  }
+  42% {
+    transform: perspective(1200px) rotateY(88deg);
+    opacity: 0.1;
+  }
+  58% {
+    transform: perspective(1200px) rotateY(-88deg);
+    opacity: 0.08;
+  }
+  100% {
+    transform: perspective(1200px) rotateY(0deg);
+    opacity: 1;
+  }
+}
+
+.word-line {
+  color: var(--paper-ink);
+  font-family: "Caveat", cursive;
+  font-size: clamp(16px, 1.32vw, 27px);
+  line-height: 1.28;
+  margin: 0 0 clamp(6px, 0.55vw, 10px);
+  padding: 5px 6px 7px 10px;
+  border-radius: 0 4px 4px 0;
+  border-left: 3px solid rgba(120, 75, 38, 0.28);
+  background: linear-gradient(90deg, rgba(255, 252, 245, 0.45) 0%, transparent 88%);
+  box-shadow: 0 1px 0 rgba(90, 47, 23, 0.06);
+  white-space: pre-wrap;
+  word-break: break-word;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.3);
+  transform: rotate(-0.15deg);
+}
+
+.word-line:nth-child(even) {
+  transform: rotate(0.12deg);
+}
+
+.word-line.typing::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 0.88em;
+  margin-left: 3px;
+  border-radius: 1px;
+  background: linear-gradient(180deg, #6a3820, #4a2410);
+  vertical-align: -0.05em;
+  opacity: 0.85;
+  animation: blinkCaret 0.75s step-end infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .word-line.typing::after {
+    animation: none;
+    opacity: 1;
+  }
+}
+
+@keyframes blinkCaret {
+  50% {
+    opacity: 0;
+  }
+}
+
+.empty-note {
+  margin-top: 6px;
+  padding: 12px 10px;
+  color: rgba(72, 38, 18, 0.55);
+  font-size: clamp(15px, 1.28vw, 23px);
+  font-family: "Caveat", cursive;
+  line-height: 1.35;
+  font-style: italic;
+  text-align: center;
+  border: 1px dashed rgba(120, 75, 40, 0.22);
+  border-radius: 4px;
+  background: rgba(255, 252, 245, 0.25);
+}
+
+.page-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: auto;
+  padding-top: clamp(4px, 0.55vw, 8px);
+  flex-shrink: 0;
+}
+
+.page-counter {
+  color: rgba(72, 38, 18, 0.88);
+  font-size: clamp(12px, 0.95vw, 15px);
+  font-family: "Cormorant Garamond", serif;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  min-width: 3.2em;
+  text-align: center;
+}
+
+.nav-btn {
+  width: clamp(28px, 2.2vw, 36px);
+  height: clamp(28px, 2.2vw, 36px);
+  border: 1px solid rgba(90, 47, 23, 0.28);
+  border-radius: 50%;
+  cursor: pointer;
+  color: rgba(72, 38, 18, 0.95);
+  font-size: 13px;
+  line-height: 1;
+  background: linear-gradient(165deg, rgba(255, 248, 232, 0.9), rgba(210, 188, 155, 0.65));
+  box-shadow: 0 2px 6px rgba(40, 22, 10, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  transition: background 0.2s ease, transform 0.15s ease;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: linear-gradient(165deg, rgba(255, 252, 245, 0.98), rgba(225, 205, 175, 0.8));
+  transform: scale(1.05);
+}
+
+.nav-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* =============================================================================
+   ПОДПИСИ ПОД КНИГОЙ (один блок, без наложения строк)
+   ============================================================================= */
+.scene-footer {
+  display: block !important;
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+.bottom-copyright {
+  display: none !important;
+}
+
+.bottom-signature {
+  display: none !important;
+}
+
+.site-footer-signature {
+  display: none !important;
+}
+
+
+/* =============================================================================
+   ФОКУС (ДОСТУПНОСТЬ)
+   ============================================================================= */
+.paper-input:focus-visible,
+.paper-textarea:focus-visible,
+.ghost-btn:focus-visible,
+.nav-btn:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 10px;
+}
+
+.nav-btn:focus-visible {
+  border-radius: 50%;
+}
+
+/* =============================================================================
+   АДАПТИВ
+   ============================================================================= */
+@media (max-width: 1200px) {
+  .book-left {
+    left: 30.2%;
+    top: 23.2%;
+    width: 19.2%;
+    height: 53%;
+  }
+
+  .book-right {
+    left: 50%;
+    top: 23.2%;
+    width: 19.5%;
+    height: 53%;
+  }
+}
+
+@media (max-width: 900px) {
+  .scene-footer {
+    inset: 0;
+  }
+
+  .bottom-copyright {
+    font-size: clamp(10px, 1.35vw, 13px);
+    bottom: calc(3px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bottom-signature {
+    display: none !important;
+  }
+
+
+  .paper-textarea {
+    min-height: 52px;
+  }
+
+  .book-left {
+    left: 29.4%;
+    top: 22.8%;
+    width: 20%;
+    height: 54%;
+  }
+
+  .book-right {
+    left: 49.4%;
+    top: 22.8%;
+    width: 20.5%;
+    height: 54%;
+  }
+}
+
+    @media (max-width: 700px) {
+      .book-left {
+    left: 27.8%;
+    top: 22%;
+    width: 22.5%;
+    height: 55%;
+  }
+
+  .book-right {
+    left: 48.2%;
+    top: 22%;
+    width: 23%;
+    height: 55%;
+  }
+
+  .paper-input {
+    font-size: clamp(16px, 2.5vw, 22px);
+  }
+
+  .paper-textarea {
+    font-size: clamp(14px, 2vw, 18px);
+  }
+
+  .word-line {
+    font-size: clamp(14px, 2.1vw, 20px);
+  }
+
+  .scene-footer {
+    inset: 0;
+  }
+
+  .bottom-copyright {
+    font-size: clamp(9px, 2.1vw, 12px);
+    bottom: calc(2px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .bottom-signature {
+    display: none !important;
+  }
+
+
+  .scene-stage.scene--book-open .book-slot {
+    max-height: min(78vh, 820px);
+    width: min(98%, 100%);
+  }
+}
+
+
+    /* Дополнения: словарь в областях страниц book-open.svg */
+
+    /* Контейнер разворота: картинка снизу, контент — поверх страниц */
+    #bookImageWrap.book-ui {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+      background: transparent !important;
+      border-radius: 0;
+      overflow: visible;
+      box-shadow: none;
+    }
+
+    #bookImageWrap.book-ui::after {
+      display: none;
+    }
+
+    #bookImageWrap.book-ui > .book-image {
+      position: relative;
+      z-index: 0;
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /*
+      Левая страница: x=80, y=60, w=720, h=880 → ~5%, 6%, 45%, 88%
+      Правая: x=800 → 50%, те же размеры (подгонка под book-open.svg)
+    */
+    #bookImageWrap.book-ui .book-left,
+    #bookImageWrap.book-ui .book-right {
+      position: absolute;
+      z-index: 2;
+      top: 6%;
+      height: 88%;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      min-height: 0;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0 !important;
+    }
+
+    #bookImageWrap.book-ui .book-left {
+      left: 5%;
+      width: 45%;
+      padding: 2.5% 5% 3% 8%;
+      box-sizing: border-box;
+    }
+
+    #bookImageWrap.book-ui .book-right {
+      left: 50%;
+      width: 45%;
+      padding: 2.5% 8% 3% 5%;
+      box-sizing: border-box;
+    }
+
+/* Режим записи на форме forma_cl.png:
+   точечная зона на левой странице и "живой" вывод на правой */
+#bookImageWrap.book-ui .book-mode--write .book-left {
+  left: 50%;
+  top: 18%;
+  width: 21%;
+  height: 48%;
+  padding: 0 4% 0 8%;
+  transform: translateX(-100%);
+  box-sizing: border-box;
+}
+
+#bookImageWrap.book-ui .book-mode--write .book-right {
+  left: 75%;
+  top: 18%;
+  width: 21%;
+  height: 48%;
+  padding: 0 8% 0 4%;
+  transform: translateX(-50%);
+  box-sizing: border-box;
+}
+
+    #bookImageWrap.book-ui .paper-label {
+      color: rgba(58, 32, 14, 0.78);
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+    }
+
+    #bookImageWrap.book-ui .paper-input,
+    #bookImageWrap.book-ui .paper-textarea {
+      background: transparent !important;
+      box-shadow: none !important;
+      border-radius: 0;
+  color: #4a2812;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    #bookImageWrap.book-ui .paper-input {
+      border-bottom: 1px dashed rgba(90, 47, 23, 0.35);
+      padding: 2px 0 6px;
+    }
+
+    #bookImageWrap.book-ui .paper-textarea {
+      border: none;
+      border-left: 1px dashed rgba(90, 47, 23, 0.25);
+      padding: 4px 0 4px 8px;
+      margin-top: 6px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    #bookImageWrap.book-ui .paper-input:focus-visible,
+    #bookImageWrap.book-ui .paper-textarea:focus-visible {
+      outline: none;
+      box-shadow: inset 0 -1px 0 0 rgba(90, 47, 23, 0.45);
+    }
+
+    #bookImageWrap.book-ui .book-btn {
+      background: rgba(120, 72, 40, 0.12) !important;
+      border: 1px solid rgba(90, 47, 23, 0.4);
+      box-shadow: none !important;
+      border-radius: 3px;
+      color: #3d2210;
+    }
+
+    #bookImageWrap.book-ui .book-btn:hover:not(:disabled) {
+      background: rgba(120, 72, 40, 0.2) !important;
+    }
+
+    #bookImageWrap.book-ui .form-helper {
+      color: rgba(58, 32, 14, 0.85);
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+#bookImageWrap.book-ui .book-mode--write .paper-label,
+#bookImageWrap.book-ui .book-mode--write .book-btn,
+#bookImageWrap.book-ui .book-mode--write .form-helper {
+  color: #0f3d78;
+  text-shadow: none;
+}
+
+#bookImageWrap.book-ui .book-mode--write .paper-input,
+#bookImageWrap.book-ui .book-mode--write .paper-textarea,
+#bookImageWrap.book-ui .book-mode--write #writingPreview {
+  color: #154f9e;
+  text-shadow: none;
+}
+
+#bookImageWrap.book-ui .book-mode--write .paper-label {
+  font-weight: 700;
+  letter-spacing: 0.045em;
+}
+
+#bookImageWrap.book-ui .book-mode--write .paper-input,
+#bookImageWrap.book-ui .book-mode--write .paper-textarea {
+  font-family: "Caveat", cursive;
+  font-weight: 700;
+  font-size: clamp(17px, 1.12vw, 21px);
+  line-height: 1.22;
+  border-bottom-color: rgba(21, 80, 160, 0.42);
+  caret-color: #0d55c4;
+}
+
+#bookImageWrap.book-ui .book-mode--write .paper-textarea {
+  border-left: none !important;
+  padding-left: 0;
+  overflow: hidden;
+}
+
+#bookImageWrap.book-ui .book-mode--write #wordInput {
+  font-size: clamp(22px, 1.55vw, 32px);
+  line-height: 1.12;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  padding-bottom: 4px;
+}
+
+#bookImageWrap.book-ui .book-mode--write .actions-row {
+  margin-top: 6px;
+  padding-top: 4px;
+  gap: 8px;
+}
+
+#bookImageWrap.book-ui .book-mode--write .actions-row .book-btn {
+  margin-top: 0;
+  padding: 5px 12px;
+  font-size: clamp(12px, 0.88vw, 16px);
+  border-radius: 8px;
+  font-weight: 700;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(180, 210, 255, 0.35) 45%,
+    rgba(21, 80, 160, 0.14) 100%
+  ) !important;
+  border: 1px solid rgba(21, 80, 160, 0.55);
+  color: #082a5c;
+  box-shadow:
+    0 1px 3px rgba(21, 80, 160, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.65) !important;
+}
+
+#bookImageWrap.book-ui .book-mode--write .actions-row .book-btn:hover:not(:disabled) {
+  background: rgba(21, 80, 160, 0.2) !important;
+  border-color: rgba(12, 60, 140, 0.85);
+  color: #061f45;
+  box-shadow:
+    0 2px 10px rgba(21, 80, 160, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
+}
+
+#bookImageWrap.book-ui .book-mode--write .book-btn {
+  font-weight: 700;
+  background: rgba(120, 72, 40, 0.2) !important;
+  border-color: rgba(60, 24, 12, 0.45);
+}
+
+#bookImageWrap.book-ui .book-mode--write #writingPreview {
+  font-family: "Caveat", cursive;
+  font-weight: 700;
+  font-size: clamp(17px, 1.15vw, 21px);
+  line-height: 1.25;
+  overflow: hidden;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+#bookImageWrap.book-ui .book-mode--write #writingPreview::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+#bookImageWrap.book-ui .book-left--write {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow: hidden;
+}
+
+#bookImageWrap.book-ui .write-list-title {
+  flex-shrink: 0;
+  margin: 0 0 2px;
+  color: #0f3d78;
+}
+
+#bookImageWrap.book-ui .write-word-list {
+  flex: 0 1 auto;
+  max-height: 28%;
+  min-height: 1.2em;
+  overflow: hidden;
+  margin: 0;
+  padding-left: 1.25em;
+  list-style: decimal;
+  font-family: "Caveat", cursive;
+  font-weight: 700;
+  font-size: clamp(14px, 0.95vw, 18px);
+  line-height: 1.15;
+  color: #154f9e;
+}
+
+#bookImageWrap.book-ui .write-word-list .write-word-li {
+  margin-bottom: 0.28em;
+  cursor: default;
+  border-radius: 4px;
+  outline: transparent solid 2px;
+  transition: outline-color 0.15s ease, background 0.15s ease;
+}
+
+#bookImageWrap.book-ui .write-word-list .write-word-li-messenger {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 3px;
+}
+
+#bookImageWrap.book-ui .write-word-list .write-word-li-text {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 1px 2px;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  line-height: inherit;
+  background: transparent;
+  border: none;
+  border-radius: 2px;
+  cursor: pointer;
+  outline: transparent solid 2px;
+  transition: background 0.15s ease, outline-color 0.15s ease;
+}
+
+#bookImageWrap.book-ui .write-word-list .write-word-li-text:hover {
+  background: rgba(21, 80, 160, 0.06);
+}
+
+#bookImageWrap.book-ui .write-word-list .write-word-li-text:focus-visible {
+  outline-color: rgba(21, 80, 160, 0.45);
+  background: rgba(21, 80, 160, 0.05);
+}
+
+#bookImageWrap.book-ui .write-word-list .write-word-li.is-editing .write-word-li-text {
+  outline-color: rgba(21, 80, 160, 0.55);
+  background: rgba(21, 80, 160, 0.08);
+}
+
+#bookImageWrap.book-ui .write-word-list .word-reactions {
+  margin: 0;
+  padding: 0 0 0 2px;
+}
+
+#bookImageWrap.book-ui .book-mode--write .write-right-line,
+#bookImageWrap.book-ui .book-mode--write .write-right-draft {
+  color: #154f9e !important;
+  font-size: clamp(17px, 1.15vw, 21px) !important;
+}
+
+#bookImageWrap.book-ui .write-right-entry {
+  margin-bottom: 0.35em;
+}
+
+#bookImageWrap.book-ui .word-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 6px;
+  margin: 2px 0 0;
+  justify-content: flex-start;
+}
+
+#bookImageWrap.book-ui .word-reaction-btn {
+  font-size: clamp(11px, 0.68vw, 14px);
+  line-height: 1.2;
+  padding: 2px 6px;
+  border: 1px solid rgba(21, 80, 160, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  color: #0f3d78;
+  cursor: pointer;
+  font-family: system-ui, "Segoe UI", sans-serif;
+}
+
+#bookImageWrap.book-ui .word-reaction-btn:hover:not(:disabled) {
+  background: rgba(21, 80, 160, 0.12);
+}
+
+#bookImageWrap.book-ui .dictionary-entry-wrap {
+  margin-bottom: 0.5em;
+}
+
+#bookImageWrap.book-ui .dictionary-entry-wrap .word-line {
+  color: #154f9e !important;
+  font-size: clamp(17px, 1.15vw, 21px) !important;
+  text-shadow: none !important;
+}
+
+#bookImageWrap.book-ui .book-left--write #wordForm {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#bookImageWrap.book-ui .book-mode--write .write-right-draft {
+  font-style: italic;
+  opacity: 0.9;
+}
+
+/* Низ разворота: Далее / Закрыть книгу */
+#bookImageWrap.book-ui .book-write-bottom {
+  position: absolute;
+  left: 5%;
+  right: 5%;
+  bottom: 4%;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  pointer-events: none;
+}
+
+#bookImageWrap.book-ui .book-write-bottom .book-write-actions-row {
+  pointer-events: auto;
+}
+
+#bookImageWrap.book-ui .book-write-actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+    #bookImageWrap.book-ui .dictionary-page {
+      background: transparent !important;
+      padding: 0 2px 4px 0;
+    }
+
+    #bookImageWrap.book-ui .word-line {
+      background: none !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 0;
+      padding: 0 0 0.45em;
+      margin: 0 0 0.35em;
+      transform: none !important;
+      color: #4a2812;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.2);
+    }
+
+    #bookImageWrap.book-ui .empty-note {
+      background: transparent !important;
+      border: none !important;
+      color: rgba(58, 32, 14, 0.55);
+      padding: 0.5em 0;
+    }
+
+    #bookImageWrap.book-ui .page-nav {
+      margin-top: auto;
+      padding-top: 6px;
+    }
+
+    #bookImageWrap.book-ui .nav-btn {
+      background: rgba(255, 248, 235, 0.2) !important;
+      border: 1px solid rgba(90, 47, 23, 0.35);
+      box-shadow: none !important;
+    }
+
+    @media (max-width: 700px) {
+      #bookImageWrap.book-ui .book-left {
+        padding: 2% 3% 2% 5%;
+      }
+      #bookImageWrap.book-ui .book-right {
+        padding: 2% 5% 2% 3%;
+      }
+    }
+
+    /* ========== ТЗ: заголовок обложки (outline, glow, letter-spacing) ========== */
+    .cover-title-hero {
+      margin: 0 auto 10px;
+      max-width: 18ch;
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(28px, 4.2vw, 46px);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: 0.03em;
+      text-align: center;
+      color: #fff8e8;
+      -webkit-text-stroke: 0.6px rgba(80, 40, 20, 0.35);
+      text-shadow:
+        0 0 16px rgba(255, 220, 140, 0.65),
+        0 0 30px rgba(180, 100, 255, 0.35),
+        0 3px 12px rgba(0, 0, 0, 0.85);
+    }
+
+    @supports not (-webkit-text-stroke: 1px red) {
+      .cover-title-hero {
+        text-shadow:
+          0 0 1px rgba(40, 20, 10, 0.9),
+          0 0 16px rgba(255, 220, 140, 0.65),
+          0 0 30px rgba(180, 100, 255, 0.35),
+          0 3px 12px rgba(0, 0, 0, 0.85);
+      }
+    }
+
+    .access-actions {
+      margin-top: 12px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .access-submit-btn {
+      min-height: 44px;
+      padding: 0 28px;
+      border-radius: 999px;
+      border: 1px solid rgba(120, 225, 255, 0.58);
+      background: linear-gradient(
+        145deg,
+        rgba(60, 225, 255, 0.82) 0%,
+        rgba(96, 124, 255, 0.8) 46%,
+        rgba(214, 95, 255, 0.86) 100%
+      );
+      color: #ffffff;
+      font-family: inherit;
+      font-size: clamp(15px, 1.5vw, 18px);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      text-shadow:
+        0 0 10px rgba(150, 235, 255, 0.85),
+        0 1px 8px rgba(0, 0, 0, 0.9);
+      box-shadow:
+        0 0 18px rgba(120, 238, 255, 0.85),
+        0 0 34px rgba(96, 132, 255, 0.7),
+        0 0 56px rgba(210, 105, 255, 0.62),
+        0 6px 20px rgba(0, 0, 0, 0.48),
+        inset 0 0 0 1px rgba(240, 253, 255, 0.42);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .access-submit-btn .btn-gradient-text {
+      display: inline-block;
+      line-height: 1;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      text-shadow: 0 0 8px rgba(130, 240, 255, 0.55), 0 1px 5px rgba(0, 0, 0, 0.75);
+    }
+
+    .access-submit-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow:
+        0 0 24px rgba(130, 245, 255, 1),
+        0 0 44px rgba(112, 145, 255, 0.85),
+        0 0 66px rgba(220, 118, 255, 0.78),
+        0 6px 20px rgba(0, 0, 0, 0.48),
+        inset 0 0 0 1px rgba(245, 255, 255, 0.56);
+    }
+
+    .access-submit-btn.state-error {
+      border-color: rgba(255, 130, 130, 0.9);
+      background: linear-gradient(145deg, rgba(255, 72, 82, 0.9) 0%, rgba(255, 16, 40, 0.88) 100%);
+      color: #fff7f8;
+      box-shadow:
+        0 0 16px rgba(255, 80, 110, 0.95),
+        0 0 34px rgba(255, 35, 70, 0.8),
+        0 6px 20px rgba(0, 0, 0, 0.48),
+        inset 0 0 0 1px rgba(255, 220, 225, 0.4);
+    }
+
+    .access-submit-btn.state-success {
+      border-color: rgba(114, 255, 191, 0.9);
+      background: linear-gradient(145deg, rgba(0, 179, 111, 0.92) 0%, rgba(0, 92, 68, 0.95) 100%);
+      color: #ebfff6;
+      box-shadow:
+        0 0 16px rgba(90, 255, 190, 0.95),
+        0 0 34px rgba(0, 177, 116, 0.78),
+        0 0 52px rgba(0, 110, 78, 0.64),
+        0 6px 20px rgba(0, 0, 0, 0.48),
+        inset 0 0 0 1px rgba(210, 255, 236, 0.4);
+    }
+
+    .access-submit-btn.state-error .btn-gradient-text,
+    .access-submit-btn.state-success .btn-gradient-text {
+      background-image: none;
+      color: #fff;
+      -webkit-background-clip: initial;
+      background-clip: initial;
+      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.86);
+      animation: none;
+    }
+
+    .access-submit-btn:focus-visible {
+      outline: var(--focus-ring);
+      outline-offset: 3px;
+    }
+
+    .access-submit-btn:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+
+    /* ========== ТЗ: div.flash (успех / ошибка) ========== */
+    .flash {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 3;
+      border-radius: inherit;
+    }
+
+    #sceneFlash.flash {
+      z-index: 6;
+      border-radius: 0;
+    }
+
+    .flash--book {
+      z-index: 1;
+      border-radius: inherit;
+    }
+
+    .flash--success-pulse {
+      background: radial-gradient(
+        circle at 50% 45%,
+        rgba(120, 255, 160, 0.45) 0%,
+        rgba(80, 200, 120, 0.12) 42%,
+        transparent 68%
+      );
+      animation: flashSuccess 0.65s ease forwards;
+    }
+
+    .flash--error-pulse {
+      background: radial-gradient(
+        ellipse 150% 130% at 50% 46%,
+        rgba(255, 92, 108, 0.96) 0%,
+        rgba(255, 56, 92, 0.56) 22%,
+        rgba(220, 30, 58, 0.28) 44%,
+        rgba(120, 12, 34, 0.14) 62%,
+        transparent 78%
+      );
+      animation: flashErrorOops 0.58s cubic-bezier(0.2, 0.9, 0.24, 1) forwards;
+    }
+
+    /* "УПСС!" внутри сцены — часть красной вспышки */
+    #sceneFlash.flash--error-pulse::before {
+      content: "УПСС!";
+      position: absolute;
+      left: 50%;
+      top: 42%;
+      transform: translate(-50%, -50%) scale(0.78);
+      font-family: "Cormorant Garamond", serif;
+      font-size: clamp(26px, 6.8vw, 64px);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      color: #ffe9ee;
+      text-shadow:
+        0 0 12px rgba(255, 120, 150, 0.95),
+        0 0 30px rgba(255, 62, 108, 0.9),
+        0 0 56px rgba(255, 32, 76, 0.75),
+        0 3px 10px rgba(0, 0, 0, 0.85);
+      opacity: 0;
+      animation: flashOopsLabel 0.46s cubic-bezier(0.2, 0.9, 0.24, 1) 0.1s forwards;
+    }
+
+    .flash--open-pulse {
+      background: radial-gradient(
+        ellipse 140% 120% at 50% 52%,
+        rgba(255, 250, 210, 0.9) 0%,
+        rgba(255, 205, 120, 0.5) 28%,
+        rgba(180, 110, 255, 0.25) 52%,
+        transparent 74%
+      );
+      animation: flashOpen 0.72s ease forwards;
+    }
+
+    @keyframes flashSuccess {
+      0% {
+        opacity: 0;
+      }
+      22% {
+        opacity: 0.55;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes flashError {
+      0% {
+        opacity: 0;
+      }
+      18% {
+        opacity: 0.5;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes flashErrorOops {
+      0% {
+        opacity: 0;
+        filter: saturate(1.2) brightness(1);
+      }
+      16% {
+        opacity: 0.96;
+        filter: saturate(1.38) brightness(1.25);
+      }
+      46% {
+        opacity: 0.38;
+        filter: saturate(1.2) brightness(1.08);
+      }
+      100% {
+        opacity: 0;
+        filter: saturate(1) brightness(1);
+      }
+    }
+
+    @keyframes flashOopsLabel {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.78);
+      }
+      24% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.14);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -50%) scale(0.98);
+      }
+    }
+
+    @keyframes flashOpen {
+      0% {
+        opacity: 0;
+      }
+      18% {
+        opacity: 0.95;
+      }
+      46% {
+        opacity: 0.55;
+      }
+      100% {
+        opacity: 0;
+      }
+    }
+
+    /* ТЗ: shake при неверном пароле */
+    .cover-access-float.access-shake {
+      animation: accessShake 0.45s ease;
+    }
+
+    @keyframes accessShake {
+      0%,
+      100% {
+        transform: translate(-50%, -50%) translateX(0);
+      }
+      18% {
+        transform: translate(-50%, -50%) translateX(-10px);
+      }
+      36% {
+        transform: translate(-50%, -50%) translateX(9px);
+      }
+      54% {
+        transform: translate(-50%, -50%) translateX(-7px);
+      }
+      72% {
+        transform: translate(-50%, -50%) translateX(5px);
+      }
+    }
+
+    /* ТЗ: Light Burst + crossfade на развороте книги */
+    .light-burst {
+      position: absolute;
+      inset: -8%;
+      pointer-events: none;
+      z-index: 1;
+      opacity: 0;
+      background: radial-gradient(
+        circle at 50% 48%,
+        rgba(255, 248, 220, 0.95) 0%,
+        rgba(255, 210, 140, 0.45) 28%,
+        rgba(200, 120, 255, 0.12) 52%,
+        transparent 72%
+      );
+      filter: blur(14px);
+      transform: scale(0.2);
+      border-radius: 50%;
+    }
+
+    .light-burst.is-animating {
+      animation: lightBurstPop 0.62s cubic-bezier(0.25, 0.9, 0.35, 1) forwards;
+    }
+
+    @keyframes lightBurstPop {
+      0% {
+        opacity: 0;
+        transform: scale(0.15);
+      }
+      35% {
+        opacity: 1;
+        transform: scale(1.15);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(2.1);
+      }
+    }
+
+    .book-image-wrap.page-turn-fx {
+      animation: pageTurnCrossfade 0.62s ease forwards;
+    }
+
+    @keyframes pageTurnCrossfade {
+      0% {
+        filter: brightness(1) blur(0);
+      }
+      35% {
+        filter: brightness(1.38) blur(2px);
+      }
+      65% {
+        filter: brightness(1.15) blur(1.5px);
+      }
+      100% {
+        filter: brightness(1) blur(0);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .flash--success-pulse,
+      .flash--error-pulse,
+      .flash--open-pulse,
+      .light-burst.is-animating,
+      .book-image-wrap.page-turn-fx,
+      .cover-access-float.access-shake {
+        animation: none !important;
+      }
+      .light-burst.is-animating {
+        opacity: 0 !important;
+      }
+      .gradient-animated-text {
+        animation: none !important;
+      }
+    }
+
+    @media (max-width: 900px) {
+  .scene-signature-erase {
+    width: clamp(220px, 34vw, 360px);
+    height: clamp(46px, 7.5vh, 76px);
+    bottom: clamp(10px, 1.8vh, 20px);
+  }
+
+    }
+
+    @media (max-width: 700px) {
+  .scene-signature-erase {
+    width: clamp(180px, 40vw, 290px);
+    height: clamp(38px, 7vh, 62px);
+    bottom: clamp(8px, 1.4vh, 14px);
+  }
+
+    }
+  
