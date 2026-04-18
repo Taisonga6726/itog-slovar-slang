@@ -28,6 +28,7 @@ interface MagicBookProps {
 const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: MagicBookProps) => {
   /** Скрины в правой колонке (каталог) — меньше, чтобы не заходить на орнамент справа */
   const CATALOG_IMAGE_MAX_HEIGHT = 112;
+  const ENTRY_GRID_COLS = "3rem 1fr";
   const requestMusicDuck = useCallback((holdMs = 1000) => {
     window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
   }, []);
@@ -141,7 +142,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
       const availableHeight = container.clientHeight;
 
       const measure = document.createElement("div");
-      measure.style.cssText = `position:absolute;visibility:hidden;width:${container.offsetWidth}px;font-family:inherit;padding:0;`;
+      measure.style.cssText = `position:absolute;visibility:hidden;width:${container.clientWidth}px;font-family:inherit;padding:0;`;
       container.appendChild(measure);
 
       const breaks: number[] = [0];
@@ -149,26 +150,38 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
       for (let i = 0; i < entries.length; i++) {
         const wrap = document.createElement("div");
-        wrap.style.cssText = "margin-bottom:0.6em";
+        wrap.style.cssText = `margin-bottom:0.6em;display:grid;grid-template-columns:${ENTRY_GRID_COLS};column-gap:0.35rem;align-items:start`;
+
+        const numCell = document.createElement("div");
+        numCell.style.cssText =
+          "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:right;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
+        numCell.textContent = `${i + 1}.`;
+        wrap.appendChild(numCell);
+
+        const body = document.createElement("div");
+        body.style.cssText = "min-width:0";
 
         const title = document.createElement("div");
-        title.style.cssText = "font-size:1.25rem;font-weight:700;line-height:1.18;text-align:left;font-style:italic;overflow-wrap:anywhere;word-break:break-word";
-        title.textContent = `${i + 1}. ${entries[i].word}`;
-        wrap.appendChild(title);
+        title.style.cssText =
+          "font-size:1.25rem;font-weight:700;line-height:1.18;text-align:left;font-style:italic;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
+        title.textContent = entries[i].word;
+        body.appendChild(title);
 
         if (entries[i].description) {
           const desc = document.createElement("div");
           desc.style.cssText = "font-size:1rem;line-height:1.18;text-align:left;overflow-wrap:anywhere;word-break:break-word";
           desc.textContent = `— ${entries[i].description.replace(/^[—-]\s*/, "")}`;
-          wrap.appendChild(desc);
+          body.appendChild(desc);
         }
 
         (entries[i].images ?? []).forEach((src) => {
           const img = document.createElement("img");
           img.src = src;
           img.style.cssText = `display:block;max-width:100%;max-height:${CATALOG_IMAGE_MAX_HEIGHT}px;height:auto;object-fit:contain;margin:6px 0`;
-          wrap.appendChild(img);
+          body.appendChild(img);
         });
+
+        wrap.appendChild(body);
 
 
         measure.innerHTML = "";
@@ -334,7 +347,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
           top: "20.35%",
           width: "22.8%",
           height: "54.9%",
-          padding: "10px 10px 22px 18px",
+          padding: "10px 10px 22px 28px",
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
@@ -449,11 +462,11 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
       <div
         className="absolute z-[15] font-handwriting no-scroll"
         style={{
-          left: "52.85%",
+          left: "52.45%",
           top: "20.35%",
           width: "22.35%",
           height: "54.9%",
-          padding: "10px 14px 22px 12px",
+          padding: "10px 16px 22px 8px",
           overflow: "hidden", overflowWrap: "break-word", wordBreak: "break-word",
           perspective: "1200px",
         }}
@@ -471,33 +484,67 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                   if (editIdx === globalIdx && liveText) return null;
 
                   return (
-                    <div key={globalIdx} className="text-ink" style={{ marginBottom: "0.6em" }}>
-                      <div className="text-xl leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "normal", color: "#120c34", textAlign: "left", lineHeight: "1.22", fontWeight: 800, overflowWrap: "anywhere", wordBreak: "break-word" }}>
-                        <span className="font-bold">{globalIdx + 1}.</span> {entry.word}
+                    <div
+                      key={globalIdx}
+                      className="text-ink"
+                      style={{
+                        marginBottom: "0.6em",
+                        display: "grid",
+                        gridTemplateColumns: ENTRY_GRID_COLS,
+                        columnGap: "0.35rem",
+                        alignItems: "start",
+                      }}
+                    >
+                      <div
+                        className="text-xl tabular-nums leading-tight"
+                        style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", color: "#120c34", textAlign: "right", lineHeight: "1.22", fontWeight: 800 }}
+                      >
+                        {globalIdx + 1}.
                       </div>
-                      {entry.description && (
-                        <div className="font-handwriting text-base" style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600, overflowWrap: "anywhere", wordBreak: "break-word" }}>
-                          — {entry.description.replace(/^[—-]\s*/, "")}
+                      <div style={{ minWidth: 0 }}>
+                        <div className="text-xl leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", color: "#120c34", textAlign: "left", lineHeight: "1.22", fontWeight: 800, overflowWrap: "anywhere", wordBreak: "break-word" }}>
+                          {entry.word}
                         </div>
-                      )}
-                      {entry.images?.map((src, k) => (
-                        <img key={k} src={src} alt="" style={{ display: "block", maxWidth: "100%", maxHeight: CATALOG_IMAGE_MAX_HEIGHT, height: "auto", objectFit: "contain", margin: "6px 0 0 0" }} />
-                      ))}
+                        {entry.description && (
+                          <div className="font-handwriting text-base" style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600, overflowWrap: "anywhere", wordBreak: "break-word" }}>
+                            — {entry.description.replace(/^[—-]\s*/, "")}
+                          </div>
+                        )}
+                        {entry.images?.map((src, k) => (
+                          <img key={k} src={src} alt="" style={{ display: "block", maxWidth: "100%", maxHeight: CATALOG_IMAGE_MAX_HEIGHT, height: "auto", objectFit: "contain", margin: "6px 0 0 0" }} />
+                        ))}
+                      </div>
                     </div>
                   );
                 })}
 
                 {isLastPage && liveText && (
-                  <div className="text-ink" style={{ marginBottom: "0.6em" }}>
-                    <div className="text-xl leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "normal", color: "#120c34", textAlign: "left", lineHeight: "1.22", fontWeight: 800, overflowWrap: "anywhere", wordBreak: "break-word" }}>
-                      <span className="font-bold">{editIdx !== null ? editIdx + 1 : entries.length + 1}.</span>{" "}
-                      <InkWriteEffect text={word} className="ink-fresh" />
+                  <div
+                    className="text-ink"
+                    style={{
+                      marginBottom: "0.6em",
+                      display: "grid",
+                      gridTemplateColumns: ENTRY_GRID_COLS,
+                      columnGap: "0.35rem",
+                      alignItems: "start",
+                    }}
+                  >
+                    <div
+                      className="text-xl tabular-nums leading-tight ink-fresh"
+                      style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", color: "#120c34", textAlign: "right", lineHeight: "1.22", fontWeight: 800 }}
+                    >
+                      {editIdx !== null ? editIdx + 1 : entries.length + 1}.
                     </div>
-                    {description && (
-                      <div className="font-handwriting text-base ink-fresh" style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600, overflowWrap: "anywhere", wordBreak: "break-word" }}>
-                        — <InkWriteEffect text={description} className="" />
+                    <div style={{ minWidth: 0 }}>
+                      <div className="text-xl leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", color: "#120c34", textAlign: "left", lineHeight: "1.22", fontWeight: 800, overflowWrap: "anywhere", wordBreak: "break-word" }}>
+                        <InkWriteEffect text={word} className="ink-fresh" />
                       </div>
-                    )}
+                      {description && (
+                        <div className="font-handwriting text-base ink-fresh" style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600, overflowWrap: "anywhere", wordBreak: "break-word" }}>
+                          — <InkWriteEffect text={description} className="" />
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>

@@ -26,6 +26,8 @@ interface FinalBookProps {
 
 const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) => {
   const ENTRY_IMAGE_MAX_HEIGHT = 112;
+  /** Колонка номера фиксированной ширины — цифры в одну вертикаль, без «лесенки» */
+  const ENTRY_GRID_COLS = "3rem 1fr";
   const requestMusicDuck = useCallback((holdMs = 1000) => {
     window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
   }, []);
@@ -53,7 +55,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
 
     (async () => {
       const availableHeight = container.clientHeight - 28;
-      const measureWidth = container.offsetWidth;
+      const measureWidth = container.clientWidth;
       const measure = document.createElement("div");
       measure.style.cssText = `position:absolute;visibility:hidden;width:${measureWidth}px;font-family:'Cormorant Garamond',serif;padding:0;`;
       container.appendChild(measure);
@@ -63,31 +65,43 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
 
       for (let i = 0; i < entries.length; i++) {
         const wrap = document.createElement("div");
-        wrap.style.cssText = "margin-bottom:0.6em;width:100%";
+        wrap.style.cssText = `margin-bottom:0.6em;width:100%;display:grid;grid-template-columns:${ENTRY_GRID_COLS};column-gap:0.35rem;align-items:start`;
+
+        const numCell = document.createElement("div");
+        numCell.style.cssText =
+          "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:right;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
+        numCell.textContent = `${i + 1}.`;
+        wrap.appendChild(numCell);
+
+        const body = document.createElement("div");
+        body.style.cssText = "min-width:0";
 
         const title = document.createElement("div");
-        title.style.cssText = "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:left;overflow-wrap:anywhere;word-break:break-word";
-        title.textContent = `${i + 1}. ${entries[i].word}`;
-        wrap.appendChild(title);
+        title.style.cssText =
+          "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:left;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
+        title.textContent = entries[i].word;
+        body.appendChild(title);
 
         if (entries[i].description) {
           const desc = document.createElement("div");
           desc.style.cssText = "font-size:1rem;line-height:1.2;text-align:left;overflow-wrap:anywhere;word-break:break-word";
           desc.textContent = `— ${entries[i].description.replace(/^[—-]\s*/, "")}`;
-          wrap.appendChild(desc);
+          body.appendChild(desc);
         }
 
         (entries[i].images ?? []).forEach((src) => {
           const img = document.createElement("img");
           img.src = src;
           img.style.cssText = `display:block;max-width:100%;max-height:${ENTRY_IMAGE_MAX_HEIGHT}px;height:auto;object-fit:contain;margin:6px 0`;
-          wrap.appendChild(img);
+          body.appendChild(img);
         });
 
         const reactions = document.createElement("div");
         reactions.style.cssText = "display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;font-size:13px;line-height:1.1;color:#1a1440";
         reactions.textContent = `🔥 ${entries[i].reactions?.fire || 0}  ❤️ ${entries[i].reactions?.love || 0}  🚀 ${entries[i].reactions?.rocket || 0}  😂 ${entries[i].reactions?.laugh || 0}  👍 ${entries[i].reactions?.like || 0}`;
-        wrap.appendChild(reactions);
+        body.appendChild(reactions);
+
+        wrap.appendChild(body);
 
 
         measure.innerHTML = "";
@@ -170,39 +184,64 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
   const rightPageEntries = pages[rightPageIdx] || [];
 
   const renderEntry = (entry: Entry, globalIdx: number) => (
-    <div key={globalIdx} className="w-full" style={{ marginBottom: "0.6em" }}>
+    <div
+      key={globalIdx}
+      className="w-full"
+      style={{
+        marginBottom: "0.6em",
+        display: "grid",
+        gridTemplateColumns: ENTRY_GRID_COLS,
+        columnGap: "0.35rem",
+        alignItems: "start",
+      }}
+    >
       <div
-        className="text-xl font-bold w-full"
+        className="text-xl tabular-nums"
         style={{
           color: "#120c34",
           fontFamily: "'Cormorant Garamond', serif",
-          fontStyle: "normal",
+          fontStyle: "italic",
           lineHeight: "1.22",
-          textAlign: "left",
           fontWeight: 800,
-          overflowWrap: "anywhere",
-          wordBreak: "break-word",
+          textAlign: "right",
         }}
       >
-        <span style={{ fontWeight: 700 }}>{globalIdx + 1}.</span> {entry.word}
+        {globalIdx + 1}.
       </div>
-      {entry.description && (
+      <div style={{ minWidth: 0 }}>
         <div
-          className="text-base font-handwriting w-full"
-          style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600, overflowWrap: "anywhere", wordBreak: "break-word" }}
+          className="text-xl font-bold w-full"
+          style={{
+            color: "#120c34",
+            fontFamily: "'Cormorant Garamond', serif",
+            fontStyle: "italic",
+            lineHeight: "1.22",
+            textAlign: "left",
+            fontWeight: 800,
+            overflowWrap: "anywhere",
+            wordBreak: "break-word",
+          }}
         >
-          — {entry.description.replace(/^[—-]\s*/, "")}
+          {entry.word}
         </div>
-      )}
-      {entry.images?.map((src, k) => (
-        <img key={k} src={src} alt="" style={{ display: "block", maxWidth: "100%", maxHeight: ENTRY_IMAGE_MAX_HEIGHT, height: "auto", objectFit: "contain", margin: "6px 0 0 0" }} />
-      ))}
-      <div className="flex gap-2 text-[13px] w-full justify-end flex-wrap" style={{ color: "#1a1440" }}>
-        <button type="button" onClick={() => updateReaction(globalIdx, "fire")} className="cursor-pointer hover:scale-110 transition-transform">🔥 {entry.reactions?.fire || 0}</button>
-        <button type="button" onClick={() => updateReaction(globalIdx, "love")} className="cursor-pointer hover:scale-110 transition-transform">❤️ {entry.reactions?.love || 0}</button>
-        <button type="button" onClick={() => updateReaction(globalIdx, "rocket")} className="cursor-pointer hover:scale-110 transition-transform">🚀 {entry.reactions?.rocket || 0}</button>
-        <button type="button" onClick={() => updateReaction(globalIdx, "laugh")} className="cursor-pointer hover:scale-110 transition-transform">😂 {entry.reactions?.laugh || 0}</button>
-        <button type="button" onClick={() => updateReaction(globalIdx, "like")} className="cursor-pointer hover:scale-110 transition-transform">👍 {entry.reactions?.like || 0}</button>
+        {entry.description && (
+          <div
+            className="text-base font-handwriting w-full"
+            style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600, overflowWrap: "anywhere", wordBreak: "break-word" }}
+          >
+            — {entry.description.replace(/^[—-]\s*/, "")}
+          </div>
+        )}
+        {entry.images?.map((src, k) => (
+          <img key={k} src={src} alt="" style={{ display: "block", maxWidth: "100%", maxHeight: ENTRY_IMAGE_MAX_HEIGHT, height: "auto", objectFit: "contain", margin: "6px 0 0 0" }} />
+        ))}
+        <div className="flex gap-2 text-[13px] w-full justify-end flex-wrap" style={{ color: "#1a1440" }}>
+          <button type="button" onClick={() => updateReaction(globalIdx, "fire")} className="cursor-pointer hover:scale-110 transition-transform">🔥 {entry.reactions?.fire || 0}</button>
+          <button type="button" onClick={() => updateReaction(globalIdx, "love")} className="cursor-pointer hover:scale-110 transition-transform">❤️ {entry.reactions?.love || 0}</button>
+          <button type="button" onClick={() => updateReaction(globalIdx, "rocket")} className="cursor-pointer hover:scale-110 transition-transform">🚀 {entry.reactions?.rocket || 0}</button>
+          <button type="button" onClick={() => updateReaction(globalIdx, "laugh")} className="cursor-pointer hover:scale-110 transition-transform">😂 {entry.reactions?.laugh || 0}</button>
+          <button type="button" onClick={() => updateReaction(globalIdx, "like")} className="cursor-pointer hover:scale-110 transition-transform">👍 {entry.reactions?.like || 0}</button>
+        </div>
       </div>
     </div>
   );
@@ -232,7 +271,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
                left: "21.05%", top: "20.35%", width: "22.8%", height: "54.9%",
-               padding: "10px 10px 22px 18px",
+               padding: "10px 8px 22px 30px",
                overflowWrap: "break-word", wordBreak: "break-word",
             }}
           >
@@ -243,8 +282,8 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
           <div
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
-              left: "52.85%", top: "20.35%", width: "22.35%", height: "54.9%",
-              padding: "10px 14px 22px 12px",
+              left: "52.55%", top: "20.35%", width: "22.35%", height: "54.9%",
+              padding: "10px 16px 22px 8px",
               overflowWrap: "break-word", wordBreak: "break-word",
             }}
           >
