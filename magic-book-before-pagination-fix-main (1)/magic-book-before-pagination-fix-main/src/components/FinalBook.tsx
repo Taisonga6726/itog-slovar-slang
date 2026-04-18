@@ -18,7 +18,7 @@ interface PageNav {
 }
 
 /** Сдвиг влево для N-й строки на странице (0…) — выпрямляет «лесенку» на текстуре финальной книги */
-const FINAL_ROW_NUDGE_PX = [0, 5, 10, 15, 20] as const;
+const FINAL_ROW_NUDGE_PX = [2, 7, 12, 17, 22] as const;
 function finalRowNudgePx(localIndex: number): number {
   return FINAL_ROW_NUDGE_PX[Math.min(Math.max(0, localIndex), FINAL_ROW_NUDGE_PX.length - 1)];
 }
@@ -88,11 +88,11 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
       const appendEntryDom = (entryIndex: number, localIndex: number) => {
         const wrap = document.createElement("div");
         const nudge = finalRowNudgePx(localIndex);
-        wrap.style.cssText = `margin-bottom:0.6em;width:100%;box-sizing:border-box;display:grid;grid-template-columns:${ENTRY_GRID_COLS};column-gap:0.4rem;align-items:start;justify-items:stretch;contain:layout;transform:translateX(-${nudge}px)`;
+        wrap.style.cssText = `margin-bottom:0.28em;width:100%;box-sizing:border-box;display:grid;grid-template-columns:${ENTRY_GRID_COLS};column-gap:0.4rem;align-items:start;justify-items:stretch;contain:layout;transform:translateX(-${nudge}px)`;
 
         const numCell = document.createElement("div");
         numCell.style.cssText =
-          "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif;color:#120c34";
+          "font-size:1.25rem;font-weight:700;line-height:1.14;font-style:italic;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif;color:#120c34";
         numCell.textContent = `${entryIndex + 1}.`;
         wrap.appendChild(numCell);
 
@@ -101,13 +101,13 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
 
         const title = document.createElement("div");
         title.style.cssText =
-          "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:left;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
+          "font-size:1.25rem;font-weight:700;line-height:1.14;font-style:italic;text-align:left;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
         title.textContent = entries[entryIndex].word;
         body.appendChild(title);
 
         if (entries[entryIndex].description) {
           const desc = document.createElement("div");
-          desc.style.cssText = "font-size:1rem;line-height:1.2;text-align:left;overflow-wrap:anywhere;word-break:break-word";
+          desc.style.cssText = "font-size:1rem;line-height:1.14;text-align:left;overflow-wrap:anywhere;word-break:break-word";
           desc.textContent = `— ${entries[entryIndex].description.replace(/^[—-]\s*/, "").replace(/\s+/g, " ").trim()}`;
           body.appendChild(desc);
         }
@@ -115,12 +115,12 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
         (entries[entryIndex].images ?? []).forEach((src) => {
           const img = document.createElement("img");
           img.src = src;
-          img.style.cssText = `display:block;max-width:100%;max-height:${ENTRY_IMAGE_MAX_HEIGHT}px;height:auto;object-fit:contain;margin:6px 0`;
+          img.style.cssText = `display:block;max-width:100%;max-height:${ENTRY_IMAGE_MAX_HEIGHT}px;height:auto;object-fit:contain;margin:3px 0`;
           body.appendChild(img);
         });
 
         const reactions = document.createElement("div");
-        reactions.style.cssText = "display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;font-size:13px;line-height:1.1;color:#1a1440";
+        reactions.style.cssText = "display:flex;justify-content:flex-end;gap:4px;flex-wrap:wrap;font-size:13px;line-height:1.05;color:#1a1440";
         reactions.textContent = `🔥 ${entries[entryIndex].reactions?.fire || 0}  ❤️ ${entries[entryIndex].reactions?.love || 0}  🚀 ${entries[entryIndex].reactions?.rocket || 0}  😂 ${entries[entryIndex].reactions?.laugh || 0}  👍 ${entries[entryIndex].reactions?.like || 0}`;
         body.appendChild(reactions);
 
@@ -215,7 +215,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
       key={globalIdx}
       className="w-full box-border"
       style={{
-        marginBottom: "0.6em",
+        marginBottom: "0.28em",
         display: "grid",
         gridTemplateColumns: ENTRY_GRID_COLS,
         columnGap: "0.4rem",
@@ -231,7 +231,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
           color: "#120c34",
           fontFamily: "'Cormorant Garamond', serif",
           fontStyle: "italic",
-          lineHeight: "1.22",
+          lineHeight: "1.12",
           fontWeight: 800,
           textAlign: "right",
           fontVariantNumeric: "tabular-nums",
@@ -247,7 +247,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
             color: "#120c34",
             fontFamily: "'Cormorant Garamond', serif",
             fontStyle: "italic",
-            lineHeight: "1.22",
+            lineHeight: "1.12",
             textAlign: "left",
             fontWeight: 800,
             overflowWrap: "anywhere",
@@ -264,7 +264,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
             style={{
               color: "#1a103a",
               textAlign: "left",
-              lineHeight: "1.24",
+              lineHeight: "1.14",
               fontWeight: 600,
               overflowWrap: "anywhere",
               wordBreak: "break-word",
@@ -276,9 +276,9 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
           </div>
         )}
         {entry.images?.map((src, k) => (
-          <img key={k} src={src} alt="" style={{ display: "block", maxWidth: "100%", maxHeight: ENTRY_IMAGE_MAX_HEIGHT, height: "auto", objectFit: "contain", margin: "6px 0 0 0" }} />
+          <img key={k} src={src} alt="" style={{ display: "block", maxWidth: "100%", maxHeight: ENTRY_IMAGE_MAX_HEIGHT, height: "auto", objectFit: "contain", margin: "3px 0 0 0" }} />
         ))}
-        <div className="flex gap-2 text-[13px] w-full justify-end flex-wrap" style={{ color: "#1a1440" }}>
+        <div className="flex gap-1 text-[13px] w-full justify-end flex-wrap mt-0" style={{ color: "#1a1440", lineHeight: 1.05 }}>
           <button type="button" onClick={() => updateReaction(globalIdx, "fire")} className="cursor-pointer hover:scale-110 transition-transform">🔥 {entry.reactions?.fire || 0}</button>
           <button type="button" onClick={() => updateReaction(globalIdx, "love")} className="cursor-pointer hover:scale-110 transition-transform">❤️ {entry.reactions?.love || 0}</button>
           <button type="button" onClick={() => updateReaction(globalIdx, "rocket")} className="cursor-pointer hover:scale-110 transition-transform">🚀 {entry.reactions?.rocket || 0}</button>
@@ -313,7 +313,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
             ref={leftContentRef}
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
-               left: "21.88%", top: "20.35%", width: "22.8%", height: "54.9%",
+               left: "21.52%", top: "20.35%", width: "22.8%", height: "54.9%",
                padding: "10px 7px 22px 50px",
                boxSizing: "border-box",
                overflowWrap: "break-word", wordBreak: "break-word",
@@ -326,7 +326,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
           <div
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
-              left: "51.08%", top: "20.35%", width: "22.35%", height: "54.9%",
+              left: "50.72%", top: "20.35%", width: "22.35%", height: "54.9%",
               padding: "10px 26px 22px 0px",
               boxSizing: "border-box",
               overflowWrap: "break-word", wordBreak: "break-word",
