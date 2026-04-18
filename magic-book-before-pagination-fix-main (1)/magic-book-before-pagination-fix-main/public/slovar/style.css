@@ -1,5 +1,30 @@
 /* slovar_02.css — стили страницы «Словарь вайбкодера» */
 
+/* Интро внутри единой сборки: убираем мигающий верхний AI-слой/лучи, чтобы не перекрывал основной экран */
+#aiLogoHotspot,
+#coverAiRiseRays,
+.cover-ai-logo-rays,
+.cover-ai-logo-rays--above-rings {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* В единой сборке: зона входа (кодовое слово) всегда кликабельна поверх декоративных слоев */
+#accessOverlay,
+.cover-access-float,
+#accessForm,
+#accessWord,
+#accessSubmitBtn {
+  pointer-events: auto !important;
+}
+
+#accessOverlay,
+.cover-access-float {
+  position: relative;
+  z-index: 1000 !important;
+}
+
 /* =============================================================================
    ШРИФТЫ
    ============================================================================= */

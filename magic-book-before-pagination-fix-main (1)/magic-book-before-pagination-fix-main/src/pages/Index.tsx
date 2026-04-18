@@ -132,7 +132,7 @@ const Index = () => {
         </>
       )}
 
-      <div className="relative z-20 w-full h-full">
+      {mode !== "intro" && <div className="relative z-20 w-full h-full">
       {mode === "form" && (
         <MagicBook
           entries={entries}
@@ -200,7 +200,7 @@ const Index = () => {
       {mode === "final" && (
         <FinalScreen entries={entries} onBack={() => setMode("form")} />
       )}
-      </div>
+      </div>}
 
       {(mode === "reading" || mode === "final") && <VibeAiBrand />}
 
