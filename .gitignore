@@ -1,0 +1,21 @@
+# Зависимости
+node_modules/
+**/node_modules/
+
+# Сборка (пересобирается через npm run build)
+**/dist/
+
+# Окружение
+.env
+.env.*
+!.env.example
+
+# IDE / ОС
+.DS_Store
+Thumbs.db
+*.log
+.vscode/*
+!.vscode/extensions.json
+
+# Локальный дубликат папки с кириллическим именем (не смешивать с основным деревом)
+итог словарь слэнга/

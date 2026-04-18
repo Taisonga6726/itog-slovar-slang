@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="description"
+    content="Интерактивная книга-словарь: добавляйте слова и листайте страницы. Данные хранятся в браузере."
+  />
+  <title>Словарь вайбкодера</title>
+
+  <!-- ТЗ: index.html + style.css + script.js (defer) -->
+  <link rel="stylesheet" href="style.css" />
+
+</head>
+<body>
+  <!-- Magic Rings (тот же WebGL, что на обложке): слой на весь viewport, активен на screen3–5 -->
+  <div id="tzGlobalMagicRings" class="magic-rings-fx magic-rings-fx--global" aria-hidden="true">
+    <canvas id="tzGlobalMagicRingsCanvas" width="300" height="200"></canvas>
+  </div>
+
+  <!-- Блок: пропуск к основному содержимому (клавиатура / вспомогательные технологии) -->
+  <a class="skip-link" href="#main-content">Перейти к содержимому</a>
+
+  <button
+    type="button"
+    id="btnHymnToggle"
+    class="ui-btn ui-btn--hymn-toggle ui-btn--hymn-idle ui-btn--vibe-cover"
+    hidden
+    aria-hidden="true"
+    aria-label="Гимн Вайбкодера: воспроизведение и пауза"
+  >
+    🔊 Гимн Вайбкодера
+  </button>
+
+  <main id="main-content" class="app" tabindex="-1">
+    <div id="screen1" class="screen active">
+
+    <!--
+      Одна сцена: фон всегда images/book-cover 01 .png (статичен).
+      После кода и клика по зоне книги поверх фона показывается только раскрытая книга (book-open.svg) и UI на страницах.
+      Второго полноэкранного экрана нет — композиция кадра сохраняется.
+    -->
+    <section id="mainScene" class="screen cover-screen" aria-labelledby="cover-heading">
+      <div
+        id="sceneStage"
+        class="scene-stage"
+        role="group"
+        aria-labelledby="cover-heading"
+        aria-describedby="accessHint"
+      >
+          <!-- Вспышка успех/ошибка (ТЗ: div.flash) -->
+          <div id="sceneFlash" class="flash" aria-hidden="true"></div>
+          <!-- Обложка: восходящие лучи от зоны логотипа AI (#aiLogoHotspot скрыт — лучи отдельным слоем) -->
+          <div id="coverAiRiseRays" class="cover-ai-rise-rays" aria-hidden="true">
+            <div class="cover-ai-rise-rays__pillar"></div>
+          </div>
+          <!-- Вариант C: hotspot логотипа AI (искры + скан при hover) -->
+          <div id="aiLogoHotspot" class="ai-logo-hotspot" aria-hidden="true">
+            <div class="tz-vibe-ai-logo-wrap">
+              <span class="tz-vibe-ai-logo__halo" aria-hidden="true"></span>
+              <div class="tz-ai-light-flow" aria-hidden="true">
+                <span class="tz-ai-light-flow__beam"></span>
+                <span class="tz-ai-light-flow__beam"></span>
+                <span class="tz-ai-light-flow__beam"></span>
+                <span class="tz-ai-light-flow__beam"></span>
+                <span class="tz-ai-light-flow__beam"></span>
+                <span class="tz-ai-light-flow__beam"></span>
+                <span class="tz-ai-light-flow__beam"></span>
+              </div>
+              <img
+                class="tz-vibe-ai-logo-img"
+                src="images/LOGO.png.png"
+                alt=""
+                width="360"
+                height="160"
+                decoding="async"
+                loading="lazy"
+              />
+            </div>
+          </div>
+
+          <!-- Курсорный эффект: Magic Rings (адаптация без React/Three.js) -->
+          <div id="magicRingsFx" class="magic-rings-fx" aria-hidden="true">
+            <canvas id="magicRingsCanvas" width="300" height="200"></canvas>
+          </div>
+          <!-- Лучи по маске PNG: слой выше колец (z-index 6), иначе анимация не видна -->
+          <div class="cover-ai-logo-rays cover-ai-logo-rays--above-rings" aria-hidden="true">
+            <div class="cover-ai-logo-rays__mask">
+              <div class="cover-ai-logo-rays__sweep"></div>
+            </div>
+          </div>
+
+          <!-- Фон «paper GrainGradient» за картинкой: Canvas 2D, без React (параметры как в промпте) -->
+          <div id="grainShaderBg" class="grain-shader-bg" aria-hidden="true">
+            <canvas id="grainShaderCanvas" width="300" height="200"></canvas>
+          </div>
+
+          <!-- Статичный фон сцены (не меняется, не анимируется) -->
+          <div id="sceneBgWrap" class="scene-bg-wrap">
+            <img
+              id="sceneBg"
+              class="scene-bg"
+              src="images/book-cover%2001.png"
+              alt=""
+              decoding="async"
+              fetchpriority="high"
+            />
+            <div class="cover-image-fallback scene-bg-fallback" role="img" aria-label="Декоративная обложка словаря">
+              Обложка словаря
+            </div>
+
+            <canvas
+              id="coverBookPerimeterCanvas"
+              class="cover-book-perimeter-canvas"
+              width="300"
+              height="200"
+              aria-hidden="true"
+            ></canvas>
+          </div>
+          <div class="scene-bottom-mask" aria-hidden="true"></div>
+          <div class="scene-signature-erase" aria-hidden="true"></div>
+          <!-- ШАГ 2–3: слот книги = зона закрытой книги на обложке; подсветка и клик — только здесь -->
+          <div id="bookSlot" class="book-slot">
+            <div class="book-electric-frame" aria-hidden="true">
+              <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+                <rect x="2.2" y="2.2" width="95.6" height="95.6" rx="9.5" ry="9.5"></rect>
+              </svg>
+            </div>
+            <div class="cover-book-glow" aria-hidden="true"></div>
+            <div id="coverEnergyBurst" class="cover-energy-burst" aria-hidden="true"></div>
+            <button
+              type="button"
+              id="bookHitZone"
+              class="book-hit-zone"
+              aria-label="Открыть книгу после ввода кодового слова"
+            ></button>
+            <!-- Разворот book-open.svg в слоте: форма на левой странице, словарь на правой -->
+            <div
+              id="bookOpenLayer"
+              class="book-open-layer hidden"
+              hidden
+              aria-hidden="true"
+            >
+            <h2 id="book-heading" class="visually-hidden">Словарь: добавление слов и список</h2>
+            <div class="book-scene book-open-layer__scene">
+              <!-- book-ui: контент позиционируется по областям страниц на изображении, без отдельных «карточек» -->
+              <div id="bookImageWrap" class="book-image-wrap book-ui">
+                <div class="magic-float-words magic-float-words--book" aria-hidden="true">
+                  <!-- Тот же набор и края, что на screen3 (forma_cl); % внутри разворота книги -->
+                  <span class="magic-float-word" style="--mf-l: 1%; --mf-t: 5%; --mf-dur: 40s; --mf-fs: 13px; --mf-delay: -2s">VIBE</span>
+                  <span class="magic-float-word" style="--mf-l: 91%; --mf-t: 5%; --mf-dur: 46s; --mf-fs: 14px; --mf-delay: -9s">CODE</span>
+                  <span class="magic-float-word" style="--mf-l: 2%; --mf-t: 20%; --mf-dur: 33s; --mf-fs: 13px; --mf-delay: -4s">ПОТОК</span>
+                  <span class="magic-float-word" style="--mf-l: 92%; --mf-t: 22%; --mf-dur: 37s; --mf-fs: 12px; --mf-delay: -11s">СМЫСЛ</span>
+                  <span class="magic-float-word" style="--mf-l: 1%; --mf-t: 38%; --mf-dur: 42s; --mf-fs: 14px; --mf-delay: -1s">ФОКУС</span>
+                  <span class="magic-float-word" style="--mf-l: 90%; --mf-t: 40%; --mf-dur: 30s; --mf-fs: 12px; --mf-delay: -7s">МАГИЯ</span>
+                  <span class="magic-float-word" style="--mf-l: 3%; --mf-t: 56%; --mf-dur: 35s; --mf-fs: 13px; --mf-delay: -5s">ВАЙБ</span>
+                  <span class="magic-float-word" style="--mf-l: 91%; --mf-t: 58%; --mf-dur: 48s; --mf-fs: 12px; --mf-delay: -12s">ЧИСЛО</span>
+                  <span class="magic-float-word" style="--mf-l: 2%; --mf-t: 74%; --mf-dur: 36s; --mf-fs: 14px; --mf-delay: -3s">IDEA</span>
+                  <span class="magic-float-word" style="--mf-l: 89%; --mf-t: 76%; --mf-dur: 41s; --mf-fs: 12px; --mf-delay: -8s">РИТМ</span>
+                  <span class="magic-float-word" style="--mf-l: 4%; --mf-t: 90%; --mf-dur: 32s; --mf-fs: 13px; --mf-delay: -6s">СВЕТ</span>
+                  <span class="magic-float-word" style="--mf-l: 92%; --mf-t: 90%; --mf-dur: 44s; --mf-fs: 13px; --mf-delay: -10s">ТОН</span>
+                  <span class="magic-float-word" style="--mf-l: 1%; --mf-t: 12%; --mf-dur: 45s; --mf-fs: 12px; --mf-delay: -13s">СОН</span>
+                  <span class="magic-float-word" style="--mf-l: 94%; --mf-t: 14%; --mf-dur: 34s; --mf-fs: 13px; --mf-delay: -2.5s">КОД</span>
+                  <span class="magic-float-word" style="--mf-l: 3%; --mf-t: 96%; --mf-dur: 39s; --mf-fs: 12px; --mf-delay: -14s">ПУЛЬС</span>
+                </div>
+                <!-- Лучи по маске PNG — зона AI на развороте (как на обложке) -->
+                <div class="book-open-ai-logo-rays" aria-hidden="true">
+                  <div class="book-open-ai-logo-rays__mask">
+                    <div class="book-open-ai-logo-rays__sweep"></div>
+                  </div>
+                </div>
+                <div id="pageLightBurst" class="light-burst" aria-hidden="true"></div>
+                <div id="bookFxFlash" class="flash flash--book" aria-hidden="true"></div>
+                <div
+                  id="bookCtaBanner"
+                  class="center-cta-banner center-cta-banner--book"
+                  role="button"
+                  tabindex="0"
+                  aria-label="Перейти в Magic Book: ввести слово"
+                >
+                  <canvas class="wave-canvas-bg" width="300" height="80" aria-hidden="true"></canvas>
+                  <span class="center-cta-banner__label">ВВЕСТИ СЛОВО</span>
+                </div>
+                <div class="magic-overlay" aria-hidden="true">
+                  <div class="glow"></div>
+                  <div class="aura"></div>
+                  <div class="rays"></div>
+                  <div class="particles" id="particles"></div>
+                </div>
+                <img
+                  id="bookImage"
+                  class="book-image"
+                  src="images/book-open.png"
+                  alt=""
+                  decoding="async"
+                  loading="lazy"
+                  fetchpriority="low"
+                />
+                <div class="book-image-fallback" aria-hidden="true">
+                  <span class="book-fallback-spine" aria-hidden="true"></span>
+                </div>
+                <!-- Вариант B: неоновые лучи/искры на картинке 2 -->
+                <canvas id="bookElectricFxCanvas" class="book-electric-fx-canvas" width="300" height="200" aria-hidden="true"></canvas>
+                <!-- Та же подсветка логотипа AI, что на обложке (shimmer + искры) -->
+                <div class="ai-logo-hotspot ai-logo-hotspot--book" aria-hidden="true">
+                  <div class="tz-vibe-ai-logo-wrap tz-vibe-ai-logo-wrap--book">
+                    <span class="tz-vibe-ai-logo__halo" aria-hidden="true"></span>
+                    <img
+                      class="tz-vibe-ai-logo-img"
+                      src="images/LOGO.png.png"
+                      alt=""
+                      width="280"
+                      height="120"
+                      decoding="async"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+                <div id="viewMode" class="book-mode book-mode--view is-active" aria-live="polite">
+                  <div class="book-left">
+                    <p class="paper-label">Режим книги</p>
+                    <p class="empty-note">Листайте и читайте слова на правой странице.</p>
+                  </div>
+
+                  <div class="book-right">
+                    <div
+                      id="dictionaryPage"
+                      class="dictionary-page"
+                      role="region"
+                      aria-label="Текущая страница словаря"
+                      aria-live="polite"
+                      aria-busy="false"
+                    ></div>
+
+                    <nav class="page-nav" aria-label="Страницы словаря">
+                      <button id="prevBtn" class="nav-btn" type="button" aria-label="Предыдущая страница">
+                        <span aria-hidden="true">◀</span>
+                      </button>
+                      <span id="pageCounter" class="page-counter" aria-live="polite">1 / 1</span>
+                      <button id="nextBtn" class="nav-btn" type="button" aria-label="Следующая страница">
+                        <span aria-hidden="true">▶</span>
+                      </button>
+                    </nav>
+                  </div>
+                </div>
+
+                <div id="writeMode" class="book-mode book-mode--write" aria-live="polite">
+                  <div class="book-left book-left--write">
+                    <p class="paper-label write-list-title">Пишем и вносим слова здесь</p>
+                    <ol id="writeWordList" class="write-word-list" aria-label="Нумерованный список слов"></ol>
+
+                  <form id="wordForm" novalidate aria-describedby="formMessage formHints">
+                    <p id="formHints" class="visually-hidden">
+                      Поля «Слово» и «Описание» обязательны. Клик по тексту в списке слева или кнопка «Редактировать»
+                      подставляют сохранённую запись в форму для исправления. Под каждой записью в списке и под строкой
+                      справа — пять положительных реакций (нажатие добавляет голос читателя). Ctrl+Enter сохраняет.
+                    </p>
+
+                    <label class="paper-label" for="wordInput">Слово</label>
+                    <input
+                      id="wordInput"
+                      class="paper-input handwriting"
+                      name="word"
+                      type="text"
+                      maxlength="30"
+                      placeholder="Слово"
+                      autocomplete="off"
+                      aria-invalid="false"
+                      aria-required="true"
+                      required
+                    />
+
+                    <label class="paper-label" for="descriptionInput">Описание</label>
+                    <textarea
+                      id="descriptionInput"
+                      class="paper-textarea handwriting"
+                      name="description"
+                      maxlength="150"
+                      placeholder="Пишите от руки..."
+                      aria-invalid="false"
+                      aria-required="true"
+                      required
+                    ></textarea>
+
+                    <div class="actions-row">
+                      <button id="writeBtn" class="ghost-btn book-btn" type="button">Редактировать</button>
+                      <button id="saveBtn" class="ghost-btn book-btn" type="submit">Сохранить</button>
+                    </div>
+
+                    <p id="formMessage" class="helper-text form-helper" role="status" aria-live="polite"></p>
+                  </form>
+                  </div>
+
+                  <div class="book-right">
+                    <div id="writingPreview" class="dictionary-page" aria-live="polite"></div>
+                  </div>
+
+                  <div class="book-write-bottom" aria-label="Навигация по книге">
+                    <div class="book-write-actions-row">
+                      <button id="writeNextBtn" type="button" class="ghost-btn book-btn">Далее</button>
+                      <button id="closeBookBtn" type="button" class="ghost-btn book-btn">Закрыть книгу</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Логотип AI над корешком только на картинке формы (forma_cl) -->
+                <div class="book-write-ai-logo" aria-hidden="true">
+                  <div class="tz-vibe-ai-logo-wrap tz-vibe-ai-logo-wrap--book-inline">
+                    <span class="tz-vibe-ai-logo__halo" aria-hidden="true"></span>
+                    <div class="tz-ai-light-flow" aria-hidden="true">
+                      <span class="tz-ai-light-flow__beam"></span>
+                      <span class="tz-ai-light-flow__beam"></span>
+                      <span class="tz-ai-light-flow__beam"></span>
+                      <span class="tz-ai-light-flow__beam"></span>
+                      <span class="tz-ai-light-flow__beam"></span>
+                      <span class="tz-ai-light-flow__beam"></span>
+                      <span class="tz-ai-light-flow__beam"></span>
+                    </div>
+                    <img
+                      class="tz-vibe-ai-logo-img"
+                      src="images/LOGO.png.png"
+                      alt=""
+                      width="240"
+                      height="100"
+                      decoding="async"
+                      loading="lazy"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          </div>
+
+          <div class="cover-overlay">
+            <div id="accessOverlay" class="cover-access-float">
+              <h1 id="cover-heading" class="visually-hidden">Словарь вайбкодера</h1>
+
+              <form id="accessForm" novalidate>
+                <label class="visually-hidden" for="accessWord">Кодовое слово</label>
+                <input
+                  id="accessWord"
+                  class="access-input"
+                  name="access"
+                  type="password"
+                  autocomplete="off"
+                  aria-describedby="loginMessage accessHint"
+                  aria-invalid="false"
+                  required
+                />
+                <div class="access-actions">
+                  <button type="submit" class="access-submit-btn" id="accessSubmitBtn">
+                    <span class="btn-gradient-text gradient-animated-text">Войти</span>
+                  </button>
+                </div>
+                <p id="accessHint" class="visually-hidden">
+                  Введите кодовое слово и нажмите Enter. Затем нажмите на книгу на картинке, чтобы открыть
+                  словарь. Это не защита данных, а вход в интерфейс.
+                </p>
+              </form>
+
+              <p class="cover-tap-hint" aria-hidden="true">
+                <span class="cover-tap-arrow" title="Нажмите на книгу">↓</span>
+              </p>
+
+              <p id="loginMessage" class="helper-text cover-login-msg" role="status" aria-live="polite"></p>
+            </div>
+          </div>
+
+    </div>
+
+      <footer class="site-footer-signature" aria-label="Авторская подпись">
+        <img
+          class="author-signature-img"
+          src="images/podpi_s.jpg"
+          width="400"
+          height="120"
+          alt="Подпись автора: Tanya Gaiduk"
+          decoding="async"
+          loading="lazy"
+        />
+        <p class="site-footer-copy">
+          © 2026 Автор идеи ТАНЯ ГАЙДУК — ученица 5 курса школы SMM
+        </p>
+      </footer>
+    </section>
+  
+    </div>
+
+    <!-- screen3: forma_cl.png; логотип AI на картинке — без #tzVibeAiBrand (без дубля) -->
+    <div id="screen3" class="screen tz-screen tz-screen--forma">
+      <div class="tz-forma-scene">
+        <!-- Слой = точная высота/ширина картинки: форма и превью в % только внутри пергамента -->
+        <div class="tz-forma-book-layer">
+        <!-- Плавающие слова: только по краям кадра, не над страницами (позиции в %) -->
+        <div class="magic-float-words magic-float-words--forma" aria-hidden="true">
+          <span class="magic-float-word" style="--mf-l: 1%; --mf-t: 5%; --mf-dur: 40s; --mf-fs: 10px; --mf-delay: -2s">VIBE</span>
+          <span class="magic-float-word" style="--mf-l: 91%; --mf-t: 5%; --mf-dur: 46s; --mf-fs: 12px; --mf-delay: -9s">CODE</span>
+          <span class="magic-float-word" style="--mf-l: 2%; --mf-t: 20%; --mf-dur: 33s; --mf-fs: 11px; --mf-delay: -4s">ПОТОК</span>
+          <span class="magic-float-word" style="--mf-l: 92%; --mf-t: 22%; --mf-dur: 37s; --mf-fs: 9px; --mf-delay: -11s">СМЫСЛ</span>
+          <span class="magic-float-word" style="--mf-l: 1%; --mf-t: 38%; --mf-dur: 42s; --mf-fs: 13px; --mf-delay: -1s">ФОКУС</span>
+          <span class="magic-float-word" style="--mf-l: 90%; --mf-t: 40%; --mf-dur: 30s; --mf-fs: 10px; --mf-delay: -7s">МАГИЯ</span>
+          <span class="magic-float-word" style="--mf-l: 3%; --mf-t: 56%; --mf-dur: 35s; --mf-fs: 11px; --mf-delay: -5s">ВАЙБ</span>
+          <span class="magic-float-word" style="--mf-l: 91%; --mf-t: 58%; --mf-dur: 48s; --mf-fs: 9px; --mf-delay: -12s">ЧИСЛО</span>
+          <span class="magic-float-word" style="--mf-l: 2%; --mf-t: 74%; --mf-dur: 36s; --mf-fs: 12px; --mf-delay: -3s">IDEA</span>
+          <span class="magic-float-word" style="--mf-l: 89%; --mf-t: 76%; --mf-dur: 41s; --mf-fs: 10px; --mf-delay: -8s">РИТМ</span>
+          <span class="magic-float-word" style="--mf-l: 4%; --mf-t: 90%; --mf-dur: 32s; --mf-fs: 12px; --mf-delay: -6s">СВЕТ</span>
+          <span class="magic-float-word" style="--mf-l: 92%; --mf-t: 90%; --mf-dur: 44s; --mf-fs: 11px; --mf-delay: -10s">ТОН</span>
+          <span class="magic-float-word" style="--mf-l: 1%; --mf-t: 12%; --mf-dur: 45s; --mf-fs: 8px; --mf-delay: -13s">СОН</span>
+          <span class="magic-float-word" style="--mf-l: 94%; --mf-t: 14%; --mf-dur: 34s; --mf-fs: 12px; --mf-delay: -2.5s">КОД</span>
+          <span class="magic-float-word" style="--mf-l: 3%; --mf-t: 96%; --mf-dur: 39s; --mf-fs: 10px; --mf-delay: -14s">ПУЛЬС</span>
+        </div>
+        <!-- Переплёт: постоянное свечение + краткий «всплеск» при сохранении (класс из JS) -->
+        <div id="tzFormaSpineMagic" class="tz-forma-spine-magic" aria-hidden="true">
+          <span class="tz-spine-core"></span>
+          <span class="tz-spine-whirl"></span>
+          <span class="tz-spine-spark tz-spine-spark--1"></span>
+          <span class="tz-spine-spark tz-spine-spark--2"></span>
+          <span class="tz-spine-spark tz-spine-spark--3"></span>
+          <span class="tz-spine-spark tz-spine-spark--4"></span>
+          <span class="tz-spine-spark tz-spine-spark--5"></span>
+          <span class="tz-spine-spark tz-spine-spark--6"></span>
+          <span class="tz-spine-particle tz-spine-particle--1"></span>
+          <span class="tz-spine-particle tz-spine-particle--2"></span>
+          <span class="tz-spine-particle tz-spine-particle--3"></span>
+          <span class="tz-spine-particle tz-spine-particle--4"></span>
+          <span class="tz-spine-particle tz-spine-particle--5"></span>
+          <span class="tz-spine-particle tz-spine-particle--6"></span>
+        </div>
+        <div class="tz-bg-img-wrap tz-bg-img-wrap--safe-crop">
+          <img class="tz-bg-img tz-forma-bg" src="images/forma_cl.png" alt="" decoding="async" />
+        </div>
+        <form id="tzFormWord" class="tz-forma-form tz-forma-form--spellbook" novalidate>
+          <label class="tz-label tz-label--spellbook" for="tzInputWord">Слово</label>
+          <input
+            id="tzInputWord"
+            class="tz-input tz-input--spellbook tz-input--spellbook-word"
+            type="text"
+            maxlength="30"
+            required
+            autocomplete="off"
+            placeholder=""
+          />
+          <label class="tz-label tz-label--spellbook" for="tzInputDesc">Описание</label>
+          <textarea
+            id="tzInputDesc"
+            class="tz-textarea tz-textarea--spellbook tz-textarea--spellbook-desc"
+            maxlength="150"
+            required
+            rows="5"
+            placeholder=""
+          ></textarea>
+          <!-- Только текстовые действия (без второй подложки) -->
+          <div class="tz-forma-text-actions" aria-label="Действия">
+            <span class="tz-forma-text-action" id="tzTextSave" role="button" tabindex="0">сохранить</span>
+            <span class="tz-forma-text-sep" aria-hidden="true">|</span>
+            <span class="tz-forma-text-action" id="tzTextEdit" role="button" tabindex="0">редактировать</span>
+          </div>
+          <p class="tz-forma-reactions-note">Реакции</p>
+          <!-- Резервные кнопки для доступности и тестов; визуально скрыты -->
+          <div class="tz-forma-reserve-btns">
+            <button type="submit" id="tzFormSave" class="ui-btn tz-forma-btn-reserve ui-btn--vibe-cover">Сохранить</button>
+            <button type="button" id="tzFormCancel" class="ui-btn tz-forma-btn-reserve ui-btn--vibe-cover">Назад</button>
+          </div>
+          <p id="tzFormMsg" class="tz-form-msg tz-form-msg--forma" role="status" aria-live="polite"></p>
+        </form>
+        <!-- Правая страница: нумерованные записи после «Сохранить» -->
+        <aside class="tz-ink-preview" aria-label="Страница словаря">
+          <p class="tz-ink-preview-title">Вайбкодинг — описание</p>
+          <div id="tzLivePreview" class="tz-live-preview tz-live-preview--spellbook"></div>
+        </aside>
+        </div>
+        <audio id="audioPen" preload="metadata">
+          <source src="assets/sounds/pen%20writing%20in%20a%20book%20magic.MP3" type="audio/mpeg" />
+        </audio>
+        <audio id="audioFormFlip" preload="metadata">
+          <source src="assets/sounds/flipping%20through%20the%20pages%20of%20a%20book.MP3" type="audio/mpeg" />
+        </audio>
+      </div>
+    </div>
+
+    <!-- ТЗ FINAL: screen4 — images/boor_reed 04.png, 2 слова, rotateY -->
+    <div id="screen4" class="screen tz-screen tz-screen--reed">
+      <div class="tz-reed-scene">
+        <div class="tz-bg-img-wrap tz-bg-img-wrap--safe-crop">
+          <img class="tz-bg-img tz-reed-bg" src="images/boor_reed%2004.png" alt="" decoding="async" />
+        </div>
+        <div class="tz-reed-layer">
+          <div class="tz-flip-stage" id="tzFlipStage">
+            <div class="tz-flip-book" id="tzFlipBook">
+              <div class="tz-spread tz-spread--left" id="tzPageLeft"></div>
+              <div class="tz-spread tz-spread--right" id="tzPageRight"></div>
+            </div>
+          </div>
+          <nav class="tz-flip-nav" aria-label="Страницы книги">
+            <button type="button" class="ui-btn ui-btn--icon ui-btn--vibe-cover" id="tzFlipPrev" aria-label="Предыдущий разворот">
+              ◀
+            </button>
+            <span class="tz-flip-counter" id="tzFlipCounter">1 / 1</span>
+            <button type="button" class="ui-btn ui-btn--icon ui-btn--vibe-cover" id="tzFlipNext" aria-label="Следующий разворот">
+              ▶
+            </button>
+          </nav>
+        </div>
+        <button type="button" class="ui-btn ui-btn--ghost-nav tz-reed-back ui-btn--vibe-cover" id="tzBtnBookToMenu">← Экран книги</button>
+        <audio id="audioFlip" preload="metadata">
+          <source src="assets/sounds/flipping%20through%20the%20pages%20of%20a%20book.MP3" type="audio/mpeg" />
+        </audio>
+      </div>
+    </div>
+
+    <div id="screen5" class="screen tz-screen tz-screen--catalog">
+      <div class="tz-screen__inner tz-catalog-wrap tz-catalog-wrap--unified">
+        <h2 class="tz-screen__title">Каталог</h2>
+        <div class="tz-catalog-toolbar">
+          <input type="search" id="tzCatalogSearch" class="tz-catalog-search" placeholder="Поиск по слову или описанию…" autocomplete="off" />
+          <div class="tz-filter" role="group" aria-label="Фильтр по реакциям">
+            <button type="button" class="ui-btn ui-btn--chip is-active" data-tz-filter="all">Все</button>
+            <button type="button" class="ui-btn ui-btn--chip" data-tz-filter="like">👍</button>
+            <button type="button" class="ui-btn ui-btn--chip" data-tz-filter="funny">😂</button>
+            <button type="button" class="ui-btn ui-btn--chip" data-tz-filter="wow">😮</button>
+            <button type="button" class="ui-btn ui-btn--chip" data-tz-filter="fire">🔥</button>
+          </div>
+        </div>
+        <div id="tzCatalogGrid" class="tz-catalog-grid"></div>
+        <button type="button" class="ui-btn ui-btn--ghost-nav ui-btn--vibe-cover" id="tzBtnCatalogToMenu">← Меню</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Логотип AI + неон (как на обложке); после main — поверх контента, screen3–5 -->
+  <div id="tzVibeAiBrand" class="tz-vibe-ai-brand" aria-hidden="true">
+    <div class="tz-vibe-ai-brand__stack">
+      <div class="tz-vibe-ai-logo-wrap tz-vibe-ai-logo-wrap--overlay">
+        <span class="tz-vibe-ai-logo__halo" aria-hidden="true"></span>
+        <div class="tz-ai-light-flow" aria-hidden="true">
+          <span class="tz-ai-light-flow__beam"></span>
+          <span class="tz-ai-light-flow__beam"></span>
+          <span class="tz-ai-light-flow__beam"></span>
+          <span class="tz-ai-light-flow__beam"></span>
+          <span class="tz-ai-light-flow__beam"></span>
+          <span class="tz-ai-light-flow__beam"></span>
+          <span class="tz-ai-light-flow__beam"></span>
+        </div>
+        <img
+          class="tz-vibe-ai-logo-img"
+          src="images/LOGO.png.png"
+          alt=""
+          width="320"
+          height="140"
+          decoding="async"
+          loading="lazy"
+        />
+      </div>
+    </div>
+  </div>
+
+  <audio id="hymnAudio" preload="auto" loop>
+    <source src="assets/sounds/versiya%205_hard-rok%20Tanya.mp3" type="audio/mpeg" />
+  </audio>
+
+    <script src="script.js" defer></script>
+</body>
+</html>

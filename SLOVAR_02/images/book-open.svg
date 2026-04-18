@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" role="img" aria-labelledby="bt">
+  <title id="bt"> 072>@>B >B:@KB>9 :=838  45:>@0B82=0O 8;;NAB@0F8O</title>
+  <defs>
+    <linearGradient id="desk" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#4a3320"/>
+      <stop offset="100%" style="stop-color:#2c1e12"/>
+    </linearGradient>
+    <linearGradient id="paperL" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#f0e4c8"/>
+      <stop offset="100%" style="stop-color:#e8d9b8"/>
+    </linearGradient>
+    <linearGradient id="paperR" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ebe0c5"/>
+      <stop offset="100%" style="stop-color:#f2e8d4"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#desk)"/>
+  <rect x="80" y="60" width="720" height="880" rx="6" fill="url(#paperL)" stroke="rgba(90,47,23,0.2)" stroke-width="2"/>
+  <rect x="800" y="60" width="720" height="880" rx="6" fill="url(#paperR)" stroke="rgba(90,47,23,0.2)" stroke-width="2"/>
+  <line x1="800" y1="60" x2="800" y2="940" stroke="rgba(90,47,23,0.35)" stroke-width="3"/>
+  <g opacity="0.12" fill="none" stroke="#5a2f17" stroke-width="1">
+    <line x1="140" y1="200" x2="680" y2="200"/>
+    <line x1="140" y1="280" x2="620" y2="280"/>
+    <line x1="140" y1="360" x2="650" y2="360"/>
+    <line x1="920" y1="220" x2="1460" y2="220"/>
+    <line x1="920" y1="300" x2="1400" y2="300"/>
+    <line x1="920" y1="380" x2="1440" y2="380"/>
+  </g>
+  <rect x="780" y="50" width="40" height="900" fill="rgba(40,25,15,0.25)" rx="4"/>
+</svg>
