@@ -28,7 +28,7 @@ interface MagicBookProps {
 const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: MagicBookProps) => {
   /** Скрины в правой колонке (каталог) — меньше, чтобы не заходить на орнамент справа */
   const CATALOG_IMAGE_MAX_HEIGHT = 112;
-  const ENTRY_GRID_COLS = "minmax(4.25rem, 4.25rem) minmax(0, 1fr)";
+  const ENTRY_GRID_COLS = "minmax(4.5rem, 4.5rem) minmax(0, 1fr)";
   const requestMusicDuck = useCallback((holdMs = 1000) => {
     window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
   }, []);
@@ -347,7 +347,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
           top: "20.35%",
           width: "22.8%",
           height: "54.9%",
-          padding: "10px 10px 22px 20px",
+          padding: "10px 10px 22px 18px",
           boxSizing: "border-box",
           overflow: "hidden",
           display: "flex",
@@ -482,11 +482,11 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
       <div
         className="absolute z-[15] font-handwriting no-scroll"
         style={{
-          left: "51.92%",
+          left: "51.72%",
           top: "20.35%",
           width: "22.35%",
           height: "54.9%",
-          padding: "10px 12px 22px 2px",
+          padding: "10px 10px 22px 0px",
           boxSizing: "border-box",
           overflow: "hidden", overflowWrap: "break-word", wordBreak: "break-word",
         }}
@@ -506,7 +506,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                   return (
                     <div
                       key={globalIdx}
-                      className="text-ink box-border w-full"
+                      className="box-border w-full"
                       style={{
                         marginBottom: "0.6em",
                         display: "grid",
@@ -518,8 +518,17 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                       }}
                     >
                       <div
-                        className="text-xl tabular-nums leading-tight whitespace-nowrap"
-                        style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", color: "#120c34", textAlign: "right", lineHeight: "1.22", fontWeight: 800 }}
+                        className="text-xl tabular-nums leading-tight whitespace-nowrap box-border min-w-0 w-full"
+                        style={{
+                          fontFamily: "'Cormorant Garamond', serif",
+                          fontStyle: "italic",
+                          color: "#120c34",
+                          textAlign: "right",
+                          lineHeight: "1.22",
+                          fontWeight: 800,
+                          justifySelf: "stretch",
+                          fontVariantNumeric: "tabular-nums",
+                        }}
                       >
                         {globalIdx + 1}.
                       </div>
@@ -568,7 +577,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
                 {isLastPage && liveText && (
                   <div
-                    className="text-ink box-border w-full"
+                    className="box-border w-full"
                     style={{
                       marginBottom: "0.6em",
                       display: "grid",
@@ -580,8 +589,17 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                     }}
                   >
                     <div
-                      className="text-xl tabular-nums leading-tight whitespace-nowrap ink-fresh"
-                      style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", color: "#120c34", textAlign: "right", lineHeight: "1.22", fontWeight: 800 }}
+                      className="text-xl tabular-nums leading-tight whitespace-nowrap box-border min-w-0 w-full ink-fresh"
+                      style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontStyle: "italic",
+                        color: "#120c34",
+                        textAlign: "right",
+                        lineHeight: "1.22",
+                        fontWeight: 800,
+                        justifySelf: "stretch",
+                        fontVariantNumeric: "tabular-nums",
+                      }}
                     >
                       {editIdx !== null ? editIdx + 1 : entries.length + 1}.
                     </div>
