@@ -26,6 +26,8 @@ interface MagicBookProps {
 }
 
 const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: MagicBookProps) => {
+  /** Скрины в правой колонке (каталог) — меньше, чтобы не заходить на орнамент справа */
+  const CATALOG_IMAGE_MAX_HEIGHT = 112;
   const requestMusicDuck = useCallback((holdMs = 1000) => {
     window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
   }, []);
@@ -150,13 +152,13 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
         wrap.style.cssText = "margin-bottom:0.6em";
 
         const title = document.createElement("div");
-        title.style.cssText = "font-size:1.25rem;font-weight:700;line-height:1.15;text-align:left;font-style:italic";
+        title.style.cssText = "font-size:1.25rem;font-weight:700;line-height:1.18;text-align:left;font-style:italic;overflow-wrap:anywhere;word-break:break-word";
         title.textContent = `${i + 1}. ${entries[i].word}`;
         wrap.appendChild(title);
 
         if (entries[i].description) {
           const desc = document.createElement("div");
-          desc.style.cssText = "font-size:1rem;line-height:1.15;text-align:left";
+          desc.style.cssText = "font-size:1rem;line-height:1.18;text-align:left;overflow-wrap:anywhere;word-break:break-word";
           desc.textContent = `— ${entries[i].description.replace(/^[—-]\s*/, "")}`;
           wrap.appendChild(desc);
         }
@@ -164,7 +166,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
         (entries[i].images ?? []).forEach((src) => {
           const img = document.createElement("img");
           img.src = src;
-          img.style.cssText = "display:block;max-width:100%;height:auto;margin:8px 0";
+          img.style.cssText = `display:block;max-width:100%;max-height:${CATALOG_IMAGE_MAX_HEIGHT}px;height:auto;object-fit:contain;margin:6px 0`;
           wrap.appendChild(img);
         });
 
@@ -324,15 +326,15 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
       <SpineEffect burst={burst} />
 
-      {/* Left page — editing form */}
+      {/* Left page — форма: старт текста после левого орнамента; кнопки внизу — ближе к переплёту */}
       <div
         className="absolute z-[25] font-handwriting no-scroll"
         style={{
-          left: "21.2%",
-          top: "20.9%",
-          width: "23%",
-          height: "56.2%",
-          padding: "8px 6px 16px 6px",
+          left: "21.05%",
+          top: "20.35%",
+          width: "22.8%",
+          height: "54.9%",
+          padding: "10px 10px 22px 18px",
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
@@ -387,7 +389,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
           </div>
         )}
 
-        <div style={{ marginTop: "auto" }} className="pt-1 flex justify-start items-center gap-2 pl-1">
+        <div style={{ marginTop: "auto", width: "100%" }} className="pt-1 pb-1 flex justify-end items-center gap-2 pr-2">
           <span className="action-text cursor-pointer font-handwriting text-base font-medium" onClick={handleSave}>сохранить</span>
           <span className="font-handwriting text-base font-medium" style={{ color: "hsl(var(--ink) / 0.3)" }}>|</span>
           <span className="action-text cursor-pointer font-handwriting text-base font-medium" onClick={handleEdit}>редактировать</span>
@@ -443,15 +445,15 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
         )}
       </div>
 
-      {/* Right page — current catalog page */}
+      {/* Right page — каталог: сдвиг к переплёту, запас от правого орнамента, скрины компактнее */}
       <div
         className="absolute z-[15] font-handwriting no-scroll"
         style={{
-          left: "54.8%",
-          top: "20.9%",
-          width: "23%",
-          height: "56.2%",
-          padding: "8px 6px 20px 6px",
+          left: "52.85%",
+          top: "20.35%",
+          width: "22.35%",
+          height: "54.9%",
+          padding: "10px 14px 22px 12px",
           overflow: "hidden", overflowWrap: "break-word", wordBreak: "break-word",
           perspective: "1200px",
         }}
@@ -470,16 +472,16 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
                   return (
                     <div key={globalIdx} className="text-ink" style={{ marginBottom: "0.6em" }}>
-                      <div className="text-xl leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "normal", color: "#120c34", textAlign: "left", lineHeight: "1.22", fontWeight: 800 }}>
+                      <div className="text-xl leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "normal", color: "#120c34", textAlign: "left", lineHeight: "1.22", fontWeight: 800, overflowWrap: "anywhere", wordBreak: "break-word" }}>
                         <span className="font-bold">{globalIdx + 1}.</span> {entry.word}
                       </div>
                       {entry.description && (
-                        <div className="font-handwriting text-base" style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600 }}>
+                        <div className="font-handwriting text-base" style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600, overflowWrap: "anywhere", wordBreak: "break-word" }}>
                           — {entry.description.replace(/^[—-]\s*/, "")}
                         </div>
                       )}
                       {entry.images?.map((src, k) => (
-                        <img key={k} src={src} alt="" style={{ display: "block", maxWidth: "100%", height: "auto", margin: "8px 0" }} />
+                        <img key={k} src={src} alt="" style={{ display: "block", maxWidth: "100%", maxHeight: CATALOG_IMAGE_MAX_HEIGHT, height: "auto", objectFit: "contain", margin: "6px 0 0 0" }} />
                       ))}
                     </div>
                   );
@@ -487,12 +489,12 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
                 {isLastPage && liveText && (
                   <div className="text-ink" style={{ marginBottom: "0.6em" }}>
-                    <div className="text-xl leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "normal", color: "#120c34", textAlign: "left", lineHeight: "1.22", fontWeight: 800 }}>
+                    <div className="text-xl leading-tight" style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "normal", color: "#120c34", textAlign: "left", lineHeight: "1.22", fontWeight: 800, overflowWrap: "anywhere", wordBreak: "break-word" }}>
                       <span className="font-bold">{editIdx !== null ? editIdx + 1 : entries.length + 1}.</span>{" "}
                       <InkWriteEffect text={word} className="ink-fresh" />
                     </div>
                     {description && (
-                      <div className="font-handwriting text-base ink-fresh" style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600 }}>
+                      <div className="font-handwriting text-base ink-fresh" style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600, overflowWrap: "anywhere", wordBreak: "break-word" }}>
                         — <InkWriteEffect text={description} className="" />
                       </div>
                     )}

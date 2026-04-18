@@ -25,6 +25,7 @@ interface FinalBookProps {
 }
 
 const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) => {
+  const ENTRY_IMAGE_MAX_HEIGHT = 112;
   const requestMusicDuck = useCallback((holdMs = 1000) => {
     window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
   }, []);
@@ -51,7 +52,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
     let cancelled = false;
 
     (async () => {
-      const availableHeight = container.clientHeight - 20;
+      const availableHeight = container.clientHeight - 28;
       const measureWidth = container.offsetWidth;
       const measure = document.createElement("div");
       measure.style.cssText = `position:absolute;visibility:hidden;width:${measureWidth}px;font-family:'Cormorant Garamond',serif;padding:0;`;
@@ -65,13 +66,13 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
         wrap.style.cssText = "margin-bottom:0.6em;width:100%";
 
         const title = document.createElement("div");
-        title.style.cssText = "font-size:1.25rem;font-weight:700;line-height:1.15;font-style:italic;text-align:left";
+        title.style.cssText = "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:left;overflow-wrap:anywhere;word-break:break-word";
         title.textContent = `${i + 1}. ${entries[i].word}`;
         wrap.appendChild(title);
 
         if (entries[i].description) {
           const desc = document.createElement("div");
-          desc.style.cssText = "font-size:1rem;line-height:1.2;text-align:left";
+          desc.style.cssText = "font-size:1rem;line-height:1.2;text-align:left;overflow-wrap:anywhere;word-break:break-word";
           desc.textContent = `— ${entries[i].description.replace(/^[—-]\s*/, "")}`;
           wrap.appendChild(desc);
         }
@@ -79,9 +80,14 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
         (entries[i].images ?? []).forEach((src) => {
           const img = document.createElement("img");
           img.src = src;
-          img.style.cssText = "display:block;max-width:100%;height:auto;margin:8px 0";
+          img.style.cssText = `display:block;max-width:100%;max-height:${ENTRY_IMAGE_MAX_HEIGHT}px;height:auto;object-fit:contain;margin:6px 0`;
           wrap.appendChild(img);
         });
+
+        const reactions = document.createElement("div");
+        reactions.style.cssText = "display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;font-size:13px;line-height:1.1;color:#1a1440";
+        reactions.textContent = `🔥 ${entries[i].reactions?.fire || 0}  ❤️ ${entries[i].reactions?.love || 0}  🚀 ${entries[i].reactions?.rocket || 0}  😂 ${entries[i].reactions?.laugh || 0}  👍 ${entries[i].reactions?.like || 0}`;
+        wrap.appendChild(reactions);
 
 
         measure.innerHTML = "";
@@ -150,6 +156,14 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
   // Get global index for an entry
   const getGlobalIndex = (entry: Entry) => entries.indexOf(entry);
 
+  const updateReaction = useCallback((globalIdx: number, type: "fire" | "love" | "rocket" | "laugh" | "like") => {
+    setEntries((prev) =>
+      prev.map((w, i) =>
+        i === globalIdx ? { ...w, reactions: { ...w.reactions, [type]: (w.reactions?.[type] || 0) + 1 } } : w
+      )
+    );
+  }, [setEntries]);
+
   const leftPageIdx = currentSpread * 2;
   const rightPageIdx = currentSpread * 2 + 1;
   const leftPageEntries = pages[leftPageIdx] || [];
@@ -166,6 +180,8 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
           lineHeight: "1.22",
           textAlign: "left",
           fontWeight: 800,
+          overflowWrap: "anywhere",
+          wordBreak: "break-word",
         }}
       >
         <span style={{ fontWeight: 700 }}>{globalIdx + 1}.</span> {entry.word}
@@ -173,14 +189,21 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
       {entry.description && (
         <div
           className="text-base font-handwriting w-full"
-          style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600 }}
+          style={{ color: "#1a103a", textAlign: "left", lineHeight: "1.24", fontWeight: 600, overflowWrap: "anywhere", wordBreak: "break-word" }}
         >
           — {entry.description.replace(/^[—-]\s*/, "")}
         </div>
       )}
       {entry.images?.map((src, k) => (
-        <img key={k} src={src} alt="" style={{ display: "block", maxWidth: "100%", height: "auto", margin: "8px 0" }} />
+        <img key={k} src={src} alt="" style={{ display: "block", maxWidth: "100%", maxHeight: ENTRY_IMAGE_MAX_HEIGHT, height: "auto", objectFit: "contain", margin: "6px 0 0 0" }} />
       ))}
+      <div className="flex gap-2 text-[13px] w-full justify-end flex-wrap" style={{ color: "#1a1440" }}>
+        <button type="button" onClick={() => updateReaction(globalIdx, "fire")} className="cursor-pointer hover:scale-110 transition-transform">🔥 {entry.reactions?.fire || 0}</button>
+        <button type="button" onClick={() => updateReaction(globalIdx, "love")} className="cursor-pointer hover:scale-110 transition-transform">❤️ {entry.reactions?.love || 0}</button>
+        <button type="button" onClick={() => updateReaction(globalIdx, "rocket")} className="cursor-pointer hover:scale-110 transition-transform">🚀 {entry.reactions?.rocket || 0}</button>
+        <button type="button" onClick={() => updateReaction(globalIdx, "laugh")} className="cursor-pointer hover:scale-110 transition-transform">😂 {entry.reactions?.laugh || 0}</button>
+        <button type="button" onClick={() => updateReaction(globalIdx, "like")} className="cursor-pointer hover:scale-110 transition-transform">👍 {entry.reactions?.like || 0}</button>
+      </div>
     </div>
   );
 
@@ -208,8 +231,9 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
             ref={leftContentRef}
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
-               left: "21.2%", top: "20.9%", width: "23%", height: "56.2%",
-               padding: "8px 6px 20px 6px",
+               left: "21.05%", top: "20.35%", width: "22.8%", height: "54.9%",
+               padding: "10px 10px 22px 18px",
+               overflowWrap: "break-word", wordBreak: "break-word",
             }}
           >
             {leftPageEntries.map((entry) => renderEntry(entry, getGlobalIndex(entry)))}
@@ -219,8 +243,9 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
           <div
             className="absolute z-20 overflow-hidden pointer-events-auto flex flex-col gap-0"
             style={{
-              left: "54.8%", top: "20.9%", width: "23%", height: "56.2%",
-              padding: "8px 6px 20px 6px",
+              left: "52.85%", top: "20.35%", width: "22.35%", height: "54.9%",
+              padding: "10px 14px 22px 12px",
+              overflowWrap: "break-word", wordBreak: "break-word",
             }}
           >
             {rightPageEntries.map((entry) => renderEntry(entry, getGlobalIndex(entry)))}
