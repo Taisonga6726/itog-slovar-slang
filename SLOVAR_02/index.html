@@ -7,6 +7,15 @@
     name="description"
     content="Интерактивная книга-словарь: добавляйте слова и листайте страницы. Данные хранятся в браузере."
   />
+  <script>
+    // Если открыть /SLOVAR_02 без завершающего "/", относительные пути style.css/script.js ломаются.
+    (function () {
+      var p = window.location.pathname || "";
+      if (/\/SLOVAR_02$/.test(p)) {
+        window.location.replace(p + "/" + window.location.search + window.location.hash);
+      }
+    })();
+  </script>
   <title>Словарь вайбкодера</title>
 
   <!-- ТЗ: index.html + style.css + script.js (defer) -->

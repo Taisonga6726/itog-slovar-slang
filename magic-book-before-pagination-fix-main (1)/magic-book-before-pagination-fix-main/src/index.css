@@ -410,7 +410,7 @@
 .magic-rings-fx--global {
   position: fixed;
   inset: 0;
-  z-index: 11;
+  z-index: 130;
   pointer-events: none;
   overflow: hidden;
   opacity: 0.72;
@@ -436,7 +436,7 @@
   left: 0;
   right: 0;
   top: clamp(8px, 2vh, 20px);
-  z-index: 120;
+  z-index: 140;
   justify-content: center;
   align-items: center;
   pointer-events: none;

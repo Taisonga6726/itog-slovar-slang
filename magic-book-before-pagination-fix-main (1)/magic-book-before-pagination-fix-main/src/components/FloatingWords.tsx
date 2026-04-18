@@ -39,7 +39,11 @@ const SIZES = [17, 19, 16, 20, 18, 21, 16, 18, 17, 19, 16, 19, 18, 19, 17];
 
 const FloatingWords = () => {
   return (
-    <div className="absolute inset-0 pointer-events-none z-50 overflow-hidden">
+    <div
+      className="absolute inset-0 pointer-events-none overflow-hidden"
+      style={{ zIndex: 135 }}
+      aria-hidden
+    >
       {WORDS.map((word, i) => {
         const duration = 20 + Math.random() * 20;
         const delay = Math.random() * -20;
