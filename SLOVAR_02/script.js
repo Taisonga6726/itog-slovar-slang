@@ -163,6 +163,11 @@
         return String(value).trim().replace(/\s+/g, " ");
       }
 
+      function isLocalDevHostname(host) {
+        var h = String(host || "").toLowerCase();
+        return h === "localhost" || h === "127.0.0.1" || h.endsWith(".localhost");
+      }
+
       /**
        * Сборка Magic Book (Vite dist) с явным входом из Словаря: форма внесения слов.
        * Перед загрузкой script.js можно задать window.MAGIC_BOOK_URL — путь к index.html сборки.
@@ -179,6 +184,13 @@
         ) {
           /* Локальный режим склейки: Magic Book уже поднят отдельным сервером dist на :5501 */
           href = "http://localhost:5501/";
+        } else if (isLocalDevHostname(window.location.hostname)) {
+          var p = window.location.pathname || "";
+          if (p.indexOf("/slovar/") === 0) {
+            href = new URL("/?entry=slovar&screen=form", window.location.origin).href;
+          } else {
+            href = "http://localhost:5501/";
+          }
         } else if (window.location.hostname.indexOf("github.io") !== -1) {
           /* GitHub Pages: собранный Magic Book лежит в корне Pages сайта */
           href = "/itog-slovar-slang/";
@@ -571,6 +583,13 @@
         dom.sceneStage.classList.add("cover-ready");
         setAccessButtonState("success");
         setLoginMessage("Нажмите на книгу", "success");
+        /* После жеста «Отправить код» подгружаем гимн, чтобы play() по клику на книгу не молчал из‑за пустого буфера. */
+        try {
+          const h = document.getElementById("hymnAudio");
+          if (h) h.load();
+        } catch (_) {
+          /* ignore */
+        }
       }
 
       /** Длительность вспышки и энергии на обложке перед переходом в разворот */
@@ -587,10 +606,46 @@
         clearCoverReadyUi();
         storage.setAccessGranted();
 
+        /** Гимн: жест клика по книге — всегда play() в документе iframe; родителю — дополнительно. */
+        const inIframe = window.parent && window.parent !== window;
         const audio = document.getElementById("hymnAudio");
         if (audio) {
-          audio.currentTime = 0;
-          audio.play().catch(() => {});
+          try {
+            audio.muted = false;
+            audio.volume = 1;
+          } catch (_) {
+            /* ignore */
+          }
+          try {
+            audio.currentTime = 0;
+          } catch (_) {
+            /* ignore */
+          }
+          const tryPlay = () => {
+            const p = audio.play();
+            if (p && typeof p.catch === "function") {
+              p.catch(() => {
+                try {
+                  audio.load();
+                } catch (_) {
+                  /* ignore */
+                }
+                audio.play().catch(() => {});
+              });
+            }
+          };
+          tryPlay();
+        }
+        if (inIframe) {
+          try {
+            window.parent.postMessage({ type: "SLOVAR_BOOK_HYMN_START" }, window.location.origin);
+          } catch (e) {
+            try {
+              window.parent.postMessage({ type: "SLOVAR_BOOK_HYMN_START" }, "*");
+            } catch (e2) {
+              /* ignore */
+            }
+          }
         }
 
         setLoginMessage("", "");
@@ -1245,6 +1300,27 @@
           triggerSceneFlash("error");
           showAccessErrorMessage();
           return;
+        }
+
+        try {
+          const h = document.getElementById("hymnAudio");
+          if (h) {
+            h.pause();
+            h.currentTime = 0;
+          }
+        } catch (_) {
+          /* ignore */
+        }
+        if (window.parent && window.parent !== window) {
+          try {
+            window.parent.postMessage({ type: "SLOVAR_RESET_HYMN" }, window.location.origin);
+          } catch (e) {
+            try {
+              window.parent.postMessage({ type: "SLOVAR_RESET_HYMN" }, "*");
+            } catch (e2) {
+              /* ignore */
+            }
+          }
         }
 
         attempts = 0;
@@ -2727,6 +2803,26 @@ void main() {
         renderBook();
         renderCatalog();
         syncWaveCanvasConsumers();
+        try {
+          const h = document.getElementById("hymnAudio");
+          if (h) {
+            h.pause();
+            h.currentTime = 0;
+          }
+        } catch (_) {
+          /* ignore */
+        }
+        if (window.parent && window.parent !== window) {
+          try {
+            window.parent.postMessage({ type: "SLOVAR_RESET_HYMN" }, window.location.origin);
+          } catch (e) {
+            try {
+              window.parent.postMessage({ type: "SLOVAR_RESET_HYMN" }, "*");
+            } catch (e2) {
+              /* ignore */
+            }
+          }
+        }
         // Первый экран всегда статичный: без автоперехода в раскрытую книгу при открытии файла.
         // Переход в книгу только после явного ввода кода и клика по зоне книги.
       }

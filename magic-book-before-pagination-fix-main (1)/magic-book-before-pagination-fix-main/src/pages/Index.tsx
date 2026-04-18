@@ -120,34 +120,50 @@ const Index = () => {
     flipAudio.current.volume = 0.5;
   }, []);
 
-  const tryStartHymn = useCallback(() => {
+  const pauseHymn = useCallback(() => {
+    hymnStartedRef.current = false;
+    if (hymnAudio.current) {
+      try {
+        hymnAudio.current.pause();
+        hymnAudio.current.currentTime = 0;
+      } catch {
+        /* ignore */
+      }
+    }
+  }, []);
+
+  /** Гимн родителя: по сигналу из iframe; ref «запущен» только после успешного play (иначе повторный клик молчит). */
+  const startBookHymnFromIntro = useCallback(() => {
+    if (!hymnAudio.current) {
+      hymnAudio.current = new Audio("/slovar/assets/sounds/versiya%205_hard-rok%20Tanya.mp3");
+      hymnAudio.current.loop = true;
+      hymnAudio.current.volume = 0.55;
+    }
     if (hymnStartedRef.current) return;
-    if (!hymnAudio.current) return;
-    hymnStartedRef.current = true;
-    hymnAudio.current.play().catch(() => {});
+    void hymnAudio.current
+      .play()
+      .then(() => {
+        hymnStartedRef.current = true;
+      })
+      .catch(() => {
+        hymnStartedRef.current = false;
+      });
   }, []);
 
   useEffect(() => {
-    hymnAudio.current = new Audio("/slovar/assets/sounds/versiya%205_hard-rok%20Tanya.mp3");
-    hymnAudio.current.loop = true;
-    hymnAudio.current.volume = 0.55;
-
-    const onDocGesture = () => { tryStartHymn(); };
-    const opts: AddEventListenerOptions = { capture: true };
-
-    window.addEventListener("pointerdown", onDocGesture, opts);
-    window.addEventListener("keydown", onDocGesture, opts);
-
+    pauseHymn();
     return () => {
-      window.removeEventListener("pointerdown", onDocGesture, opts);
-      window.removeEventListener("keydown", onDocGesture, opts);
       if (hymnAudio.current) {
-        hymnAudio.current.pause();
+        try {
+          hymnAudio.current.pause();
+        } catch {
+          /* ignore */
+        }
         hymnAudio.current = null;
       }
       hymnStartedRef.current = false;
     };
-  }, [tryStartHymn]);
+  }, [pauseHymn]);
 
   const playFlipSound = useCallback(() => {
     if (flipAudio.current) {
@@ -213,7 +229,11 @@ const Index = () => {
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black">
       {mode === "intro" && (
-        <IntroSlovarEmbed onOpenForm={handleOpenFormFromIntro} onUserGesture={tryStartHymn} />
+        <IntroSlovarEmbed
+          onOpenForm={handleOpenFormFromIntro}
+          onBookHymnStart={startBookHymnFromIntro}
+          onResetHymn={pauseHymn}
+        />
       )}
 
       {/* Preload video and cover image to eliminate black screen / delays */}

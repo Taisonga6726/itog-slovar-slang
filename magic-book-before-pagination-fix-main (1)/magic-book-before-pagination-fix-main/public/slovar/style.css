@@ -961,6 +961,23 @@ body[data-active-screen="screen1"]:has(#sceneStage.scene--book-open) .magic-ring
   mix-blend-mode: screen;
 }
 
+/* Без «выпрыгивающего» логотипа AI: фиксированный оверлей + лучи по маске PNG не перекрывают сцену и CTA */
+#tzVibeAiBrand {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.cover-ai-logo-rays--above-rings {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+.scene-stage.scene--book-open .book-open-ai-logo-rays {
+  display: none !important;
+  visibility: hidden !important;
+}
+
 /* Логотип AI по центру сверху — те же классы свечения/текста, что у разворота книги */
 .tz-vibe-ai-brand {
   display: none;
