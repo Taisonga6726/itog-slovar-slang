@@ -273,9 +273,9 @@ export default function VibeAudioTestPanel({
       </button>
 
       <div
-        className="relative z-[205] mx-auto flex min-h-[100dvh] w-full max-w-[min(1100px,96vw)] flex-col px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(2.75rem,env(safe-area-inset-top))] sm:px-5 sm:pb-6 sm:pt-12"
+        className="relative z-[205] mx-auto flex min-h-[100dvh] w-full max-w-[min(1100px,96vw)] flex-col px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.35rem,env(safe-area-inset-top))] sm:px-5 sm:pb-6 sm:pt-6"
       >
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-[min(12vh,100px)] lg:pb-[min(10vh,88px)]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-[min(20vh,170px)] lg:pb-[min(18vh,150px)]">
           <div className="mb-1 flex shrink-0 flex-col gap-1 lg:mb-1.5 lg:gap-1.5">{headerBlock}</div>
 
           {/* Мобилка: сетка 2×6 без центрального постера */}
@@ -286,7 +286,7 @@ export default function VibeAudioTestPanel({
           </div>
 
           {/* Десктоп: ваша схема — две колонки треков и постер по центру (без рамок/карточек) */}
-          <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(200px,min(28vw,340px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
+          <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(240px,min(33vw,390px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
             <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-hidden pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {TRACKS_LEFT.map((t) => renderTrackCard(t))}
             </div>
@@ -294,7 +294,7 @@ export default function VibeAudioTestPanel({
               <img
                 src={VIBE_HOST_PHOTO_SRC}
                 alt=""
-                className="h-auto w-full max-w-[min(31vw,330px)] max-h-[min(36vh,320px)] object-contain object-bottom sm:max-h-[min(40vh,360px)]"
+                className="h-auto w-full max-w-[min(36vw,390px)] max-h-[min(46vh,430px)] object-contain object-bottom"
                 draggable={false}
               />
             </div>
@@ -304,7 +304,7 @@ export default function VibeAudioTestPanel({
           </div>
 
           {(onBackToBook || onPlayGame || onEnterWord) && (
-            <div className="mt-auto flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:gap-3">
+            <div className="mt-3 flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:mt-4 sm:gap-3">
               {onBackToBook && (
                 <NeonGlassButton
                   className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!min-h-[2.75rem] sm:!text-sm"
