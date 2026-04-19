@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { Download, Play, Pause, X } from "lucide-react";
 import { HYMN_TRACKS, type HymnTrack } from "@/data/hymnTracks";
 import NeonGlassButton from "@/components/NeonGlassButton";
+import MagicRingsGlobal from "@/components/MagicRingsGlobal";
 import VibeAiLogoMark, { VIBE_AI_LOGO_SRC } from "@/components/VibeAiLogoMark";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +53,7 @@ interface VibeAudioTestPanelProps {
 }
 
 /**
- * Макет панели гимна — по референсу автора: лого сверху (VibeAiLogoMark),
+ * Макет панели гимна — по референсу автора: лого сверху (VibeAiLogoMark + слои как на 1-м экране slovar),
  * две верхние плашки, три колонки (дорожки | постер | дорожки),
  * строка трека: название слева — белый play — кнопка «сохр.», реакции снизу на всю ширину.
  */
@@ -201,7 +202,7 @@ export default function VibeAudioTestPanel({
 
   const headerBlock = (
     <>
-      <VibeAiLogoMark className="mb-0.5 shrink-0 sm:mb-1 lg:hidden" />
+      <VibeAiLogoMark withCoverEffects className="mb-0.5 shrink-0 sm:mb-1 lg:hidden" />
       <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 px-1 sm:gap-3 sm:px-4 lg:hidden">
         <div
           className={cn(statCardBase)}
@@ -260,7 +261,7 @@ export default function VibeAudioTestPanel({
         </div>
 
         <div className="pointer-events-none relative z-[120] flex items-start justify-center lg:-translate-y-2">
-          <VibeAiLogoMark className="-mt-0.5 shrink-0" />
+          <VibeAiLogoMark withCoverEffects className="-mt-0.5 shrink-0" />
         </div>
 
         <div className="flex flex-col items-center pr-1">
@@ -290,7 +291,7 @@ export default function VibeAudioTestPanel({
 
   const node = (
     <div
-      className="fixed inset-0 z-[200] flex flex-col overflow-y-auto overflow-x-hidden text-white"
+      className="fixed inset-0 z-[250] flex flex-col overflow-y-auto overflow-x-hidden text-white"
       role="dialog"
       aria-modal="true"
       aria-label="Выбор гимна — 12 аудиоверсий"
@@ -310,6 +311,13 @@ export default function VibeAudioTestPanel({
         />
       </div>
 
+      {/* Неоновые кольца у курсора — как на 1-м экране; глобальный слой ниже z панели, поэтому дубль только здесь */}
+      <MagicRingsGlobal
+        className="magic-rings-fx--hymn-panel"
+        containerId="mbHymnPanelMagicRings"
+        canvasId="mbHymnPanelMagicRingsCanvas"
+      />
+
       <button
         type="button"
         onClick={onClose}
@@ -321,7 +329,7 @@ export default function VibeAudioTestPanel({
       </button>
 
       <div
-        className="relative z-[205] mx-auto flex min-h-[100dvh] w-full max-w-[min(1240px,95vw)] flex-col px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.3rem,env(safe-area-inset-top))] sm:px-5 sm:pb-3 sm:pt-1.5"
+        className="relative z-[251] mx-auto flex min-h-[100dvh] w-full max-w-[min(1240px,95vw)] flex-col px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.3rem,env(safe-area-inset-top))] sm:px-5 sm:pb-3 sm:pt-1.5"
       >
         <div className="flex min-h-0 flex-1 flex-col overflow-visible pb-[min(5vh,42px)] lg:pb-[min(4vh,34px)]">
           <div className="mb-0.5 flex shrink-0 flex-col gap-0.5 lg:mb-1 lg:gap-1">{headerBlock}</div>
