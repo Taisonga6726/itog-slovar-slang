@@ -6,8 +6,7 @@ import FinalBook from "@/components/FinalBook";
 import FinalScreen from "@/components/FinalScreen";
 import ControlBar from "@/components/ControlBar";
 import HeroWave from "@/components/ui/dynamic-wave-canvas-background";
-import MagicRingsGlobal from "@/components/MagicRingsGlobal";
-import VibeAiBrand from "@/components/VibeAiBrand";
+import GlobalVibeShell from "@/components/GlobalVibeShell";
 import IntroSlovarEmbed from "@/components/IntroSlovarEmbed";
 import { toast } from "@/hooks/use-toast";
 
@@ -53,9 +52,12 @@ interface PageNav {
 }
 
 const Index = () => {
+  /** Панель выбора гимна: глобальный логотип не показываем (не накладывать на UI). */
+  const [hymnPanelOpen, setHymnPanelOpen] = useState(false);
   const SEED_ENTRIES_URL = "/tanya-vibecoder-backup-2026-04-18.json";
   /** v2: экспорт всегда подмешивается к сохранённому списку (слова из файла перекрывают старые), плюс срез дублей с одинаковыми картинками. */
   const SEED_STORAGE_KEY = "magic-book-seed-v2-applied";
+  const HYMN_MUTED_STORAGE_KEY = "magic-book-hymn-muted";
 
   const TEST_WORDS_TO_DROP = new Set(["мама"]);
 
@@ -183,6 +185,13 @@ const Index = () => {
 
 
   const [pageNav, setPageNav] = useState<PageNav | null>(null);
+  const [bookSoundMuted, setBookSoundMuted] = useState(() => {
+    try {
+      return typeof localStorage !== "undefined" && localStorage.getItem(HYMN_MUTED_STORAGE_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
   const flipAudio = useRef<HTMLAudioElement | null>(null);
   const hymnAudio = useRef<HTMLAudioElement | null>(null);
   const hymnStartedRef = useRef(false);
@@ -193,6 +202,27 @@ const Index = () => {
 
   const HYMN_BASE_VOLUME = 0.24;
   const HYMN_DUCK_VOLUME = 0.14;
+
+  const toggleBookSound = useCallback(() => {
+    setBookSoundMuted((m) => {
+      const next = !m;
+      try {
+        localStorage.setItem(HYMN_MUTED_STORAGE_KEY, next ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!hymnAudio.current) return;
+    try {
+      hymnAudio.current.volume = bookSoundMuted ? 0 : HYMN_BASE_VOLUME;
+    } catch {
+      /* ignore */
+    }
+  }, [bookSoundMuted]);
 
   useEffect(() => {
     flipAudio.current = new Audio("/page-flip.mp3");
@@ -216,12 +246,27 @@ const Index = () => {
     }
   }, []);
 
+  /** Пауза фонового гимна без сброса — чтобы на панели выбора версий слушать превью. */
+  const pauseBackgroundHymnSoft = useCallback(() => {
+    try {
+      hymnAudio.current?.pause();
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  /** Возобновить гимн после закрытия панели (если он был запущен). */
+  const resumeBackgroundHymnAfterPanel = useCallback(() => {
+    if (!hymnStartedRef.current || !hymnAudio.current) return;
+    void hymnAudio.current.play().catch(() => {});
+  }, []);
+
   /** Р“РёРјРЅ СЂРѕРґРёС‚РµР»СЏ: РїРѕ СЃРёРіРЅР°Р»Сѓ РёР· iframe; ref В«Р·Р°РїСѓС‰РµРЅВ» С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ play (РёРЅР°С‡Рµ РїРѕРІС‚РѕСЂРЅС‹Р№ РєР»РёРє РјРѕР»С‡РёС‚). */
   const startBookHymnFromIntro = useCallback(() => {
     if (!hymnAudio.current) {
       hymnAudio.current = new Audio("/slovar/assets/sounds/versiya%205_hard-rok%20Tanya.mp3");
       hymnAudio.current.loop = true;
-      hymnAudio.current.volume = HYMN_BASE_VOLUME;
+      hymnAudio.current.volume = bookSoundMuted ? 0 : HYMN_BASE_VOLUME;
     }
     if (hymnStartedRef.current) return;
     void hymnAudio.current
@@ -232,7 +277,7 @@ const Index = () => {
       .catch(() => {
         hymnStartedRef.current = false;
       });
-  }, []);
+  }, [bookSoundMuted]);
 
   useEffect(() => {
     pauseHymn();
@@ -349,8 +394,9 @@ const Index = () => {
   const duckHymnForEffects = useCallback((holdMs = 1000) => {
     const audio = hymnAudio.current;
     if (!audio) return;
+    const eff = (v: number) => (bookSoundMuted ? 0 : v);
     try {
-      audio.volume = HYMN_DUCK_VOLUME;
+      audio.volume = eff(HYMN_DUCK_VOLUME);
     } catch {
       return;
     }
@@ -367,7 +413,7 @@ const Index = () => {
         const eased = 1 - Math.pow(1 - t, 3);
         const next = startVol + (HYMN_BASE_VOLUME - startVol) * eased;
         try {
-          audio.volume = next;
+          audio.volume = eff(next);
         } catch {
           return;
         }
@@ -379,7 +425,7 @@ const Index = () => {
       };
       duckRafRef.current = window.requestAnimationFrame(step);
     }, holdMs);
-  }, []);
+  }, [bookSoundMuted]);
 
   useEffect(() => {
     const onDuck = (ev: Event) => {
@@ -446,7 +492,6 @@ const Index = () => {
             draggable={false}
           />
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm pointer-events-none z-10" />
-          {(mode === "awakening" || mode === "hands") && <MagicRingsGlobal />}
           {(mode === "awakening" || mode === "hands") && <HeroWave />}
           {(mode === "awakening" || mode === "hands") && <FloatingWords />}
         </>
@@ -506,12 +551,26 @@ const Index = () => {
       )}
 
       {mode === "final" && (
-        <FinalScreen entries={entries} onBack={() => setMode("form")} />
+        <FinalScreen
+          entries={entries}
+          onBack={() => setMode("form")}
+          onPauseBackgroundHymn={pauseBackgroundHymnSoft}
+          onResumeBackgroundHymn={resumeBackgroundHymnAfterPanel}
+          bookSoundMuted={bookSoundMuted}
+          onToggleBookSound={toggleBookSound}
+          onHymnPanelOpenChange={setHymnPanelOpen}
+          onHymnPlayGame={() =>
+            toast({
+              title: "Игра",
+              description: "Режим игры появится в следующем обновлении.",
+            })
+          }
+          onHymnEnterWord={handleAddWord}
+        />
       )}
       </div>}
 
-      {/* Логотип AI на финале внутри FinalScreen (макет 6); здесь только режим чтения */}
-      {mode === "reading" && <VibeAiBrand />}
+      {!hymnPanelOpen && <GlobalVibeShell banner={mode === "final"} />}
 
       {mode !== "intro" && mode !== "awakening" && mode !== "hands" && (
         <ControlBar

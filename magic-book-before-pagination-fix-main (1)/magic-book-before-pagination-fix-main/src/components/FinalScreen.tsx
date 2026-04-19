@@ -1,8 +1,8 @@
-import React from "react";
-import { Volume2 } from "lucide-react";
-import MagicRingsGlobal from "@/components/MagicRingsGlobal";
+import React, { useEffect, useState } from "react";
+import { Volume2, VolumeX } from "lucide-react";
+import { cn } from "@/lib/utils";
 import NeonGlassButton from "@/components/NeonGlassButton";
-import VibeAiBrand from "@/components/VibeAiBrand";
+import VibeAudioTestPanel from "@/components/VibeAudioTestPanel";
 
 interface Entry {
   word: string;
@@ -15,24 +15,61 @@ export interface FinalScreenProps {
   onBack: () => void;
   onLuck?: () => void;
   onGimn?: () => void;
-  onBookSound?: () => void;
+  /** Фоновый гимн книги выключен (только UI) */
+  bookSoundMuted?: boolean;
+  /** Переключить звук гимна вкл/выкл */
+  onToggleBookSound?: () => void;
+  /** Пауза фонового гимна (книга) при открытии панели выбора версий */
+  onPauseBackgroundHymn?: () => void;
+  /** Снова запустить гимн после закрытия панели, если он играл */
+  onResumeBackgroundHymn?: () => void;
+  /** Открыта панель аудиоверсий — чтобы скрыть глобальный логотип (не накладывать на UI) */
+  onHymnPanelOpenChange?: (open: boolean) => void;
+  /** Панель гимна: «играть в игру» */
+  onHymnPlayGame?: () => void;
+  /** Панель гимна: «внести слово» — обычно переход к форме */
+  onHymnEnterWord?: () => void;
 }
 
 /**
- * Постер снова на весь слой (object-contain); верх — компактный AI + гимн, без наезда на имя;
- * статы без коричневой подложки; «Всего слов» — крупный анимированный бейдж; низ — над панелью «к книге».
+ * Постер на весь слой; логотип AI + кольца курсора — GlobalVibeShell (Index), скрываются при открытой панели гимна.
+ * Верх — «Выбрать свой гимн?»; низ — «Всего реакций», «Крутим удачу?».
  */
-const FinalScreen: React.FC<FinalScreenProps> = ({ entries, onBack: _onBack, onLuck, onGimn, onBookSound }) => {
+const FinalScreen: React.FC<FinalScreenProps> = ({
+  entries,
+  onBack,
+  onLuck,
+  onGimn,
+  bookSoundMuted = false,
+  onToggleBookSound,
+  onPauseBackgroundHymn,
+  onResumeBackgroundHymn,
+  onHymnPanelOpenChange,
+  onHymnPlayGame,
+  onHymnEnterWord,
+}) => {
+  const [audioTestOpen, setAudioTestOpen] = useState(false);
+
+  useEffect(() => {
+    onHymnPanelOpenChange?.(audioTestOpen);
+  }, [audioTestOpen, onHymnPanelOpenChange]);
+
+  useEffect(() => {
+    return () => {
+      onHymnPanelOpenChange?.(false);
+    };
+  }, [onHymnPanelOpenChange]);
+
   const totalFire = entries.reduce((sum, w) => sum + (w.reactions?.fire || 0), 0);
   const totalLove = entries.reduce((sum, w) => sum + (w.reactions?.love || 0), 0);
   const totalRocket = entries.reduce((sum, w) => sum + (w.reactions?.rocket || 0), 0);
   const totalLaugh = entries.reduce((sum, w) => sum + (w.reactions?.laugh || 0), 0);
   const totalLike = entries.reduce((sum, w) => sum + (w.reactions?.like || 0), 0);
 
+  const totalReactionsAll = totalFire + totalLove + totalRocket + totalLaugh + totalLike;
+
   return (
     <div className="scene-fade-in fixed inset-0 z-[45] flex h-screen w-screen flex-col overflow-hidden bg-black">
-      <MagicRingsGlobal />
-
       <div className="relative min-h-0 w-full flex-1">
         <img
           src="/images/final-screen.png"
@@ -43,35 +80,42 @@ const FinalScreen: React.FC<FinalScreenProps> = ({ entries, onBack: _onBack, onL
 
         <button
           type="button"
-          onClick={onBookSound}
-          className="absolute right-2 top-2 z-20 inline-flex items-center gap-2 rounded-full border border-sky-400/40 bg-black/45 px-3 py-2 text-xs text-white shadow-lg backdrop-blur-md sm:text-sm"
+          onClick={() => onToggleBookSound?.()}
+          aria-pressed={!bookSoundMuted}
+          title={bookSoundMuted ? "Включить звук гимна" : "Выключить звук гимна"}
+          className={cn(
+            "absolute right-2 top-2 z-20 inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs shadow-lg backdrop-blur-md sm:text-sm",
+            bookSoundMuted
+              ? "border-white/25 bg-black/55 text-white/80"
+              : "border-sky-400/40 bg-black/45 text-white",
+          )}
         >
-          <Volume2 className="h-4 w-4 shrink-0" />
-          <span className="hidden sm:inline">звук в книге</span>
-          <span className="sm:hidden">звук</span>
+          {bookSoundMuted ? <VolumeX className="h-4 w-4 shrink-0" /> : <Volume2 className="h-4 w-4 shrink-0" />}
+          <span className="hidden sm:inline">
+            звук в книге: {bookSoundMuted ? "выкл" : "вкл"}
+          </span>
+          <span className="sm:hidden">{bookSoundMuted ? "выкл" : "вкл"}</span>
         </button>
 
-        {/* AI + гимн: лого с banner-крупностью, лёгкий сдвиг вниз в «космическую» полосу над именем */}
+        {/* Гимн: кнопка под глобальным лого AI (Index → GlobalVibeShell) */}
         <div
-          className="pointer-events-none fixed left-1/2 z-[135] flex w-[min(92vw,26rem)] -translate-x-1/2 flex-col items-center gap-2"
-          style={{ top: "max(0.6rem, env(safe-area-inset-top, 0px))" }}
+          className="pointer-events-none fixed left-1/2 z-[135] flex w-[min(92vw,26rem)] -translate-x-1/2 flex-col items-center"
+          style={{ top: "clamp(6.75rem, 18vh, 9rem)" }}
         >
-          <div className="w-full translate-y-1 sm:translate-y-1.5">
-            <VibeAiBrand
-              banner
-              className="!relative !inset-x-auto !left-auto !right-auto !top-0 !mx-auto !w-full !max-w-none !justify-center"
-            />
-          </div>
           <NeonGlassButton
             accent
-            className="pointer-events-auto !mt-0.5 !block w-full max-w-[min(90vw,22rem)] text-center !px-4 !py-2 !text-sm sm:!py-2.5 sm:!text-base"
-            onClick={onGimn}
+            className="pointer-events-auto !block w-full max-w-[min(90vw,22rem)] text-center !px-4 !py-2 !text-sm sm:!py-2.5 sm:!text-base"
+            onClick={() => {
+              onPauseBackgroundHymn?.();
+              onGimn?.();
+              setAudioTestOpen(true);
+            }}
           >
             Выбрать свой гимн?
           </NeonGlassButton>
         </div>
 
-        {/* Без коричневой капсулы: только бейдж + эмодзи с тенью; блок от низа — ниже золотого текста */}
+        {/* Без коричневой капсулы: бейдж + эмодзи; ниже — удача */}
         <div
           className="pointer-events-none absolute left-1/2 z-10 flex w-[min(96%,28rem)] -translate-x-1/2 flex-col items-stretch gap-2.5 px-2"
           style={{
@@ -79,14 +123,15 @@ const FinalScreen: React.FC<FinalScreenProps> = ({ entries, onBack: _onBack, onL
             top: "auto",
           }}
         >
-          <div className="pointer-events-auto flex w-full flex-wrap items-center justify-center gap-3 sm:gap-4">
+          <div className="pointer-events-auto flex w-full flex-col items-center gap-3 sm:gap-4">
             <div
-              className="final-total-words-badge rounded-full px-5 py-2.5 text-base font-bold text-emerald-950 shadow-lg sm:px-7 sm:py-3.5 sm:text-xl"
+              className="final-total-words-badge rounded-full px-5 py-2.5 text-center text-base font-bold text-white shadow-[0_0_22px_rgba(168,85,247,0.35)] sm:px-7 sm:py-3.5 sm:text-xl"
               style={{
-                background: "linear-gradient(135deg, #22c55e, #4ade80)",
+                background: "linear-gradient(135deg, #c026d3, #7c3aed 45%, #a855f7)",
+                textShadow: "0 1px 2px rgba(0,0,0,0.35)",
               }}
             >
-              Всего слов: {entries.length}
+              Всего реакций: {totalReactionsAll}
             </div>
             <div
               className="flex flex-wrap items-center justify-center gap-2 text-lg sm:gap-3 sm:text-2xl"
@@ -110,6 +155,29 @@ const FinalScreen: React.FC<FinalScreenProps> = ({ entries, onBack: _onBack, onL
           </NeonGlassButton>
         </div>
       </div>
+
+      <VibeAudioTestPanel
+        open={audioTestOpen}
+        onClose={() => {
+          setAudioTestOpen(false);
+          onResumeBackgroundHymn?.();
+        }}
+        onBackToBook={() => {
+          setAudioTestOpen(false);
+          onResumeBackgroundHymn?.();
+          onBack();
+        }}
+        onPlayGame={() => {
+          setAudioTestOpen(false);
+          onResumeBackgroundHymn?.();
+          onHymnPlayGame?.();
+        }}
+        onEnterWord={() => {
+          setAudioTestOpen(false);
+          onResumeBackgroundHymn?.();
+          onHymnEnterWord?.();
+        }}
+      />
     </div>
   );
 };
