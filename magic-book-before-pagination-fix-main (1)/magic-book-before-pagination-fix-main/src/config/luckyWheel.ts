@@ -12,8 +12,11 @@
  */
 export type LuckyWheelEntryMode = "panel" | "route";
 
-/** По умолчанию: игра открывается панелью по клику в приложении. Для ссылки ДЗ используйте `/luck` в браузере. */
-export const LUCKY_WHEEL_ENTRY: LuckyWheelEntryMode = "panel";
+/**
+ * `panel` — вариант A: игра открывается панелью поверх финала/гимна.
+ * `route` — вариант B: по «Крутим удачу?» переход на страницу `/luck` (тот же URL, что для ДЗ).
+ */
+export const LUCKY_WHEEL_ENTRY: LuckyWheelEntryMode = "route";
 
 /** Сколько оборотов за одну сессию (ТЗ: 3–4). */
 export const LUCKY_SPINS_PER_GAME = 4;
