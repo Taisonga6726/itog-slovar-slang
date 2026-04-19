@@ -245,7 +245,7 @@ export default function VibeAudioTestPanel({
           </div>
           <div className="grid grid-cols-2 gap-1">
             <div
-              className="rounded-xl border border-white/15 px-1.5 py-1 text-center shadow-[0_0_14px_rgba(168,85,247,0.25)]"
+              className="flex min-h-[4.25rem] flex-col justify-center rounded-xl border border-white/15 px-1.5 py-1 text-center shadow-[0_0_14px_rgba(168,85,247,0.25)]"
               style={{
                 background: "linear-gradient(135deg, rgba(91,33,182,0.8), rgba(124,58,237,0.65))",
               }}
@@ -262,7 +262,7 @@ export default function VibeAudioTestPanel({
               </div>
             </div>
             <div
-              className="rounded-xl border border-white/15 px-1.5 py-1 text-center shadow-[0_0_14px_rgba(168,85,247,0.3)]"
+              className="flex min-h-[4.25rem] flex-col justify-center rounded-xl border border-white/15 px-1.5 py-1 text-center shadow-[0_0_14px_rgba(168,85,247,0.3)]"
               style={{
                 background: "linear-gradient(135deg, #c026d3, #7c3aed 45%, #a855f7)",
               }}
@@ -296,7 +296,7 @@ export default function VibeAudioTestPanel({
           </div>
           <div className="grid grid-cols-2 gap-1.5">
             <div
-              className="rounded-xl border border-white/15 px-2 py-1 text-center shadow-[0_0_16px_rgba(168,85,247,0.28)]"
+              className="flex min-h-[4.5rem] flex-col justify-center rounded-xl border border-white/15 px-2 py-1 text-center shadow-[0_0_16px_rgba(168,85,247,0.28)]"
               style={{
                 background: "linear-gradient(135deg, rgba(91,33,182,0.82), rgba(124,58,237,0.68))",
               }}
@@ -312,7 +312,7 @@ export default function VibeAudioTestPanel({
               </div>
             </div>
             <div
-              className="rounded-xl border border-white/15 px-2 py-1 text-center shadow-[0_0_16px_rgba(168,85,247,0.32)]"
+              className="flex min-h-[4.5rem] flex-col justify-center rounded-xl border border-white/15 px-2 py-1 text-center shadow-[0_0_16px_rgba(168,85,247,0.32)]"
               style={{
                 background: "linear-gradient(135deg, #c026d3, #7c3aed 45%, #a855f7)",
               }}
@@ -343,11 +343,11 @@ export default function VibeAudioTestPanel({
           <div className="grid min-h-0 min-w-0 grid-rows-6 gap-0.5 overflow-hidden pr-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {TRACKS_LEFT.map((t) => renderTrackCard(t))}
           </div>
-          <div className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-xl border border-fuchsia-400/35 shadow-[0_0_20px_rgba(192,38,211,0.2)]">
+          <div className="relative flex min-h-0 items-end justify-center overflow-hidden rounded-xl border border-fuchsia-400/35 bg-black/20 shadow-[0_0_20px_rgba(192,38,211,0.2)]">
             <img
               src={VIBE_HOST_PHOTO_SRC}
               alt=""
-              className="h-full max-h-full w-full object-contain object-center"
+              className="h-full max-h-full w-full object-contain object-bottom"
               draggable={false}
             />
           </div>
@@ -357,30 +357,32 @@ export default function VibeAudioTestPanel({
         </div>
 
         {(onBackToBook || onLuck || onEnterWord) && (
-          <div className="mt-1 flex shrink-0 flex-wrap items-center justify-center gap-1.5 border-t border-fuchsia-400/15 bg-black/20 py-2 backdrop-blur-sm">
-            {onBackToBook && (
-              <NeonGlassButton
-                className="pointer-events-auto !px-3 !py-2 !text-center !text-[11px] sm:!text-sm"
-                onClick={onBackToBook}
-              >
-                назад к книге
-              </NeonGlassButton>
-            )}
+          <div className="mt-1 flex shrink-0 flex-col items-stretch gap-2 border-t border-fuchsia-400/15 bg-black/20 py-2 backdrop-blur-sm sm:items-center">
+            <div className="flex flex-wrap items-center justify-center gap-2 px-1">
+              {onBackToBook && (
+                <NeonGlassButton
+                  className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!text-sm"
+                  onClick={onBackToBook}
+                >
+                  назад к книге
+                </NeonGlassButton>
+              )}
+              {onEnterWord && (
+                <NeonGlassButton
+                  className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!text-sm"
+                  onClick={onEnterWord}
+                >
+                  ввести слово
+                </NeonGlassButton>
+              )}
+            </div>
             {onLuck && (
               <NeonGlassButton
                 accent
-                className="pointer-events-auto !block w-full max-w-[min(90vw,22rem)] text-center !px-6 !py-3 !text-base sm:!text-lg"
+                className="pointer-events-auto mx-auto !block w-full max-w-[min(90vw,22rem)] text-center !px-6 !py-3 !text-base sm:!text-lg"
                 onClick={onLuck}
               >
                 Крутим удачу?
-              </NeonGlassButton>
-            )}
-            {onEnterWord && (
-              <NeonGlassButton
-                className="pointer-events-auto !px-3 !py-2 !text-center !text-[11px] sm:!text-sm"
-                onClick={onEnterWord}
-              >
-                ввести слово
               </NeonGlassButton>
             )}
           </div>
