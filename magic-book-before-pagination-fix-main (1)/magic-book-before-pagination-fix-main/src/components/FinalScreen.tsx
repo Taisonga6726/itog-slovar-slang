@@ -25,15 +25,15 @@ export interface FinalScreenProps {
   onResumeBackgroundHymn?: () => void;
   /** Открыта панель аудиоверсий — чтобы скрыть глобальный логотип (не накладывать на UI) */
   onHymnPanelOpenChange?: (open: boolean) => void;
-  /** Панель гимна: «играть в игру» */
+  /** Панель гимна: «Крутим игру?» (как ритмика с «Крутим удачу?» на финале) */
   onHymnPlayGame?: () => void;
   /** Панель гимна: «внести слово» — обычно переход к форме */
   onHymnEnterWord?: () => void;
 }
 
 /**
- * Постер на весь слой; логотип AI + кольца курсора — GlobalVibeShell (Index), скрываются при открытой панели гимна.
- * Верх — «Выбрать свой гимн?»; низ — «Всего реакций», «Крутим удачу?».
+ * Постер на весь слой; глобальный логотип AI на финале не показываем (нет наложения). Панель гимна — по-прежнему без оболочки поверх.
+ * Верх — «Выбрать свой гимн?»; низ — «Всего слов», ряд реакций, «Крутим удачу?».
  */
 const FinalScreen: React.FC<FinalScreenProps> = ({
   entries,
@@ -66,7 +66,7 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
   const totalLaugh = entries.reduce((sum, w) => sum + (w.reactions?.laugh || 0), 0);
   const totalLike = entries.reduce((sum, w) => sum + (w.reactions?.like || 0), 0);
 
-  const totalReactionsAll = totalFire + totalLove + totalRocket + totalLaugh + totalLike;
+  const totalWords = entries.length;
 
   return (
     <div className="scene-fade-in fixed inset-0 z-[45] flex h-screen w-screen flex-col overflow-hidden bg-black">
@@ -97,10 +97,10 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
           <span className="sm:hidden">{bookSoundMuted ? "выкл" : "вкл"}</span>
         </button>
 
-        {/* Гимн: кнопка под глобальным лого AI (Index → GlobalVibeShell) */}
+        {/* Гимн: на финале глобальный логотип не показываем — без наложения на постер */}
         <div
           className="pointer-events-none fixed left-1/2 z-[135] flex w-[min(92vw,26rem)] -translate-x-1/2 flex-col items-center"
-          style={{ top: "clamp(6.75rem, 18vh, 9rem)" }}
+          style={{ top: "clamp(4rem, 11vh, 6.5rem)" }}
         >
           <NeonGlassButton
             accent
@@ -131,7 +131,7 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
                 textShadow: "0 1px 2px rgba(0,0,0,0.35)",
               }}
             >
-              Всего реакций: {totalReactionsAll}
+              Всего слов: {totalWords}
             </div>
             <div
               className="flex flex-wrap items-center justify-center gap-2 text-lg sm:gap-3 sm:text-2xl"

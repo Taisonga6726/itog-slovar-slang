@@ -5232,3 +5232,35 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   visibility: hidden;
 }
 
+/* Встроено в Magic Book (React): логотип и неон курсора — только из родителя; в iframe убираем дубли PNG/WebGL */
+#tzGlobalMagicRings,
+#tzGlobalMagicRingsCanvas,
+#magicRingsFx,
+#magicRingsCanvas {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+#aiLogoHotspot,
+#tzVibeAiBrand,
+.book-write-ai-logo,
+.scene-stage .ai-logo-hotspot--book {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  border: none !important;
+  clip: rect(0, 0, 0, 0) !important;
+  position: absolute !important;
+  left: -9999px !important;
+  top: 0 !important;
+}
+

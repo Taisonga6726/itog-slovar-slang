@@ -414,7 +414,8 @@
 .magic-rings-fx--global {
   position: fixed;
   inset: 0;
-  z-index: 130;
+  /* Выше финала и панели гимна (z-200), ниже логотипа VibeAiBrand (z-300); pointer-events: none — клики проходят */
+  z-index: 202;
   pointer-events: none;
   overflow: hidden;
   opacity: 0.72;

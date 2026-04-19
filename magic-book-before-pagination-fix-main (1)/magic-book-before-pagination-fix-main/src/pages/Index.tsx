@@ -52,7 +52,7 @@ interface PageNav {
 }
 
 const Index = () => {
-  /** Панель выбора гимна: глобальный логотип не показываем (не накладывать на UI). */
+  /** Панель гимна открыта — логотип AI скрываем; кольца курсора остаются (см. GlobalVibeShell). */
   const [hymnPanelOpen, setHymnPanelOpen] = useState(false);
   const SEED_ENTRIES_URL = "/tanya-vibecoder-backup-2026-04-18.json";
   /** v2: экспорт всегда подмешивается к сохранённому списку (слова из файла перекрывают старые), плюс срез дублей с одинаковыми картинками. */
@@ -570,7 +570,11 @@ const Index = () => {
       )}
       </div>}
 
-      {!hymnPanelOpen && <GlobalVibeShell banner={mode === "final"} />}
+      {/* Кольца курсора — на всех экранах; логотип AI только там, где нет своего бренда в макете */}
+      <GlobalVibeShell
+        banner={false}
+        showLogo={mode !== "intro" && mode !== "final" && !hymnPanelOpen}
+      />
 
       {mode !== "intro" && mode !== "awakening" && mode !== "hands" && (
         <ControlBar
