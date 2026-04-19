@@ -142,15 +142,13 @@ export default function VibeAudioTestPanel({
     const r = reactions[t.id];
     const isPlaying = playingId === t.id;
     return (
-      <div
-        key={t.id}
-        title={t.title}
-        className={cn(
-          "flex min-h-0 flex-col overflow-hidden rounded-lg border bg-black/55 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.2)] backdrop-blur-sm",
-          isPlaying ? "border-cyan-300/50" : "border-white/12",
-        )}
-      >
-        <div className="flex min-h-0 w-full items-center gap-1.5 px-1.5 py-1 sm:gap-2 sm:px-2 sm:py-1.5">
+      <div key={t.id} className="flex min-h-0 flex-col gap-0.5" title={t.title}>
+        <div
+          className={cn(
+            "flex min-h-0 w-full items-center gap-1.5 overflow-hidden rounded-lg border bg-black/55 px-1.5 py-1 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.2)] backdrop-blur-sm sm:gap-2 sm:px-2 sm:py-1.5",
+            isPlaying ? "border-cyan-300/50" : "border-white/12",
+          )}
+        >
           <p className="line-clamp-2 min-w-0 flex-1 text-left font-serif text-[10px] font-medium leading-snug tracking-tight text-white/95 sm:text-[11px]">
             {t.title}
           </p>
@@ -174,47 +172,52 @@ export default function VibeAudioTestPanel({
             сохр.
           </a>
         </div>
-        <div className="flex w-full flex-nowrap items-stretch justify-between gap-px border-t border-white/[0.08] bg-black/30 px-0.5 py-0.5 sm:gap-0.5 sm:px-1 sm:py-1">
+
+        {/* Реакции отдельным блоком под дорожкой (не объединяем в одну карточку с треком) */}
+        <div className="flex w-full justify-end">
+          <div className="inline-flex flex-nowrap items-center gap-1 rounded-lg border border-white/[0.14] bg-black/45 px-1.5 py-1 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.16)] sm:gap-1.5 sm:px-2">
           {REACTIONS.map(({ key, emoji }) => (
             <button
               key={key}
               type="button"
               onClick={() => bumpReaction(t.id, key)}
-              className="flex min-w-0 flex-1 flex-col items-center justify-center rounded border border-white/[0.06] bg-black/35 py-0.5 leading-none text-white/95 transition hover:border-fuchsia-400/35"
+              className="inline-flex min-w-[2.35rem] items-center justify-center gap-0.5 rounded-full border border-white/[0.2] bg-black/55 px-1.5 py-0.5 leading-none text-white/95 transition hover:border-fuchsia-400/45"
               title="+1"
             >
-              <span className="text-[8px] sm:text-[9px]">{emoji}</span>
-              <span className="tabular-nums text-[6px] font-medium opacity-90 sm:text-[7px]">{r[key]}</span>
+              <span className="text-[13px] sm:text-[14px]">{emoji}</span>
+              <span className="tabular-nums text-[10px] font-semibold opacity-95 sm:text-[11px]">{r[key]}</span>
             </button>
           ))}
+          </div>
         </div>
       </div>
     );
   };
 
   const statCardBase =
-    "flex min-h-[4.25rem] flex-col justify-center rounded-xl border border-white/15 px-2 py-1.5 text-center shadow-[0_0_14px_rgba(168,85,247,0.25)] sm:min-h-[4.5rem] sm:px-2.5 sm:py-2";
+    "flex w-auto min-w-[12.5rem] max-w-[16.5rem] flex-col justify-center rounded-full border border-white/20 px-5 py-2.5 text-center shadow-[0_0_14px_rgba(168,85,247,0.25)] sm:min-w-[14rem] sm:max-w-[18rem] sm:px-6 sm:py-3";
+  const statReactionRowClass =
+    "mt-1 inline-flex flex-nowrap items-center justify-center gap-1 rounded-full border border-white/[0.2] bg-black/40 px-2.5 py-1.5 text-[11px] text-white/95 sm:text-[12px]";
 
   const headerBlock = (
     <>
       <VibeAiLogoMark className="mb-1 shrink-0 sm:mb-1.5" />
-      <div className="grid shrink-0 grid-cols-2 gap-1.5 sm:gap-2">
+      <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 px-1 sm:gap-3 sm:px-4 lg:hidden">
         <div
           className={cn(statCardBase)}
           style={{
             background: "linear-gradient(135deg, rgba(91,33,182,0.82), rgba(124,58,237,0.68))",
           }}
         >
-          <div className="text-[8px] font-bold text-white sm:text-[9px]">Всего реакций</div>
-          <p className="mt-0.5 text-xs font-bold tabular-nums text-white sm:text-sm">всего {grandTotals.sum}</p>
-          <div className="mt-1 flex flex-nowrap justify-center gap-1 border-t border-white/15 pt-1 text-[7px] text-white/95 sm:text-[8px]">
-            {REACTIONS.map(({ key, emoji }) => (
-              <span key={key} className="tabular-nums">
-                {emoji}
-                {grandTotals.acc[key]}
-              </span>
-            ))}
-          </div>
+          <div className="text-[10px] font-bold text-white sm:text-[11px]">Всего и эмоции</div>
+          <p className="mt-0.5 text-sm font-bold tabular-nums text-white sm:text-base">всего {grandTotals.sum}</p>
+        </div>
+        <div className={statReactionRowClass}>
+          {REACTIONS.map(({ key, emoji }) => (
+            <span key={key} className="tabular-nums font-semibold">
+              {emoji} {grandTotals.acc[key]}
+            </span>
+          ))}
         </div>
         <div
           className={cn(statCardBase)}
@@ -222,14 +225,57 @@ export default function VibeAudioTestPanel({
             background: "linear-gradient(135deg, #c026d3, #7c3aed 45%, #a855f7)",
           }}
         >
-          <div className="text-[8px] font-bold leading-tight text-white sm:text-[9px]">🏆 Самая популярная версия</div>
-          <p className="mt-0.5 line-clamp-2 text-[8px] font-semibold leading-tight text-white/95 sm:text-[9px]">{popularTrack.title}</p>
-          <div className="mt-1 flex flex-nowrap justify-center gap-1 border-t border-white/20 pt-1 text-[7px] text-white/95 sm:text-[8px]">
+          <div className="text-[10px] font-bold leading-tight text-white sm:text-[11px]">🏆 Самый популярный трек</div>
+          <p className="mt-0.5 line-clamp-2 text-[10px] font-semibold leading-tight text-white/95 sm:text-[11px]">{popularTrack.title}</p>
+        </div>
+        <div className={statReactionRowClass}>
+          <span className="tabular-nums font-semibold">{popularScore}</span>
+          {REACTIONS.map(({ key, emoji }) => (
+            <span key={key} className="tabular-nums font-semibold">
+              {emoji} {popularR[key]}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* Desktop: статистика строго над левыми/правыми дорожками */}
+      <div className="hidden shrink-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(300px,min(46vw,560px))_minmax(0,1fr)] lg:items-start lg:gap-2 xl:gap-3">
+        <div className="flex flex-col items-start pl-1">
+          <div
+            className={cn(statCardBase)}
+            style={{
+              background: "linear-gradient(135deg, rgba(91,33,182,0.82), rgba(124,58,237,0.68))",
+            }}
+          >
+            <div className="text-[10px] font-bold text-white sm:text-[11px]">Всего и эмоции</div>
+            <p className="mt-0.5 text-sm font-bold tabular-nums text-white sm:text-base">всего {grandTotals.sum}</p>
+          </div>
+          <div className={statReactionRowClass}>
+            {REACTIONS.map(({ key, emoji }) => (
+              <span key={key} className="tabular-nums font-semibold">
+                {emoji} {grandTotals.acc[key]}
+              </span>
+            ))}
+          </div>
+        </div>
+
+        <div />
+
+        <div className="flex flex-col items-end pr-1">
+          <div
+            className={cn(statCardBase)}
+            style={{
+              background: "linear-gradient(135deg, #c026d3, #7c3aed 45%, #a855f7)",
+            }}
+          >
+            <div className="text-[10px] font-bold leading-tight text-white sm:text-[11px]">🏆 Самый популярный трек</div>
+            <p className="mt-0.5 line-clamp-2 text-[10px] font-semibold leading-tight text-white/95 sm:text-[11px]">{popularTrack.title}</p>
+          </div>
+          <div className={statReactionRowClass}>
             <span className="tabular-nums font-semibold">{popularScore}</span>
             {REACTIONS.map(({ key, emoji }) => (
-              <span key={key} className="tabular-nums">
-                {emoji}
-                {popularR[key]}
+              <span key={key} className="tabular-nums font-semibold">
+                {emoji} {popularR[key]}
               </span>
             ))}
           </div>
@@ -275,7 +321,7 @@ export default function VibeAudioTestPanel({
       <div
         className="relative z-[205] mx-auto flex min-h-[100dvh] w-full max-w-[min(1100px,96vw)] flex-col px-3 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.35rem,env(safe-area-inset-top))] sm:px-5 sm:pb-6 sm:pt-6"
       >
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-[min(20vh,170px)] lg:pb-[min(18vh,150px)]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-[min(14vh,120px)] lg:pb-[min(12vh,100px)]">
           <div className="mb-1 flex shrink-0 flex-col gap-1 lg:mb-1.5 lg:gap-1.5">{headerBlock}</div>
 
           {/* Мобилка: сетка 2×6 без центрального постера */}
@@ -286,7 +332,7 @@ export default function VibeAudioTestPanel({
           </div>
 
           {/* Десктоп: ваша схема — две колонки треков и постер по центру (без рамок/карточек) */}
-          <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(240px,min(33vw,390px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
+          <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(300px,min(46vw,560px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
             <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-hidden pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {TRACKS_LEFT.map((t) => renderTrackCard(t))}
             </div>
@@ -294,7 +340,7 @@ export default function VibeAudioTestPanel({
               <img
                 src={VIBE_HOST_PHOTO_SRC}
                 alt=""
-                className="h-auto w-full max-w-[min(36vw,390px)] max-h-[min(46vh,430px)] object-contain object-bottom"
+                className="h-auto w-auto max-w-[min(46vw,560px)] max-h-[min(66vh,700px)] object-contain object-bottom"
                 draggable={false}
               />
             </div>
@@ -304,7 +350,7 @@ export default function VibeAudioTestPanel({
           </div>
 
           {(onBackToBook || onPlayGame || onEnterWord) && (
-            <div className="mt-3 flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:mt-4 sm:gap-3">
+            <div className="mt-auto flex shrink-0 flex-wrap items-center justify-center gap-2 pt-10 sm:gap-3 sm:pt-12">
               {onBackToBook && (
                 <NeonGlassButton
                   className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!min-h-[2.75rem] sm:!text-sm"
