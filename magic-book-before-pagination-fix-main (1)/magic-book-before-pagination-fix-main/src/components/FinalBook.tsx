@@ -60,7 +60,8 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
     let cancelled = false;
 
     (async () => {
-      const availableHeight = container.clientHeight - 28;
+      // Чуть увеличиваем нижний резерв, чтобы последняя строка не "обрезалась" на развороте.
+      const availableHeight = container.clientHeight - 44;
       const measureWidth = container.clientWidth;
       const measure = document.createElement("div");
       measure.style.cssText = `position:absolute;visibility:hidden;width:${measureWidth}px;font-family:'Cormorant Garamond',serif;padding:0;`;

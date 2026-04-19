@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { Volume2, VolumeX } from "lucide-react";
-import { cn } from "@/lib/utils";
 import NeonGlassButton from "@/components/NeonGlassButton";
 import VibeAudioTestPanel from "@/components/VibeAudioTestPanel";
 
@@ -15,10 +13,6 @@ export interface FinalScreenProps {
   onBack: () => void;
   onLuck?: () => void;
   onGimn?: () => void;
-  /** Фоновый гимн книги выключен (только UI) */
-  bookSoundMuted?: boolean;
-  /** Переключить звук гимна вкл/выкл */
-  onToggleBookSound?: () => void;
   /** Пауза фонового гимна (книга) при открытии панели выбора версий */
   onPauseBackgroundHymn?: () => void;
   /** Снова запустить гимн после закрытия панели, если он играл */
@@ -40,8 +34,6 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
   onBack,
   onLuck,
   onGimn,
-  bookSoundMuted = false,
-  onToggleBookSound,
   onPauseBackgroundHymn,
   onResumeBackgroundHymn,
   onHymnPanelOpenChange,
@@ -77,25 +69,6 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
           className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
           draggable={false}
         />
-
-        <button
-          type="button"
-          onClick={() => onToggleBookSound?.()}
-          aria-pressed={!bookSoundMuted}
-          title={bookSoundMuted ? "Включить звук гимна" : "Выключить звук гимна"}
-          className={cn(
-            "absolute right-2 top-2 z-20 inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs shadow-lg backdrop-blur-md sm:text-sm",
-            bookSoundMuted
-              ? "border-white/25 bg-black/55 text-white/80"
-              : "border-sky-400/40 bg-black/45 text-white",
-          )}
-        >
-          {bookSoundMuted ? <VolumeX className="h-4 w-4 shrink-0" /> : <Volume2 className="h-4 w-4 shrink-0" />}
-          <span className="hidden sm:inline">
-            звук в книге: {bookSoundMuted ? "выкл" : "вкл"}
-          </span>
-          <span className="sm:hidden">{bookSoundMuted ? "выкл" : "вкл"}</span>
-        </button>
 
         {/* Гимн: на финале глобальный логотип не показываем — без наложения на постер */}
         <div

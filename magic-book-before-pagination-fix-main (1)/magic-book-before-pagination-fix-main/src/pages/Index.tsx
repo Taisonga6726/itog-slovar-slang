@@ -1,5 +1,6 @@
 ﻿import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
+import { Volume2, VolumeX } from "lucide-react";
 import FloatingWords from "@/components/FloatingWords";
 import MagicBook from "@/components/MagicBook";
 import FinalBook from "@/components/FinalBook";
@@ -9,6 +10,7 @@ import HeroWave from "@/components/ui/dynamic-wave-canvas-background";
 import GlobalVibeShell from "@/components/GlobalVibeShell";
 import IntroSlovarEmbed from "@/components/IntroSlovarEmbed";
 import { toast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface Entry {
   word: string;
@@ -566,8 +568,6 @@ const Index = () => {
           onBack={() => setMode("form")}
           onPauseBackgroundHymn={pauseBackgroundHymnSoft}
           onResumeBackgroundHymn={resumeBackgroundHymnAfterPanel}
-          bookSoundMuted={bookSoundMuted}
-          onToggleBookSound={toggleBookSound}
           onHymnPanelOpenChange={setHymnPanelOpen}
           onHymnPlayGame={() =>
             toast({
@@ -579,6 +579,26 @@ const Index = () => {
         />
       )}
       </div>}
+
+      {/* Переключатель звука вверху на каждом экране, кроме intro и панели аудио */}
+      {mode !== "intro" && !hymnPanelOpen && (
+        <button
+          type="button"
+          onClick={toggleBookSound}
+          aria-pressed={!bookSoundMuted}
+          title={bookSoundMuted ? "Включить звук гимна" : "Выключить звук гимна"}
+          className={cn(
+            "fixed right-2 top-2 z-[220] inline-flex items-center gap-2 rounded-full border px-3 py-2 text-xs shadow-lg backdrop-blur-md sm:right-3 sm:top-3 sm:text-sm",
+            bookSoundMuted
+              ? "border-white/25 bg-black/55 text-white/80"
+              : "border-sky-400/40 bg-black/45 text-white",
+          )}
+        >
+          {bookSoundMuted ? <VolumeX className="h-4 w-4 shrink-0" /> : <Volume2 className="h-4 w-4 shrink-0" />}
+          <span className="hidden sm:inline">звук в книге: {bookSoundMuted ? "выкл" : "вкл"}</span>
+          <span className="sm:hidden">{bookSoundMuted ? "выкл" : "вкл"}</span>
+        </button>
+      )}
 
       {/* Кольца курсора — на всех экранах; логотип AI: форма и чтение, не intro/final/оживление/руки/панель гимна */}
       <GlobalVibeShell
