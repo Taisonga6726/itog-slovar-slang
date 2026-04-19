@@ -537,16 +537,16 @@ const Index = () => {
             type="button"
             onClick={handleOpenReadingFromHands}
             aria-label="РћС‚РєСЂС‹С‚СЊ РєРЅРёРіСѓ СЃР»РѕРІР°СЂСЏ"
-            className="absolute rounded-full"
+            className="absolute"
             style={{
               left: "50%",
               top: "62%",
               transform: "translate(-50%, -50%)",
               width: "34%",
               height: "30%",
-              background: "radial-gradient(circle, rgba(168,85,247,0.34) 0%, rgba(168,85,247,0.20) 42%, rgba(168,85,247,0.06) 72%, transparent 100%)",
-              border: "2px solid rgba(125, 211, 252, 0.85)",
-              boxShadow: "0 0 36px rgba(192, 132, 252, 0.8), 0 0 72px rgba(59,130,246,0.55), inset 0 0 28px rgba(192,132,252,0.4)",
+              background: "transparent",
+              border: "none",
+              boxShadow: "none",
               cursor: "pointer",
             }}
           />
