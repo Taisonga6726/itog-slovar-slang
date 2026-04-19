@@ -3,11 +3,11 @@ import { createPortal } from "react-dom";
 import { Download, Play, Pause, X } from "lucide-react";
 import { HYMN_TRACKS, type HymnTrack } from "@/data/hymnTracks";
 import NeonGlassButton from "@/components/NeonGlassButton";
-import VibeAiLogoMark from "@/components/VibeAiLogoMark";
+import VibeAiLogoMark, { VIBE_AI_LOGO_SRC } from "@/components/VibeAiLogoMark";
 import { cn } from "@/lib/utils";
 
 /** Совместимость: путь к PNG — единый с VibeAiLogoMark. */
-export { VIBE_AI_LOGO_SRC } from "@/components/VibeAiLogoMark";
+export { VIBE_AI_LOGO_SRC };
 
 /** Фон панели выбора гимна (public/images) */
 export const VIBE_PANEL_BG_SRC = "/images/fon-dlya-gimn.png";
@@ -335,10 +335,10 @@ export default function VibeAudioTestPanel({
 
           {/* Десктоп: ваша схема — две колонки треков и постер по центру (без рамок/карточек) */}
           <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-visible lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,min(34vw,420px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
-            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pr-1 lg:translate-y-11">
+            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pr-1 lg:translate-y-14">
               {TRACKS_LEFT.map((t) => renderTrackCard(t))}
             </div>
-            <div className="relative z-0 flex w-full flex-col items-center justify-start pt-0 lg:-translate-y-3">
+            <div className="relative z-0 flex w-full flex-col items-center justify-start pt-0 lg:translate-y-5">
               <img
                 src={VIBE_HOST_PHOTO_SRC}
                 alt=""
@@ -346,13 +346,13 @@ export default function VibeAudioTestPanel({
                 draggable={false}
               />
             </div>
-            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pl-1 lg:translate-y-11">
+            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pl-1 lg:translate-y-14">
               {TRACKS_RIGHT.map((t) => renderTrackCard(t))}
             </div>
           </div>
 
           {(onBackToBook || onPlayGame || onEnterWord) && (
-            <div className="mt-2 flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:mt-3 sm:gap-3 sm:pt-3 lg:-mt-[4.75rem] lg:w-[min(35vw,430px)] lg:-translate-y-2 lg:self-center lg:flex-nowrap lg:justify-between lg:gap-2 lg:pt-0">
+            <div className="mt-2 flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:mt-3 sm:gap-3 sm:pt-3 lg:-mt-[6rem] lg:w-[min(35vw,430px)] lg:self-center lg:flex-nowrap lg:justify-between lg:gap-2 lg:pt-0">
               {onBackToBook && (
                 <NeonGlassButton
                   accent
