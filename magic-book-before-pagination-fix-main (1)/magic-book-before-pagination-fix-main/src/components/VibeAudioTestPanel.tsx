@@ -14,6 +14,9 @@ export const VIBE_HOST_PHOTO_SRC = "/images/vaib.jpg";
 /** @deprecated см. VIBE_HOST_PHOTO_SRC */
 export const VIBE_POSTER_SRC = "/images/vaib-01.jpg";
 
+/** Логотип AI — тот же PNG, что на первом экране / GlobalVibeShell */
+export const VIBE_AI_LOGO_SRC = "/images/LOGO.png.png";
+
 type TrackId = string;
 
 const TRACKS: HymnTrack[] = HYMN_TRACKS;
@@ -44,19 +47,19 @@ interface VibeAudioTestPanelProps {
   onClose: () => void;
   /** Нижняя панель: к книге (закрыть + переход) */
   onBackToBook?: () => void;
-  onPlayGame?: () => void;
+  /** Как на финале: «Крутим удачу?» */
+  onLuck?: () => void;
   onEnterWord?: () => void;
 }
 
 /**
- * Экран аудиоверсий: фон на весь экран; сверху два баннера (всего / популярная);
- * на lg — треки слева и справа, постер по центру; на мобиле — постер и сетка всех треков.
+ * Макет: логотип отдельной строкой (без наложения баннеров); треки — строка 1: название + play + скачать; строка 2: реакции.
  */
 export default function VibeAudioTestPanel({
   open,
   onClose,
   onBackToBook,
-  onPlayGame,
+  onLuck,
   onEnterWord,
 }: VibeAudioTestPanelProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -140,52 +143,51 @@ export default function VibeAudioTestPanel({
     return (
       <div
         key={t.id}
+        title={t.title}
         className={cn(
-          "rounded-2xl border bg-black/45 p-2.5 shadow-[0_0_16px_rgba(168,85,247,0.12)] backdrop-blur-md sm:p-3",
+          "flex h-full min-h-0 flex-col justify-center gap-0.5 overflow-hidden rounded-md border bg-black/45 px-1 py-0.5 shadow-[0_0_8px_rgba(168,85,247,0.07)] backdrop-blur-md sm:rounded-lg sm:px-1.5 sm:py-1",
           isPlaying
-            ? "border-fuchsia-400/65 shadow-[0_0_22px_rgba(236,72,153,0.25)]"
-            : "border-fuchsia-500/30",
+            ? "border-fuchsia-400/65 shadow-[0_0_12px_rgba(236,72,153,0.18)]"
+            : "border-fuchsia-500/25",
         )}
       >
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-          <p className="min-w-0 flex-1 text-left text-[11px] font-semibold leading-snug text-white drop-shadow-[0_0_8px_rgba(34,211,238,0.35)] sm:text-xs md:text-[13px]">
+        <div className="flex min-h-0 w-full items-center gap-1">
+          <p className="line-clamp-2 min-w-0 flex-1 text-left text-[7px] font-semibold leading-tight text-white/95 drop-shadow-[0_0_3px_rgba(34,211,238,0.2)] sm:text-[8px]">
             {t.title}
           </p>
-          <div className="flex shrink-0 items-center justify-end gap-2 sm:justify-start">
-            <button
-              type="button"
-              onClick={() => togglePlay(t)}
-              className={cn(
-                "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-2 text-white shadow-md transition-transform hover:scale-105 active:scale-95",
-                isPlaying
-                  ? "border-cyan-300/70 bg-gradient-to-br from-fuchsia-600 to-violet-700"
-                  : "border-cyan-300/45 bg-gradient-to-br from-violet-600/95 to-fuchsia-700/90",
-              )}
-              aria-label={isPlaying ? "Пауза" : "Играть"}
-            >
-              {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="ml-0.5 h-4 w-4" fill="currentColor" />}
-            </button>
-            <a
-              href={t.src}
-              download={t.fileName}
-              className="inline-flex items-center gap-1 rounded-full border border-sky-400/40 bg-black/35 px-2.5 py-1 text-[10px] font-semibold text-cyan-50/95 shadow-[0_0_10px_rgba(56,189,248,0.15)] hover:border-fuchsia-300/50 hover:bg-black/50 sm:text-[11px]"
-            >
-              <Download className="h-3.5 w-3.5 shrink-0 opacity-90" />
-              скачать
-            </a>
-          </div>
+          <button
+            type="button"
+            onClick={() => togglePlay(t)}
+            className={cn(
+              "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-white shadow-sm transition-transform hover:scale-105 active:scale-95 sm:h-7 sm:w-7",
+              isPlaying
+                ? "border-cyan-300/70 bg-gradient-to-br from-fuchsia-600 to-violet-700"
+                : "border-cyan-300/45 bg-gradient-to-br from-violet-600/95 to-fuchsia-700/90",
+            )}
+            aria-label={isPlaying ? "Пауза" : "Играть"}
+          >
+            {isPlaying ? <Pause className="h-3 w-3" /> : <Play className="ml-0.5 h-3 w-3" fill="currentColor" />}
+          </button>
+          <a
+            href={t.src}
+            download={t.fileName}
+            className="inline-flex shrink-0 items-center justify-center gap-0.5 rounded border border-sky-400/35 bg-black/35 px-1 py-0.5 text-[6px] font-semibold leading-none text-cyan-50/95 hover:border-fuchsia-300/50 sm:text-[7px]"
+          >
+            <Download className="h-2 w-2 shrink-0 opacity-90" />
+            <span className="hidden min-[400px]:inline">скачать</span>
+          </a>
         </div>
-        <div className="mt-2.5 flex flex-wrap justify-center gap-1.5 border-t border-fuchsia-400/25 pt-2.5">
+        <div className="flex w-full flex-nowrap items-center justify-between gap-px border-t border-white/[0.06] pt-0.5 sm:gap-0.5">
           {REACTIONS.map(({ key, emoji }) => (
             <button
               key={key}
               type="button"
               onClick={() => bumpReaction(t.id, key)}
-              className="flex min-h-[34px] min-w-[2.1rem] flex-col items-center justify-center rounded-xl border border-white/15 bg-black/50 px-1.5 py-0.5 text-[10px] leading-none text-white/95 transition hover:border-fuchsia-400/55 hover:shadow-[0_0_12px_rgba(192,38,211,0.25)] sm:min-w-[2.35rem] sm:text-xs"
-              title="+1 к реакции"
+              className="flex min-w-0 flex-1 flex-col items-center justify-center rounded border border-white/[0.07] bg-black/40 py-0.5 leading-none text-white/95 transition hover:border-fuchsia-400/35"
+              title="+1"
             >
-              <span className="text-[15px] leading-none">{emoji}</span>
-              <span className="mt-0.5 tabular-nums text-[9px] font-bold opacity-95">{r[key]}</span>
+              <span className="text-[7px] sm:text-[8px]">{emoji}</span>
+              <span className="tabular-nums text-[5px] font-medium opacity-90 sm:text-[6px]">{r[key]}</span>
             </button>
           ))}
         </div>
@@ -228,91 +230,134 @@ export default function VibeAudioTestPanel({
         <X className="h-5 w-5" />
       </button>
 
-      <div className="relative z-[205] flex min-h-0 flex-1 flex-col px-2 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] sm:px-3">
-        <header className="mb-2 shrink-0 text-center">
-          <h2 className="text-base font-bold tracking-wide text-white drop-shadow-[0_0_12px_rgba(168,85,247,0.5)] sm:text-lg">
-            Выбери свой гимн
-          </h2>
-          <p className="mt-0.5 text-[11px] text-cyan-100/85 sm:text-xs">12 аудиоверсий · реакции и скачивание</p>
-        </header>
-
-        {/* Итоговое расположение: слева «всего», справа «популярная» (как на макете) */}
-        <div className="mb-2 grid shrink-0 grid-cols-1 gap-2 lg:grid-cols-2 lg:gap-3">
-          <div
-            className="rounded-2xl border border-white/20 px-3 py-2.5 text-center shadow-[0_0_22px_rgba(168,85,247,0.35)] sm:px-4 sm:py-3"
-            style={{
-              background: "linear-gradient(135deg, rgba(91,33,182,0.75), rgba(124,58,237,0.65) 50%, rgba(168,85,247,0.55))",
-              textShadow: "0 1px 2px rgba(0,0,0,0.35)",
-            }}
-          >
-            <div className="text-xs font-bold tracking-tight text-white sm:text-sm">Всего реакций</div>
-            <p className="mt-1 text-lg font-bold tabular-nums text-white sm:text-xl">всего {grandTotals.sum}</p>
-            <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t border-white/25 pt-2 text-[10px] text-white/95 sm:text-[11px]">
-              {REACTIONS.map(({ key, emoji }) => (
-                <span key={key} className="tabular-nums">
-                  {emoji} {grandTotals.acc[key]}
-                </span>
-              ))}
-            </div>
-          </div>
-          <div
-            className="rounded-2xl border border-white/20 px-3 py-2.5 text-center shadow-[0_0_22px_rgba(168,85,247,0.35)] sm:px-4 sm:py-3"
-            style={{
-              background: "linear-gradient(135deg, #c026d3, #7c3aed 45%, #a855f7)",
-              textShadow: "0 1px 2px rgba(0,0,0,0.35)",
-            }}
-          >
-            <div className="text-xs font-bold tracking-tight text-white sm:text-sm">🏆 Самая популярная версия</div>
-            <p className="mt-1 line-clamp-2 text-[11px] font-semibold leading-snug text-white/95 sm:text-sm">{popularTrack.title}</p>
-            <div className="mt-2 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 border-t border-white/25 pt-2 text-[10px] text-white/95 sm:text-[11px]">
-              <span className="tabular-nums font-semibold">всего {popularScore}</span>
-              {REACTIONS.map(({ key, emoji }) => (
-                <span key={key} className="tabular-nums">
-                  {emoji} {popularR[key]}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="relative mx-auto mb-2 w-full max-w-[280px] shrink-0 overflow-hidden rounded-2xl border border-fuchsia-400/35 shadow-[0_0_28px_rgba(192,38,211,0.22),inset_0_0_24px_rgba(56,189,248,0.06)] lg:hidden">
-          <img
-            src={VIBE_HOST_PHOTO_SRC}
-            alt="Вайб-кодер — обложка версий гимна"
-            className="max-h-[min(32vh,300px)] w-full object-cover object-top"
-            draggable={false}
-          />
-        </div>
-
-        {/* Мобилка: сетка всех треков */}
-        <div className="flex min-h-0 flex-1 flex-col lg:hidden">
-          <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-contain [-webkit-overflow-scrolling:touch]">
-            <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 sm:gap-2.5">
-              {TRACKS.map((t) => renderTrackCard(t))}
-            </div>
-          </div>
-        </div>
-
-        {/* Десктоп: треки слева и справа, постер по центру */}
-        <div className="hidden min-h-0 flex-1 gap-3 pb-1 lg:grid lg:min-h-[200px] lg:grid-cols-[1fr_minmax(200px,280px)_1fr] lg:items-start">
-          <div className="min-h-0 max-h-[min(78vh,820px)] overflow-y-auto overscroll-contain pr-0.5">
-            <div className="flex flex-col gap-2">{TRACKS_LEFT.map((t) => renderTrackCard(t))}</div>
-          </div>
-          <div className="sticky top-0 mx-auto w-full max-h-[min(78vh,820px)] overflow-hidden rounded-2xl border border-fuchsia-400/35 shadow-[0_0_28px_rgba(192,38,211,0.22)]">
+      <div className="relative z-[205] flex min-h-0 flex-1 flex-col overflow-hidden px-1.5 pb-[max(0.2rem,env(safe-area-inset-bottom))] pt-[max(0.25rem,env(safe-area-inset-top))] sm:px-2">
+        {/* Мобилка: логотип отдельно → два баннера (без наложения на лого) */}
+        <div className="mb-0.5 flex shrink-0 flex-col gap-1 lg:hidden">
+          <div className="pointer-events-none flex justify-center px-1 pt-0.5">
             <img
-              src={VIBE_HOST_PHOTO_SRC}
+              src={VIBE_AI_LOGO_SRC}
               alt=""
-              className="h-full w-full object-contain object-center"
+              width={320}
+              height={140}
+              className="h-[min(6.5vh,48px)] w-auto max-w-[min(200px,55vw)] object-contain [filter:drop-shadow(0_0_10px_rgba(120,220,255,0.4))_drop-shadow(0_0_18px_rgba(160,100,255,0.28))]"
               draggable={false}
             />
           </div>
-          <div className="min-h-0 max-h-[min(78vh,820px)] overflow-y-auto overscroll-contain pl-0.5">
-            <div className="flex flex-col gap-2">{TRACKS_RIGHT.map((t) => renderTrackCard(t))}</div>
+          <div className="grid grid-cols-2 gap-1">
+            <div
+              className="rounded-xl border border-white/15 px-1.5 py-1 text-center shadow-[0_0_14px_rgba(168,85,247,0.25)]"
+              style={{
+                background: "linear-gradient(135deg, rgba(91,33,182,0.8), rgba(124,58,237,0.65))",
+              }}
+            >
+              <div className="text-[8px] font-bold leading-tight text-white">Всего реакций</div>
+              <p className="mt-0.5 text-xs font-bold tabular-nums leading-none text-white">всего {grandTotals.sum}</p>
+              <div className="mt-1 flex flex-nowrap justify-center gap-0.5 border-t border-white/15 pt-1 text-[7px] text-white/95">
+                {REACTIONS.map(({ key, emoji }) => (
+                  <span key={key} className="tabular-nums">
+                    {emoji}
+                    {grandTotals.acc[key]}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div
+              className="rounded-xl border border-white/15 px-1.5 py-1 text-center shadow-[0_0_14px_rgba(168,85,247,0.3)]"
+              style={{
+                background: "linear-gradient(135deg, #c026d3, #7c3aed 45%, #a855f7)",
+              }}
+            >
+              <div className="text-[8px] font-bold leading-tight text-white">🏆 Самая популярная версия</div>
+              <p className="mt-0.5 line-clamp-2 text-[8px] font-semibold leading-tight text-white/95">{popularTrack.title}</p>
+              <div className="mt-1 flex flex-nowrap justify-center gap-0.5 border-t border-white/20 pt-1 text-[7px] text-white/95">
+                <span className="tabular-nums font-semibold">{popularScore}</span>
+                {REACTIONS.map(({ key, emoji }) => (
+                  <span key={key} className="tabular-nums">
+                    {emoji}
+                    {popularR[key]}
+                  </span>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        {(onBackToBook || onPlayGame || onEnterWord) && (
-          <div className="mt-2 flex shrink-0 flex-wrap items-center justify-center gap-2 border-t border-fuchsia-400/20 bg-black/25 py-3 backdrop-blur-sm">
+        {/* Десктоп: логотип отдельной строкой; под ним — два баннера (нет пересечения с лого) */}
+        <div className="mb-1 hidden shrink-0 flex-col gap-1.5 lg:flex">
+          <div className="pointer-events-none flex justify-center py-0.5">
+            <img
+              src={VIBE_AI_LOGO_SRC}
+              alt=""
+              width={320}
+              height={140}
+              className="h-[min(8vh,64px)] w-auto max-w-[min(200px,28vw)] object-contain [filter:drop-shadow(0_0_10px_rgba(120,220,255,0.45))_drop-shadow(0_0_20px_rgba(160,100,255,0.3))]"
+              draggable={false}
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-1.5">
+            <div
+              className="rounded-xl border border-white/15 px-2 py-1 text-center shadow-[0_0_16px_rgba(168,85,247,0.28)]"
+              style={{
+                background: "linear-gradient(135deg, rgba(91,33,182,0.82), rgba(124,58,237,0.68))",
+              }}
+            >
+              <div className="text-[9px] font-bold text-white">Всего реакций</div>
+              <p className="mt-0.5 text-sm font-bold tabular-nums text-white">всего {grandTotals.sum}</p>
+              <div className="mt-1 flex flex-wrap justify-center gap-x-1 gap-y-0 border-t border-white/18 pt-1 text-[8px] text-white/95">
+                {REACTIONS.map(({ key, emoji }) => (
+                  <span key={key} className="tabular-nums">
+                    {emoji} {grandTotals.acc[key]}
+                  </span>
+                ))}
+              </div>
+            </div>
+            <div
+              className="rounded-xl border border-white/15 px-2 py-1 text-center shadow-[0_0_16px_rgba(168,85,247,0.32)]"
+              style={{
+                background: "linear-gradient(135deg, #c026d3, #7c3aed 45%, #a855f7)",
+              }}
+            >
+              <div className="text-[9px] font-bold text-white">🏆 Самая популярная версия</div>
+              <p className="mt-0.5 line-clamp-2 text-[9px] font-semibold leading-snug text-white/95">{popularTrack.title}</p>
+              <div className="mt-1 flex flex-wrap justify-center gap-x-1 gap-y-0 border-t border-white/22 pt-1 text-[8px] text-white/95">
+                <span className="tabular-nums font-semibold">{popularScore}</span>
+                {REACTIONS.map(({ key, emoji }) => (
+                  <span key={key} className="tabular-nums">
+                    {emoji} {popularR[key]}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Мобилка: 2×6, всё в экране — без прокрутки (постер только на lg по центру) */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:hidden">
+          <div className="grid min-h-0 min-w-0 flex-1 grid-cols-2 grid-rows-6 gap-0.5 overflow-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {TRACKS.map((t) => renderTrackCard(t))}
+          </div>
+        </div>
+
+        {/* Десктоп: по 6 строк в колонке, без скролла */}
+        <div className="hidden min-h-0 min-w-0 flex-1 gap-1.5 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(112px,min(22vw,240px))_minmax(0,1fr)] lg:items-stretch lg:pb-0 xl:grid-cols-[minmax(0,1fr)_minmax(128px,min(20vw,260px))_minmax(0,1fr)]">
+          <div className="grid min-h-0 min-w-0 grid-rows-6 gap-0.5 overflow-hidden pr-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {TRACKS_LEFT.map((t) => renderTrackCard(t))}
+          </div>
+          <div className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-xl border border-fuchsia-400/35 shadow-[0_0_20px_rgba(192,38,211,0.2)]">
+            <img
+              src={VIBE_HOST_PHOTO_SRC}
+              alt=""
+              className="h-full max-h-full w-full object-contain object-center"
+              draggable={false}
+            />
+          </div>
+          <div className="grid min-h-0 min-w-0 grid-rows-6 gap-0.5 overflow-hidden pl-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {TRACKS_RIGHT.map((t) => renderTrackCard(t))}
+          </div>
+        </div>
+
+        {(onBackToBook || onLuck || onEnterWord) && (
+          <div className="mt-1 flex shrink-0 flex-wrap items-center justify-center gap-1.5 border-t border-fuchsia-400/15 bg-black/20 py-2 backdrop-blur-sm">
             {onBackToBook && (
               <NeonGlassButton
                 className="pointer-events-auto !px-3 !py-2 !text-center !text-[11px] sm:!text-sm"
@@ -321,17 +366,17 @@ export default function VibeAudioTestPanel({
                 назад к книге
               </NeonGlassButton>
             )}
-            {onPlayGame && (
+            {onLuck && (
               <NeonGlassButton
-                className="pointer-events-auto !px-3 !py-2 !text-center !text-[11px] sm:!text-sm"
-                onClick={onPlayGame}
+                accent
+                className="pointer-events-auto !block w-full max-w-[min(90vw,22rem)] text-center !px-6 !py-3 !text-base sm:!text-lg"
+                onClick={onLuck}
               >
-                Крутим игру?
+                Крутим удачу?
               </NeonGlassButton>
             )}
             {onEnterWord && (
               <NeonGlassButton
-                accent
                 className="pointer-events-auto !px-3 !py-2 !text-center !text-[11px] sm:!text-sm"
                 onClick={onEnterWord}
               >
