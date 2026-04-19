@@ -239,7 +239,7 @@ export default function VibeAudioTestPanel({
       </div>
 
       {/* Desktop: статистика строго над левыми/правыми дорожками */}
-      <div className="hidden shrink-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(300px,min(44vw,540px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:translate-y-12 xl:gap-3">
+      <div className="hidden shrink-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(300px,min(44vw,540px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:translate-y-[3.75rem] xl:gap-3">
         <div className="flex flex-col items-center pl-1">
           <div
             className={cn(statCardBase)}
@@ -335,7 +335,7 @@ export default function VibeAudioTestPanel({
 
           {/* Десктоп: ваша схема — две колонки треков и постер по центру (без рамок/карточек) */}
           <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-visible lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,min(34vw,420px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
-            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pr-1 lg:translate-y-7">
+            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pr-1 lg:translate-y-10">
               {TRACKS_LEFT.map((t) => renderTrackCard(t))}
             </div>
             <div className="relative z-0 flex w-full flex-col items-center justify-start pt-0 lg:-translate-y-3">
@@ -346,7 +346,7 @@ export default function VibeAudioTestPanel({
                 draggable={false}
               />
             </div>
-            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pl-1 lg:translate-y-7">
+            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pl-1 lg:translate-y-10">
               {TRACKS_RIGHT.map((t) => renderTrackCard(t))}
             </div>
           </div>
