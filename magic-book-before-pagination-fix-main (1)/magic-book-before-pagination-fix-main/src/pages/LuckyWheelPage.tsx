@@ -22,6 +22,11 @@ export default function LuckyWheelPage() {
       />
       <div className="relative z-10 mx-auto flex min-h-[100dvh] w-full max-w-[min(1240px,96vw)] flex-col items-center px-3 pb-10 pt-[max(2.5rem,env(safe-area-inset-top))] sm:px-6">
         <LuckyWheelGame variant="page" />
+        <p className="mt-8 max-w-md px-2 text-center text-[11px] leading-snug text-white/45">
+          Ссылка для сдачи задания: скопируйте адрес из строки браузера на этой странице (должно заканчиваться на{" "}
+          <span className="text-white/70">/luck</span>) и отправьте преподавателю. Весь проект открывается без{" "}
+          <span className="text-white/70">/luck</span>.
+        </p>
       </div>
     </div>
   );
