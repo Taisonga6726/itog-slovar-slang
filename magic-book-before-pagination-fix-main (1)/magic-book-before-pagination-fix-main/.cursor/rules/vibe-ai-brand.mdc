@@ -1,0 +1,10 @@
+---
+description: Логотип AI и панель гимна — не ломать без ТЗ автора
+globs: "**/VibeAiLogoMark.tsx,**/VibeAiBrand.tsx,**/VibeAudioTestPanel.tsx,**/index.css"
+---
+
+# Бренд AI / панель гимна
+
+- Логотип AI: один путь `VIBE_AI_LOGO_SRC` в [VibeAiLogoMark.tsx](src/components/VibeAiLogoMark.tsx), размеры через классы `mb-ai-logo-hotspot` и `tz-vibe-ai-logo-img` в [index.css](src/index.css). Не менять путь к PNG и не «упрощать» разметку без явного запроса автора.
+- [VibeAiBrand.tsx](src/components/VibeAiBrand.tsx) в режиме без `banner` обязан использовать `VibeAiLogoMark`, не дублировать `<img>` вручную.
+- [VibeAudioTestPanel.tsx](src/components/VibeAudioTestPanel.tsx): лого только через `VibeAiLogoMark`; строка трека — макет «название | белый play | сохр. | реакции снизу»; три нижние кнопки в одном ряду (назад к книге, играть в игру, ввести слово), как в референсе.

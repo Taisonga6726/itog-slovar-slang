@@ -1,23 +1,12 @@
 import { cn } from "@/lib/utils";
+import VibeAiLogoMark, { VIBE_AI_LOGO_SRC } from "@/components/VibeAiLogoMark";
 
 /**
  * Логотип AI сверху по центру — тот же PNG, что в SLOVAR_02.
- * Без `banner`: как на обложке (#aiLogoHotspot) — `tz-vibe-ai-logo-wrap` без `--overlay` (иначе другие max-* и «плоский» вид).
+ * Без `banner`: как на обложке — через VibeAiLogoMark (не дублировать разметку).
  * С `banner`: вариант как у нижнего #tzVibeAiBrand — `--overlay`.
  */
 export default function VibeAiBrand({ className, banner }: { className?: string; banner?: boolean }) {
-  const img = (
-    <img
-      className="tz-vibe-ai-logo-img"
-      src="/images/LOGO.png.png"
-      alt=""
-      width={360}
-      height={160}
-      decoding="async"
-      loading="eager"
-    />
-  );
-
   return (
     <div
       id="mbVibeAiBrand"
@@ -28,15 +17,18 @@ export default function VibeAiBrand({ className, banner }: { className?: string;
         {banner ? (
           <div className="tz-vibe-ai-logo-wrap tz-vibe-ai-logo-wrap--overlay">
             <span className="tz-vibe-ai-logo__halo" aria-hidden />
-            {img}
+            <img
+              className="tz-vibe-ai-logo-img"
+              src={VIBE_AI_LOGO_SRC}
+              alt=""
+              width={360}
+              height={160}
+              decoding="async"
+              loading="eager"
+            />
           </div>
         ) : (
-          <div className="mb-ai-logo-hotspot">
-            <div className="tz-vibe-ai-logo-wrap">
-              <span className="tz-vibe-ai-logo__halo" aria-hidden />
-              {img}
-            </div>
-          </div>
+          <VibeAiLogoMark />
         )}
       </div>
     </div>
