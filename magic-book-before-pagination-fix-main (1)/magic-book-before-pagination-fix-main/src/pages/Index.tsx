@@ -1,5 +1,5 @@
 ﻿import { useState, useEffect, useCallback, useRef } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { Volume2, VolumeX } from "lucide-react";
 import FloatingWords from "@/components/FloatingWords";
 import MagicBook from "@/components/MagicBook";
@@ -9,6 +9,8 @@ import ControlBar from "@/components/ControlBar";
 import HeroWave from "@/components/ui/dynamic-wave-canvas-background";
 import GlobalVibeShell from "@/components/GlobalVibeShell";
 import IntroSlovarEmbed from "@/components/IntroSlovarEmbed";
+import LuckyWheelPanel from "@/components/lucky-wheel/LuckyWheelPanel";
+import { LUCKY_WHEEL_ENTRY } from "@/config/luckyWheel";
 import { toast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +58,9 @@ interface PageNav {
 const Index = () => {
   /** Панель гимна / оживление / «руки»: глобальный логотип AI скрываем (нет дубля со сценой); кольца — в GlobalVibeShell. */
   const [hymnPanelOpen, setHymnPanelOpen] = useState(false);
+  /** Вариант A: игра «Поле чудес» в панели (см. LUCKY_WHEEL_ENTRY). */
+  const [luckyWheelOpen, setLuckyWheelOpen] = useState(false);
+  const navigate = useNavigate();
   const SEED_ENTRIES_URL = "/tanya-vibecoder-backup-2026-04-18.json";
   /** v2: экспорт всегда подмешивается к сохранённому списку (слова из файла перекрывают старые), плюс срез дублей с одинаковыми картинками. */
   const SEED_STORAGE_KEY = "magic-book-seed-v2-applied";
@@ -427,6 +432,14 @@ const Index = () => {
     setMode("reading");
   }, [playFlipSound]);
 
+  const openLuckyWheel = useCallback(() => {
+    if (LUCKY_WHEEL_ENTRY === "route") {
+      navigate("/luck");
+    } else {
+      setLuckyWheelOpen(true);
+    }
+  }, [navigate]);
+
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black">
       {mode === "intro" && (
@@ -521,22 +534,18 @@ const Index = () => {
         <FinalScreen
           entries={entries}
           onBack={() => setMode("form")}
+          onLuck={openLuckyWheel}
           onPauseBackgroundHymn={pauseBackgroundHymnSoft}
           onResumeBackgroundHymn={resumeBackgroundHymnAfterPanel}
           onHymnPanelOpenChange={setHymnPanelOpen}
-          onHymnPlayGame={() =>
-            toast({
-              title: "Игра",
-              description: "Режим игры появится в следующем обновлении.",
-            })
-          }
+          onHymnPlayGame={openLuckyWheel}
           onHymnEnterWord={handleAddWord}
         />
       )}
       </div>}
 
       {/* Переключатель звука вверху на каждом экране, кроме intro и панели аудио */}
-      {mode !== "intro" && !hymnPanelOpen && (
+      {mode !== "intro" && !hymnPanelOpen && !luckyWheelOpen && (
         <button
           type="button"
           onClick={toggleBookSound}
@@ -563,11 +572,14 @@ const Index = () => {
           mode !== "final" &&
           mode !== "awakening" &&
           mode !== "hands" &&
-          !hymnPanelOpen
+          !hymnPanelOpen &&
+          !luckyWheelOpen
         }
       />
 
-      {mode !== "intro" && mode !== "awakening" && mode !== "hands" && (
+      <LuckyWheelPanel open={luckyWheelOpen} onClose={() => setLuckyWheelOpen(false)} />
+
+      {mode !== "intro" && mode !== "awakening" && mode !== "hands" && !luckyWheelOpen && (
         <ControlBar
           mode={mode}
           setMode={setMode}

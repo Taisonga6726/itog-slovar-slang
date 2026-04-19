@@ -610,6 +610,12 @@
   opacity: 0.62;
 }
 
+/* Страница /luck без оболочки Index: кольца между фоном и контентом */
+.magic-rings-fx--luck-page.magic-rings-fx--global {
+  z-index: 8 !important;
+  opacity: 0.58;
+}
+
 /* Финал: лого читабельнее, меньше «пустой» стек — удобнее ставить кнопку под неоновой линией */
 .tz-vibe-ai-brand--banner .tz-vibe-ai-brand__stack {
   min-height: min(13vh, 108px);
@@ -645,6 +651,33 @@
 @media (prefers-reduced-motion: reduce) {
   .final-total-words-badge {
     animation: none;
+    transform: none;
+  }
+}
+
+/* Игра «Поле чудес»: лёгкий «фейерверк» на финале */
+.lucky-wheel-fireworks {
+  background:
+    radial-gradient(circle at 18% 28%, rgba(236, 72, 153, 0.42) 0%, transparent 42%),
+    radial-gradient(circle at 82% 22%, rgba(56, 189, 248, 0.35) 0%, transparent 40%),
+    radial-gradient(circle at 52% 72%, rgba(168, 85, 247, 0.32) 0%, transparent 48%);
+  animation: lucky-wheel-burst 2.6s ease-in-out infinite;
+}
+@keyframes lucky-wheel-burst {
+  0%,
+  100% {
+    opacity: 0.78;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lucky-wheel-fireworks {
+    animation: none;
+    opacity: 0.85;
     transform: none;
   }
 }
