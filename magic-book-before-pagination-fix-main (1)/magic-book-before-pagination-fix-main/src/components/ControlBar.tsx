@@ -40,12 +40,12 @@ const ControlBar: React.FC<ControlBarProps> = ({ mode, setMode, onAddWord, onRea
         <>
           <NeonGlassButton accent onClick={onAddWord}>✏️ внести слово</NeonGlassButton>
           {pageNav?.hasPrev && (
-            <NeonGlassButton onClick={pageNav.onPrev}>← назад</NeonGlassButton>
+            <NeonGlassButton accent onClick={pageNav.onPrev}>← назад</NeonGlassButton>
           )}
           {pageNav?.hasNext && (
-            <NeonGlassButton onClick={pageNav.onNext}>далее →</NeonGlassButton>
+            <NeonGlassButton accent onClick={pageNav.onNext}>далее →</NeonGlassButton>
           )}
-          <NeonGlassButton onClick={onReadBook}>📖 читать книгу</NeonGlassButton>
+          <NeonGlassButton accent onClick={onReadBook}>📖 читать книгу</NeonGlassButton>
         </>
       )}
 
@@ -53,18 +53,18 @@ const ControlBar: React.FC<ControlBarProps> = ({ mode, setMode, onAddWord, onRea
         <>
           <NeonGlassButton accent onClick={() => setMode("form")}>✏️ внести слово</NeonGlassButton>
           {pageNav?.hasPrev && (
-            <NeonGlassButton onClick={pageNav.onPrev}>← назад</NeonGlassButton>
+            <NeonGlassButton accent onClick={pageNav.onPrev}>← назад</NeonGlassButton>
           )}
           {pageNav?.hasNext && (
-            <NeonGlassButton onClick={pageNav.onNext}>далее →</NeonGlassButton>
+            <NeonGlassButton accent onClick={pageNav.onNext}>далее →</NeonGlassButton>
           )}
-          <NeonGlassButton onClick={() => setMode("final")}>✦ завершить</NeonGlassButton>
+          <NeonGlassButton accent onClick={() => setMode("final")}>✦ завершить</NeonGlassButton>
         </>
       )}
 
       {mode === "final" && (
         <>
-          <NeonGlassButton onClick={() => setMode("form")}>📖 к книге</NeonGlassButton>
+          <NeonGlassButton accent onClick={() => setMode("form")}>📖 к книге</NeonGlassButton>
         </>
       )}
     </div>

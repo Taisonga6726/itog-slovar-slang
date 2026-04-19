@@ -201,7 +201,8 @@ const Index = () => {
   const seedHydrationDoneRef = useRef(false);
 
   const HYMN_BASE_VOLUME = 0.24;
-  const HYMN_DUCK_VOLUME = 0.14;
+  /** По ТЗ: без провалов громкости на оживлении/эффектах — фон всегда одной громкости. */
+  const HYMN_DUCK_VOLUME = HYMN_BASE_VOLUME;
 
   const toggleBookSound = useCallback(() => {
     setBookSoundMuted((m) => {
@@ -226,7 +227,8 @@ const Index = () => {
 
   useEffect(() => {
     flipAudio.current = new Audio("/page-flip.mp3");
-    flipAudio.current.volume = 0.9;
+    /** Эффект переворота чуть громче фона. */
+    flipAudio.current.volume = 1;
     return () => {
       if (awakenTimerRef.current) window.clearTimeout(awakenTimerRef.current);
       if (duckTimerRef.current) window.clearTimeout(duckTimerRef.current);
@@ -394,6 +396,7 @@ const Index = () => {
   const duckHymnForEffects = useCallback((holdMs = 1000) => {
     const audio = hymnAudio.current;
     if (!audio) return;
+    if (HYMN_DUCK_VOLUME === HYMN_BASE_VOLUME) return;
     const eff = (v: number) => (bookSoundMuted ? 0 : v);
     try {
       audio.volume = eff(HYMN_DUCK_VOLUME);
@@ -439,19 +442,20 @@ const Index = () => {
 
   const playFlipSound = useCallback(() => {
     if (!flipAudio.current) return;
-    duckHymnForEffects(1000);
     flipAudio.current.currentTime = 0;
     flipAudio.current.play().catch(() => {});
-  }, [duckHymnForEffects]);
+  }, []);
 
   const handleStartReadFlow = useCallback(() => {
     if (awakenTimerRef.current) window.clearTimeout(awakenTimerRef.current);
+    // Гарантия: фоновый гимн стартует с открытия книги, если ещё не был запущен.
+    startBookHymnFromIntro();
     playFlipSound();
     setMode("awakening");
     awakenTimerRef.current = window.setTimeout(() => {
       setMode("hands");
     }, 12000);
-  }, [playFlipSound]);
+  }, [playFlipSound, startBookHymnFromIntro]);
 
   const handleAwakeningEnded = useCallback(() => {
     if (awakenTimerRef.current) {
