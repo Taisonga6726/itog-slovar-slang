@@ -242,7 +242,7 @@ export default function VibeAudioTestPanel({
 
   const node = (
     <div
-      className="fixed inset-0 z-[200] flex flex-col overflow-hidden text-white"
+      className="fixed inset-0 z-[200] flex flex-col overflow-y-auto overflow-x-hidden text-white"
       role="dialog"
       aria-modal="true"
       aria-label="Выбор гимна — 12 аудиоверсий"
@@ -252,85 +252,94 @@ export default function VibeAudioTestPanel({
       </span>
       <audio ref={audioRef} preload="metadata" className="hidden" />
 
-      <img
-        src={VIBE_PANEL_BG_SRC}
-        alt=""
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover object-center"
-        draggable={false}
-      />
-      <div
-        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/55 via-fuchsia-950/20 to-black/60"
-        aria-hidden
-      />
+      {/* Затемнение вокруг — контент на «баннере», не на весь экран (как object-contain у картинок проекта) */}
+      <div className="pointer-events-none fixed inset-0 bg-black/72" aria-hidden />
 
       <button
         type="button"
         onClick={onClose}
-        className="absolute right-3 top-3 z-[310] flex h-10 w-10 items-center justify-center rounded-full border-2 border-sky-400/50 bg-black/55 text-white shadow-[0_0_18px_rgba(56,189,248,0.25)] backdrop-blur-md transition hover:border-fuchsia-300/60 hover:bg-black/75 sm:right-4 sm:top-4"
+        className="fixed right-3 top-3 z-[310] flex h-10 w-10 items-center justify-center rounded-full border-2 border-sky-400/50 bg-black/55 text-white shadow-[0_0_18px_rgba(56,189,248,0.25)] backdrop-blur-md transition hover:border-fuchsia-300/60 hover:bg-black/75 sm:right-4 sm:top-4"
         style={{ marginTop: "max(0px, env(safe-area-inset-top, 0px))" }}
         aria-label="Закрыть"
       >
         <X className="h-5 w-5" />
       </button>
 
-      <div className="relative z-[205] flex min-h-0 flex-1 flex-col overflow-hidden px-2 pb-[max(0.2rem,env(safe-area-inset-bottom))] pt-[max(0.35rem,env(safe-area-inset-top))] sm:px-3">
-        <div className="mb-1 flex shrink-0 flex-col gap-1 lg:mb-1.5 lg:gap-1.5">{headerBlock}</div>
+      <div className="relative z-[205] mx-auto flex min-h-min w-full max-w-[min(1100px,96vw)] flex-1 flex-col justify-center px-3 py-[max(0.75rem,env(safe-area-inset-top))] pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-12 sm:px-5 sm:py-6 sm:pt-14 md:max-h-[min(92dvh,900px)] md:py-8">
+        <div className="relative flex min-h-0 w-full flex-col overflow-hidden rounded-2xl border border-fuchsia-500/25 bg-black/35 shadow-[0_8px_48px_rgba(0,0,0,0.55)] backdrop-blur-sm">
+          <img
+            src={VIBE_PANEL_BG_SRC}
+            alt=""
+            className="pointer-events-none absolute inset-0 h-full w-full rounded-2xl object-cover object-center"
+            draggable={false}
+          />
+          <div
+            className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-b from-black/45 via-fuchsia-950/15 to-black/55"
+            aria-hidden
+          />
 
-        {/* Мобилка: сетка 2×6 без центрального постера */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:hidden">
-          <div className="grid min-h-0 min-w-0 flex-1 grid-cols-2 grid-rows-6 gap-1 overflow-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {TRACKS.map((t) => renderTrackCard(t))}
-          </div>
-        </div>
+          <div className="relative flex min-h-0 max-h-[min(88dvh,860px)] flex-col overflow-hidden px-2 pb-2 pt-2 sm:px-3 sm:pb-3 sm:pt-3">
+            <div className="mb-1 flex shrink-0 flex-col gap-1 lg:mb-1.5 lg:gap-1.5">{headerBlock}</div>
 
-        {/* Десктоп: симметричные колонки + центральный постер ~1/3 ширины */}
-        <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(260px,min(34vw,420px))_minmax(0,1fr)] lg:items-stretch lg:gap-3 lg:pb-0">
-          <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-hidden pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {TRACKS_LEFT.map((t) => renderTrackCard(t))}
-          </div>
-          <div className="relative flex min-h-0 flex-col items-stretch justify-end overflow-hidden rounded-xl border border-fuchsia-400/35 bg-black/25 shadow-[0_0_20px_rgba(192,38,211,0.2)]">
-            <img
-              src={VIBE_HOST_PHOTO_SRC}
-              alt=""
-              className="h-full min-h-0 w-full flex-1 object-contain object-bottom"
-              draggable={false}
-            />
-          </div>
-          <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-hidden pl-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {TRACKS_RIGHT.map((t) => renderTrackCard(t))}
-          </div>
-        </div>
-
-        {(onBackToBook || onPlayGame || onEnterWord) && (
-          <div className="mt-2 flex shrink-0 flex-col gap-2 border-t border-fuchsia-400/15 bg-black/25 py-2.5 backdrop-blur-sm">
-            <div className="flex flex-wrap items-center justify-center gap-2 px-1 sm:gap-3">
-              {onBackToBook && (
-                <NeonGlassButton
-                  className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!min-h-[2.75rem] sm:!text-sm"
-                  onClick={onBackToBook}
-                >
-                  назад к книге
-                </NeonGlassButton>
-              )}
-              {onPlayGame && (
-                <NeonGlassButton
-                  className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!min-h-[2.75rem] sm:!text-sm"
-                  onClick={onPlayGame}
-                >
-                  играть в игру
-                </NeonGlassButton>
-              )}
-              {onEnterWord && (
-                <NeonGlassButton
-                  className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!min-h-[2.75rem] sm:!text-sm"
-                  onClick={onEnterWord}
-                >
-                  ввести слово
-                </NeonGlassButton>
-              )}
+            {/* Мобилка: сетка 2×6 без центрального постера */}
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:hidden">
+              <div className="grid min-h-0 min-w-0 flex-1 grid-cols-2 grid-rows-6 gap-1 overflow-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {TRACKS.map((t) => renderTrackCard(t))}
+              </div>
             </div>
+
+            {/* Десктоп: колонки + постер уменьшен, чтобы влезла подпись внизу (как картинка целиком в кадре) */}
+            <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(200px,min(28vw,340px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
+              <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-hidden pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {TRACKS_LEFT.map((t) => renderTrackCard(t))}
+              </div>
+              <div className="flex min-h-0 w-full flex-col items-center justify-start">
+                <div className="flex w-full max-w-[280px] flex-col items-center justify-end overflow-hidden rounded-xl border border-fuchsia-400/40 bg-black/30 p-1 shadow-[0_0_20px_rgba(192,38,211,0.18)] sm:max-w-[min(30vw,320px)]">
+                  <img
+                    src={VIBE_HOST_PHOTO_SRC}
+                    alt=""
+                    className="h-auto max-h-[min(32vh,280px)] w-full object-contain object-bottom sm:max-h-[min(36vh,320px)]"
+                    draggable={false}
+                  />
+                </div>
+              </div>
+              <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-hidden pl-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                {TRACKS_RIGHT.map((t) => renderTrackCard(t))}
+              </div>
+            </div>
+
+            {(onBackToBook || onPlayGame || onEnterWord) && (
+              <div className="mt-2 flex shrink-0 flex-col gap-2 rounded-xl border border-fuchsia-400/10 bg-black/30 py-2.5 backdrop-blur-sm">
+                <div className="flex flex-wrap items-center justify-center gap-2 px-1 sm:gap-3">
+                  {onBackToBook && (
+                    <NeonGlassButton
+                      className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!min-h-[2.75rem] sm:!text-sm"
+                      onClick={onBackToBook}
+                    >
+                      назад к книге
+                    </NeonGlassButton>
+                  )}
+                  {onPlayGame && (
+                    <NeonGlassButton
+                      className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!min-h-[2.75rem] sm:!text-sm"
+                      onClick={onPlayGame}
+                    >
+                      играть в игру
+                    </NeonGlassButton>
+                  )}
+                  {onEnterWord && (
+                    <NeonGlassButton
+                      className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!min-h-[2.75rem] sm:!text-sm"
+                      onClick={onEnterWord}
+                    >
+                      ввести слово
+                    </NeonGlassButton>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
