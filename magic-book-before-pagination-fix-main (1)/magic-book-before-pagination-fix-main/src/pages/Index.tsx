@@ -510,7 +510,8 @@ const Index = () => {
       )}
       </div>}
 
-      {(mode === "reading" || mode === "final") && <VibeAiBrand />}
+      {/* Логотип AI на финале внутри FinalScreen (макет 6); здесь только режим чтения */}
+      {mode === "reading" && <VibeAiBrand />}
 
       {mode !== "intro" && mode !== "awakening" && mode !== "hands" && (
         <ControlBar
