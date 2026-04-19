@@ -252,17 +252,15 @@ export default function VibeAudioTestPanel({
       </span>
       <audio ref={audioRef} preload="metadata" className="hidden" />
 
-      {/* Один баннер: одна картинка фона на весь слой (без второй «карточки» с тем же фоном) */}
-      <img
-        src={VIBE_PANEL_BG_SRC}
-        alt=""
-        className="pointer-events-none fixed inset-0 z-0 h-full w-full object-cover object-center"
-        draggable={false}
-      />
-      <div
-        className="pointer-events-none fixed inset-0 z-[201] bg-gradient-to-b from-black/50 via-fuchsia-950/18 to-black/58"
-        aria-hidden
-      />
+      {/* Фон: ваш баннер в PNG уже внизу картинки — показываем файл целиком, прижатый к низу экрана (без object-cover «поверх» и без второго слоя-градиента на сам баннер) */}
+      <div className="pointer-events-none fixed inset-0 z-0 flex items-end justify-center bg-black">
+        <img
+          src={VIBE_PANEL_BG_SRC}
+          alt=""
+          className="h-auto max-h-[100dvh] w-full max-w-[min(1600px,100vw)] select-none object-contain object-bottom"
+          draggable={false}
+        />
+      </div>
 
       <button
         type="button"
@@ -275,9 +273,9 @@ export default function VibeAudioTestPanel({
       </button>
 
       <div
-        className="relative z-[205] mx-auto flex min-h-[min(100dvh,100%)] w-full max-w-[min(1100px,96vw)] flex-col px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(2.75rem,env(safe-area-inset-top))] sm:px-5 sm:pt-12 md:min-h-min md:justify-center md:py-6 md:pt-14"
+        className="relative z-[205] mx-auto flex min-h-[100dvh] w-full max-w-[min(1100px,96vw)] flex-col px-3 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(2.75rem,env(safe-area-inset-top))] sm:px-5 sm:pb-6 sm:pt-12"
       >
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden pb-[min(12vh,100px)] lg:pb-[min(10vh,88px)]">
           <div className="mb-1 flex shrink-0 flex-col gap-1 lg:mb-1.5 lg:gap-1.5">{headerBlock}</div>
 
           {/* Мобилка: сетка 2×6 без центрального постера */}
@@ -306,7 +304,7 @@ export default function VibeAudioTestPanel({
           </div>
 
           {(onBackToBook || onPlayGame || onEnterWord) && (
-            <div className="mt-3 flex shrink-0 flex-wrap items-center justify-center gap-2 sm:gap-3">
+            <div className="mt-auto flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:gap-3">
               {onBackToBook && (
                 <NeonGlassButton
                   className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!min-h-[2.75rem] sm:!text-sm"
