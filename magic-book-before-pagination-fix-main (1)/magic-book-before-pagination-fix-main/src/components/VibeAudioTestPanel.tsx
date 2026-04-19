@@ -285,7 +285,7 @@ export default function VibeAudioTestPanel({
             </div>
           </div>
 
-          {/* Десктоп: ваша схема — две колонки треков и постер по центру; постер без второй рамки */}
+          {/* Десктоп: ваша схема — две колонки треков и постер по центру (без рамок/карточек) */}
           <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-hidden lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(200px,min(28vw,340px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
             <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-hidden pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {TRACKS_LEFT.map((t) => renderTrackCard(t))}
@@ -294,7 +294,7 @@ export default function VibeAudioTestPanel({
               <img
                 src={VIBE_HOST_PHOTO_SRC}
                 alt=""
-                className="h-auto w-full max-w-[min(30vw,320px)] max-h-[min(34vh,300px)] object-contain object-bottom sm:max-h-[min(38vh,340px)]"
+                className="h-auto w-full max-w-[min(31vw,330px)] max-h-[min(36vh,320px)] object-contain object-bottom sm:max-h-[min(40vh,360px)]"
                 draggable={false}
               />
             </div>
