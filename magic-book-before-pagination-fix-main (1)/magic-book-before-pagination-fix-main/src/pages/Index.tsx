@@ -250,6 +250,21 @@ const Index = () => {
     }
   }, []);
 
+  /** На экране выбора аудио фон гимна останавливаем полностью. */
+  const pauseBackgroundHymnSoft = useCallback(() => {
+    try {
+      hymnAudio.current?.pause();
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  /** После выхода из панели выбора аудио возвращаем фон, если он уже запускался. */
+  const resumeBackgroundHymnAfterPanel = useCallback(() => {
+    if (!hymnStartedRef.current || !hymnAudio.current) return;
+    void hymnAudio.current.play().catch(() => {});
+  }, []);
+
   /** Р“РёРјРЅ СЂРѕРґРёС‚РµР»СЏ: РїРѕ СЃРёРіРЅР°Р»Сѓ РёР· iframe; ref В«Р·Р°РїСѓС‰РµРЅВ» С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ play (РёРЅР°С‡Рµ РїРѕРІС‚РѕСЂРЅС‹Р№ РєР»РёРє РјРѕР»С‡РёС‚). */
   const startBookHymnFromIntro = useCallback(() => {
     if (!hymnAudio.current) {
@@ -506,6 +521,8 @@ const Index = () => {
         <FinalScreen
           entries={entries}
           onBack={() => setMode("form")}
+          onPauseBackgroundHymn={pauseBackgroundHymnSoft}
+          onResumeBackgroundHymn={resumeBackgroundHymnAfterPanel}
           onHymnPanelOpenChange={setHymnPanelOpen}
           onHymnPlayGame={() =>
             toast({

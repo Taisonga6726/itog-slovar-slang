@@ -259,7 +259,7 @@ export default function VibeAudioTestPanel({
           </div>
         </div>
 
-        <div className="flex items-start justify-center lg:translate-y-2">
+        <div className="flex items-start justify-center lg:translate-y-1">
           <VibeAiLogoMark className="-mt-0.5 shrink-0" />
         </div>
 
@@ -335,10 +335,10 @@ export default function VibeAudioTestPanel({
 
           {/* Десктоп: ваша схема — две колонки треков и постер по центру (без рамок/карточек) */}
           <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-visible lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,min(34vw,420px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
-            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pr-1 lg:translate-y-3">
+            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pr-1 lg:translate-y-5">
               {TRACKS_LEFT.map((t) => renderTrackCard(t))}
             </div>
-            <div className="flex w-full flex-col items-center justify-start pt-0 lg:translate-y-0">
+            <div className="flex w-full flex-col items-center justify-start pt-0 lg:-translate-y-1">
               <img
                 src={VIBE_HOST_PHOTO_SRC}
                 alt=""
@@ -346,13 +346,13 @@ export default function VibeAudioTestPanel({
                 draggable={false}
               />
             </div>
-            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pl-1 lg:translate-y-3">
+            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pl-1 lg:translate-y-5">
               {TRACKS_RIGHT.map((t) => renderTrackCard(t))}
             </div>
           </div>
 
           {(onBackToBook || onPlayGame || onEnterWord) && (
-            <div className="mt-2 flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:mt-3 sm:gap-3 sm:pt-3 lg:-mt-10 lg:w-[min(35vw,430px)] lg:self-center lg:flex-nowrap lg:justify-between lg:gap-2 lg:pt-0">
+            <div className="mt-2 flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:mt-3 sm:gap-3 sm:pt-3 lg:-mt-11 lg:w-[min(35vw,430px)] lg:self-center lg:flex-nowrap lg:justify-between lg:gap-2 lg:pt-0">
               {onBackToBook && (
                 <NeonGlassButton
                   accent
