@@ -79,7 +79,6 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
             accent
             className="pointer-events-auto !block w-full max-w-[min(90vw,22rem)] text-center !px-4 !py-2 !text-sm sm:!py-2.5 sm:!text-base"
             onClick={() => {
-              onPauseBackgroundHymn?.();
               onGimn?.();
               setAudioTestOpen(true);
             }}
@@ -133,21 +132,17 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
         open={audioTestOpen}
         onClose={() => {
           setAudioTestOpen(false);
-          onResumeBackgroundHymn?.();
         }}
         onBackToBook={() => {
           setAudioTestOpen(false);
-          onResumeBackgroundHymn?.();
           onBack();
         }}
         onPlayGame={() => {
           setAudioTestOpen(false);
-          onResumeBackgroundHymn?.();
           onHymnPlayGame?.();
         }}
         onEnterWord={() => {
           setAudioTestOpen(false);
-          onResumeBackgroundHymn?.();
           onHymnEnterWord?.();
         }}
       />

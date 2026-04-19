@@ -195,13 +195,13 @@ export default function VibeAudioTestPanel({
   };
 
   const statCardBase =
-    "flex h-[4.3rem] w-[17.5rem] shrink-0 flex-col justify-center rounded-full border border-white/20 px-6 py-3 text-center shadow-[0_0_14px_rgba(168,85,247,0.25)] sm:h-[4.6rem] sm:w-[18.5rem] sm:px-7 sm:py-3.5";
+    "flex h-[3.7rem] w-[15.8rem] shrink-0 flex-col justify-center rounded-full border border-white/20 px-5 py-2 text-center shadow-[0_0_14px_rgba(168,85,247,0.25)] sm:h-[4rem] sm:w-[16.8rem] sm:px-6 sm:py-2.5";
   const statReactionRowClass =
-    "mt-1 inline-flex h-[2.1rem] w-[17.5rem] shrink-0 translate-x-1 flex-nowrap items-center justify-center gap-1 rounded-full border border-white/[0.2] bg-black/40 px-3 py-1.5 text-[12px] text-white/95 sm:h-[2.25rem] sm:w-[18.5rem] sm:text-[13px]";
+    "mt-1 inline-flex h-[1.85rem] w-[15.8rem] shrink-0 translate-x-1 flex-nowrap items-center justify-center gap-1 rounded-full border border-white/[0.2] bg-black/40 px-2.5 py-1 text-[12px] text-white/95 sm:h-[2rem] sm:w-[16.8rem] sm:text-[13px]";
 
   const headerBlock = (
     <>
-      <VibeAiLogoMark className="mb-0.5 shrink-0 sm:mb-1" />
+      <VibeAiLogoMark className="mb-0.5 shrink-0 sm:mb-1 lg:hidden" />
       <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 px-1 sm:gap-3 sm:px-4 lg:hidden">
         <div
           className={cn(statCardBase)}
@@ -239,7 +239,7 @@ export default function VibeAudioTestPanel({
       </div>
 
       {/* Desktop: статистика строго над левыми/правыми дорожками */}
-      <div className="hidden shrink-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(300px,min(44vw,540px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:-translate-y-2 xl:gap-3">
+      <div className="hidden shrink-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(300px,min(44vw,540px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:-translate-y-1 xl:gap-3">
         <div className="flex flex-col items-center pl-1">
           <div
             className={cn(statCardBase)}
@@ -259,7 +259,9 @@ export default function VibeAudioTestPanel({
           </div>
         </div>
 
-        <div />
+        <div className="flex items-start justify-center lg:translate-y-0.5">
+          <VibeAiLogoMark className="-mt-0.5 shrink-0" />
+        </div>
 
         <div className="flex flex-col items-center pr-1">
           <div
@@ -333,28 +335,28 @@ export default function VibeAudioTestPanel({
 
           {/* Десктоп: ваша схема — две колонки треков и постер по центру (без рамок/карточек) */}
           <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-visible lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,min(34vw,420px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
-            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pr-1 lg:-translate-y-1">
+            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pr-1 lg:translate-y-2">
               {TRACKS_LEFT.map((t) => renderTrackCard(t))}
             </div>
-            <div className="flex w-full flex-col items-center justify-start pt-0 lg:-translate-y-16">
+            <div className="flex w-full flex-col items-center justify-start pt-0 lg:-translate-y-4">
               <img
                 src={VIBE_HOST_PHOTO_SRC}
                 alt=""
-                className="h-auto w-auto max-w-[min(35vw,430px)] max-h-[min(68vh,700px)] object-contain object-top"
+                className="h-auto w-auto max-w-[min(34vw,410px)] max-h-[min(62vh,620px)] object-contain object-bottom"
                 draggable={false}
               />
             </div>
-            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pl-1 lg:-translate-y-1">
+            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pl-1 lg:translate-y-2">
               {TRACKS_RIGHT.map((t) => renderTrackCard(t))}
             </div>
           </div>
 
           {(onBackToBook || onPlayGame || onEnterWord) && (
-            <div className="mt-2 flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:mt-3 sm:gap-3 sm:pt-3">
+            <div className="mt-2 flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:mt-3 sm:gap-3 sm:pt-3 lg:mt-2 lg:w-[min(35vw,430px)] lg:self-center lg:flex-nowrap lg:justify-between lg:gap-2">
               {onBackToBook && (
                 <NeonGlassButton
                   accent
-                  className="pointer-events-auto !h-[2.75rem] !w-[10.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!h-[2.9rem] sm:!w-[11rem] sm:!text-sm"
+                  className="pointer-events-auto !h-[2.65rem] !w-[8.4rem] !px-3 !py-2 !text-center !text-[11px] sm:!h-[2.75rem] sm:!w-[8.8rem] sm:!text-sm"
                   onClick={onBackToBook}
                 >
                   назад к книге
@@ -363,7 +365,7 @@ export default function VibeAudioTestPanel({
               {onPlayGame && (
                 <NeonGlassButton
                   accent
-                  className="pointer-events-auto !h-[2.75rem] !w-[10.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!h-[2.9rem] sm:!w-[11rem] sm:!text-sm"
+                  className="pointer-events-auto !h-[2.65rem] !w-[8.4rem] !px-3 !py-2 !text-center !text-[11px] sm:!h-[2.75rem] sm:!w-[8.8rem] sm:!text-sm"
                   onClick={onPlayGame}
                 >
                   Крутим удачу?
@@ -372,7 +374,7 @@ export default function VibeAudioTestPanel({
               {onEnterWord && (
                 <NeonGlassButton
                   accent
-                  className="pointer-events-auto !h-[2.75rem] !w-[10.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!h-[2.9rem] sm:!w-[11rem] sm:!text-sm"
+                  className="pointer-events-auto !h-[2.65rem] !w-[8.4rem] !px-3 !py-2 !text-center !text-[11px] sm:!h-[2.75rem] sm:!w-[8.8rem] sm:!text-sm"
                   onClick={onEnterWord}
                 >
                   ввести слово
