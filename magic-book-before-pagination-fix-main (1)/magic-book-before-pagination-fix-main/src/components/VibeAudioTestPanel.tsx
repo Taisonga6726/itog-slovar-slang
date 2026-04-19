@@ -239,7 +239,7 @@ export default function VibeAudioTestPanel({
       </div>
 
       {/* Desktop: статистика строго над левыми/правыми дорожками */}
-      <div className="hidden shrink-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(300px,min(44vw,540px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:-translate-y-1 xl:gap-3">
+      <div className="hidden shrink-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(300px,min(44vw,540px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:translate-y-9 xl:gap-3">
         <div className="flex flex-col items-center pl-1">
           <div
             className={cn(statCardBase)}
@@ -259,7 +259,7 @@ export default function VibeAudioTestPanel({
           </div>
         </div>
 
-        <div className="flex items-start justify-center lg:translate-y-0.5">
+        <div className="flex items-start justify-center lg:translate-y-2">
           <VibeAiLogoMark className="-mt-0.5 shrink-0" />
         </div>
 
@@ -323,7 +323,7 @@ export default function VibeAudioTestPanel({
       <div
         className="relative z-[205] mx-auto flex min-h-[100dvh] w-full max-w-[min(1240px,95vw)] flex-col px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.3rem,env(safe-area-inset-top))] sm:px-5 sm:pb-3 sm:pt-1.5"
       >
-        <div className="flex min-h-0 flex-1 flex-col overflow-visible pb-[min(5vh,42px)] lg:-translate-y-6 lg:pb-[min(4vh,34px)]">
+        <div className="flex min-h-0 flex-1 flex-col overflow-visible pb-[min(5vh,42px)] lg:-translate-y-3 lg:pb-[min(4vh,34px)]">
           <div className="mb-0.5 flex shrink-0 flex-col gap-0.5 lg:mb-1 lg:gap-1">{headerBlock}</div>
 
           {/* Мобилка: сетка 2×6 без центрального постера */}
@@ -335,7 +335,7 @@ export default function VibeAudioTestPanel({
 
           {/* Десктоп: ваша схема — две колонки треков и постер по центру (без рамок/карточек) */}
           <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-visible lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,min(34vw,420px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
-            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pr-1 lg:translate-y-2">
+            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pr-1 lg:translate-y-5">
               {TRACKS_LEFT.map((t) => renderTrackCard(t))}
             </div>
             <div className="flex w-full flex-col items-center justify-start pt-0 lg:-translate-y-4">
@@ -346,13 +346,13 @@ export default function VibeAudioTestPanel({
                 draggable={false}
               />
             </div>
-            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pl-1 lg:translate-y-2">
+            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pl-1 lg:translate-y-5">
               {TRACKS_RIGHT.map((t) => renderTrackCard(t))}
             </div>
           </div>
 
           {(onBackToBook || onPlayGame || onEnterWord) && (
-            <div className="mt-2 flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:mt-3 sm:gap-3 sm:pt-3 lg:mt-2 lg:w-[min(35vw,430px)] lg:self-center lg:flex-nowrap lg:justify-between lg:gap-2">
+            <div className="mt-2 flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:mt-3 sm:gap-3 sm:pt-3 lg:-mt-1 lg:w-[min(35vw,430px)] lg:self-center lg:flex-nowrap lg:justify-between lg:gap-2 lg:pt-0">
               {onBackToBook && (
                 <NeonGlassButton
                   accent
