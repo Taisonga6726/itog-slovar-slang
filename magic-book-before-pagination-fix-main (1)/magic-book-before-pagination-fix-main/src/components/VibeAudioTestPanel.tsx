@@ -174,8 +174,8 @@ export default function VibeAudioTestPanel({
         </div>
 
         {/* Реакции отдельным блоком под дорожкой (не объединяем в одну карточку с треком) */}
-        <div className="flex w-full justify-end">
-          <div className="inline-flex flex-nowrap items-center gap-1 rounded-lg border border-white/[0.14] bg-black/45 px-1.5 py-0.5 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.16)] sm:gap-1.5 sm:px-2">
+        <div className="flex w-full justify-end pr-1 lg:pr-2">
+          <div className="inline-flex translate-x-1 flex-nowrap items-center gap-1 rounded-lg border border-white/[0.14] bg-black/45 px-1.5 py-0.5 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.16)] sm:gap-1.5 sm:px-2">
           {REACTIONS.map(({ key, emoji }) => (
             <button
               key={key}
@@ -195,13 +195,13 @@ export default function VibeAudioTestPanel({
   };
 
   const statCardBase =
-    "flex w-auto min-w-[13.5rem] max-w-[18.5rem] flex-col justify-center rounded-full border border-white/20 px-6 py-3 text-center shadow-[0_0_14px_rgba(168,85,247,0.25)] sm:min-w-[15rem] sm:max-w-[20rem] sm:px-7 sm:py-3.5";
+    "flex h-[4.3rem] w-[17.5rem] shrink-0 flex-col justify-center rounded-full border border-white/20 px-6 py-3 text-center shadow-[0_0_14px_rgba(168,85,247,0.25)] sm:h-[4.6rem] sm:w-[18.5rem] sm:px-7 sm:py-3.5";
   const statReactionRowClass =
-    "mt-1 inline-flex flex-nowrap items-center justify-center gap-1 rounded-full border border-white/[0.2] bg-black/40 px-3 py-1.5 text-[12px] text-white/95 sm:text-[13px]";
+    "mt-1 inline-flex h-[2.1rem] w-[17.5rem] shrink-0 translate-x-1 flex-nowrap items-center justify-center gap-1 rounded-full border border-white/[0.2] bg-black/40 px-3 py-1.5 text-[12px] text-white/95 sm:h-[2.25rem] sm:w-[18.5rem] sm:text-[13px]";
 
   const headerBlock = (
     <>
-      <VibeAiLogoMark className="mb-1 shrink-0 sm:mb-1.5" />
+      <VibeAiLogoMark className="mb-0.5 shrink-0 sm:mb-1" />
       <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 px-1 sm:gap-3 sm:px-4 lg:hidden">
         <div
           className={cn(statCardBase)}
@@ -239,8 +239,8 @@ export default function VibeAudioTestPanel({
       </div>
 
       {/* Desktop: статистика строго над левыми/правыми дорожками */}
-      <div className="hidden shrink-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(300px,min(46vw,560px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:-translate-y-3 xl:gap-3">
-        <div className="flex flex-col items-start pl-1 lg:translate-x-5">
+      <div className="hidden shrink-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(300px,min(44vw,540px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:-translate-y-2 xl:gap-3">
+        <div className="flex flex-col items-center pl-1">
           <div
             className={cn(statCardBase)}
             style={{
@@ -261,7 +261,7 @@ export default function VibeAudioTestPanel({
 
         <div />
 
-        <div className="flex flex-col items-end pr-1 lg:-translate-x-5">
+        <div className="flex flex-col items-center pr-1">
           <div
             className={cn(statCardBase)}
             style={{
@@ -319,7 +319,7 @@ export default function VibeAudioTestPanel({
       </button>
 
       <div
-        className="relative z-[205] mx-auto flex min-h-[100dvh] w-full max-w-[min(1280px,96vw)] flex-col px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.4rem,env(safe-area-inset-top))] sm:px-5 sm:pb-3 sm:pt-2"
+        className="relative z-[205] mx-auto flex min-h-[100dvh] w-full max-w-[min(1240px,95vw)] flex-col px-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-[max(0.3rem,env(safe-area-inset-top))] sm:px-5 sm:pb-3 sm:pt-1.5"
       >
         <div className="flex min-h-0 flex-1 flex-col overflow-visible pb-[min(5vh,42px)] lg:-translate-y-6 lg:pb-[min(4vh,34px)]">
           <div className="mb-0.5 flex shrink-0 flex-col gap-0.5 lg:mb-1 lg:gap-1">{headerBlock}</div>
@@ -332,19 +332,19 @@ export default function VibeAudioTestPanel({
           </div>
 
           {/* Десктоп: ваша схема — две колонки треков и постер по центру (без рамок/карточек) */}
-          <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-visible lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,min(36vw,440px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
-            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pr-1 lg:translate-x-4 lg:-translate-y-2">
+          <div className="hidden min-h-0 min-w-0 flex-1 gap-2 overflow-visible lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(280px,min(34vw,420px))_minmax(0,1fr)] lg:items-start lg:gap-2 lg:pb-0 xl:gap-3">
+            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pr-1 lg:-translate-y-1">
               {TRACKS_LEFT.map((t) => renderTrackCard(t))}
             </div>
-            <div className="flex w-full flex-col items-center justify-start pt-0 lg:-translate-y-10">
+            <div className="flex w-full flex-col items-center justify-start pt-0 lg:-translate-y-16">
               <img
                 src={VIBE_HOST_PHOTO_SRC}
                 alt=""
-                className="h-auto w-auto max-w-[min(40vw,500px)] max-h-[min(72vh,760px)] object-contain object-top"
+                className="h-auto w-auto max-w-[min(35vw,430px)] max-h-[min(68vh,700px)] object-contain object-top"
                 draggable={false}
               />
             </div>
-            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pl-1 lg:-translate-x-4 lg:-translate-y-2">
+            <div className="grid min-h-0 min-w-0 grid-rows-6 gap-1 overflow-visible pl-1 lg:-translate-y-1">
               {TRACKS_RIGHT.map((t) => renderTrackCard(t))}
             </div>
           </div>
@@ -354,7 +354,7 @@ export default function VibeAudioTestPanel({
               {onBackToBook && (
                 <NeonGlassButton
                   accent
-                  className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!min-h-[2.75rem] sm:!text-sm"
+                  className="pointer-events-auto !h-[2.75rem] !w-[10.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!h-[2.9rem] sm:!w-[11rem] sm:!text-sm"
                   onClick={onBackToBook}
                 >
                   назад к книге
@@ -363,7 +363,7 @@ export default function VibeAudioTestPanel({
               {onPlayGame && (
                 <NeonGlassButton
                   accent
-                  className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!min-h-[2.75rem] sm:!text-sm"
+                  className="pointer-events-auto !h-[2.75rem] !w-[10.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!h-[2.9rem] sm:!w-[11rem] sm:!text-sm"
                   onClick={onPlayGame}
                 >
                   Крутим удачу?
@@ -372,7 +372,7 @@ export default function VibeAudioTestPanel({
               {onEnterWord && (
                 <NeonGlassButton
                   accent
-                  className="pointer-events-auto !min-h-[2.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!min-h-[2.75rem] sm:!text-sm"
+                  className="pointer-events-auto !h-[2.75rem] !w-[10.5rem] !px-4 !py-2 !text-center !text-[11px] sm:!h-[2.9rem] sm:!w-[11rem] sm:!text-sm"
                   onClick={onEnterWord}
                 >
                   ввести слово
