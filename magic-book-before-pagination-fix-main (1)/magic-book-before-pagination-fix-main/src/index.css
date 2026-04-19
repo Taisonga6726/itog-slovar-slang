@@ -463,6 +463,18 @@
   max-width: 100%;
 }
 
+/* Как .ai-logo-hotspot на первом экране (обложка): те же габариты, без position:absolute */
+.mb-ai-logo-hotspot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(27vw, 360px);
+  height: min(19vh, 190px);
+  border-radius: 14px;
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
 .tz-vibe-ai-logo-wrap {
   position: relative;
   display: flex;
