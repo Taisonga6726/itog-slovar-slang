@@ -250,21 +250,6 @@ const Index = () => {
     }
   }, []);
 
-  /** Пауза фонового гимна без сброса — чтобы на панели выбора версий слушать превью. */
-  const pauseBackgroundHymnSoft = useCallback(() => {
-    try {
-      hymnAudio.current?.pause();
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
-  /** Возобновить гимн после закрытия панели (если он был запущен). */
-  const resumeBackgroundHymnAfterPanel = useCallback(() => {
-    if (!hymnStartedRef.current || !hymnAudio.current) return;
-    void hymnAudio.current.play().catch(() => {});
-  }, []);
-
   /** Р“РёРјРЅ СЂРѕРґРёС‚РµР»СЏ: РїРѕ СЃРёРіРЅР°Р»Сѓ РёР· iframe; ref В«Р·Р°РїСѓС‰РµРЅВ» С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ play (РёРЅР°С‡Рµ РїРѕРІС‚РѕСЂРЅС‹Р№ РєР»РёРє РјРѕР»С‡РёС‚). */
   const startBookHymnFromIntro = useCallback(() => {
     if (!hymnAudio.current) {
@@ -395,52 +380,7 @@ const Index = () => {
     }
   }, [mode, entries.length]);
 
-  const duckHymnForEffects = useCallback((holdMs = 1000) => {
-    const audio = hymnAudio.current;
-    if (!audio) return;
-    if (HYMN_DUCK_VOLUME === HYMN_BASE_VOLUME) return;
-    const eff = (v: number) => (bookSoundMuted ? 0 : v);
-    try {
-      audio.volume = eff(HYMN_DUCK_VOLUME);
-    } catch {
-      return;
-    }
-    if (duckTimerRef.current) window.clearTimeout(duckTimerRef.current);
-    if (duckRafRef.current) window.cancelAnimationFrame(duckRafRef.current);
-
-    duckTimerRef.current = window.setTimeout(() => {
-      const startVol = audio.volume;
-      const startTs = performance.now();
-      const duration = 650;
-
-      const step = (now: number) => {
-        const t = Math.min(1, (now - startTs) / duration);
-        const eased = 1 - Math.pow(1 - t, 3);
-        const next = startVol + (HYMN_BASE_VOLUME - startVol) * eased;
-        try {
-          audio.volume = eff(next);
-        } catch {
-          return;
-        }
-        if (t < 1) {
-          duckRafRef.current = window.requestAnimationFrame(step);
-        } else {
-          duckRafRef.current = null;
-        }
-      };
-      duckRafRef.current = window.requestAnimationFrame(step);
-    }, holdMs);
-  }, [bookSoundMuted]);
-
-  useEffect(() => {
-    const onDuck = (ev: Event) => {
-      const custom = ev as CustomEvent<{ holdMs?: number }>;
-      const holdMs = typeof custom.detail?.holdMs === "number" ? custom.detail.holdMs : 1000;
-      duckHymnForEffects(holdMs);
-    };
-    window.addEventListener("magicbook:duck-audio", onDuck as EventListener);
-    return () => window.removeEventListener("magicbook:duck-audio", onDuck as EventListener);
-  }, [duckHymnForEffects]);
+  /** По ТЗ: автоприглушение фона полностью отключено, громкость единая на всех экранах. */
 
   const playFlipSound = useCallback(() => {
     if (!flipAudio.current) return;
@@ -566,8 +506,6 @@ const Index = () => {
         <FinalScreen
           entries={entries}
           onBack={() => setMode("form")}
-          onPauseBackgroundHymn={pauseBackgroundHymnSoft}
-          onResumeBackgroundHymn={resumeBackgroundHymnAfterPanel}
           onHymnPanelOpenChange={setHymnPanelOpen}
           onHymnPlayGame={() =>
             toast({
