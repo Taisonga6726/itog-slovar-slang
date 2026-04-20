@@ -14,6 +14,8 @@ interface SpinResult {
   phrase: string;
 }
 
+type BackgroundVariant = "A" | "B" | "C" | "D";
+
 export default function PoleChudesTestGame() {
   const [stage, setStage] = useState<GameStage>("START");
   const [results, setResults] = useState<SpinResult[]>([]);
@@ -21,6 +23,7 @@ export default function PoleChudesTestGame() {
   const [usedPhrases, setUsedPhrases] = useState<Record<string, Set<string>>>({});
   const [isSpinning, setIsSpinning] = useState(false);
   const [muted, setMuted] = useState(false);
+  const [backgroundVariant, setBackgroundVariant] = useState<BackgroundVariant>("A");
   const victoryFanfareRef = useRef<HTMLAudioElement | null>(null);
   const applauseRef = useRef<HTMLAudioElement | null>(null);
 
@@ -137,23 +140,58 @@ export default function PoleChudesTestGame() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black font-book text-white selection:bg-purple-500/30">
-      <div className="pointer-events-none fixed inset-0 z-0 flex items-end justify-center bg-black">
-        <img
-          src="/images/fon-dlya-gimn.png"
-          alt=""
-          className="h-auto max-h-[100dvh] w-full max-w-[min(1600px,100vw)] select-none object-contain object-bottom"
-          draggable={false}
-        />
-      </div>
+      {(backgroundVariant === "A" || backgroundVariant === "C" || backgroundVariant === "D") && (
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+          <video
+            src="/videos/grok-read-book-03.mp4"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            className={`h-full w-full object-cover ${backgroundVariant === "C" ? "scale-110 blur-[3px] opacity-35" : "opacity-50"}`}
+          />
+        </div>
+      )}
+
+      {(backgroundVariant === "B" || backgroundVariant === "C") && (
+        <div className="pointer-events-none fixed inset-0 z-0 bg-black">
+          <img
+            src="/images/open-book.png"
+            alt=""
+            className={`h-full w-full select-none object-cover ${backgroundVariant === "B" ? "scale-110 opacity-34 blur-sm" : "scale-105 opacity-22 blur-md"}`}
+            draggable={false}
+          />
+        </div>
+      )}
+
+      <div className={`pointer-events-none fixed inset-0 z-0 ${backgroundVariant === "B" ? "bg-black/42" : "bg-black/48"}`} />
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute left-[10%] top-[5%] h-[760px] w-[760px] animate-pulse rounded-full bg-fuchsia-900/30 blur-[160px]" />
-        <div className="absolute right-[5%] top-[20%] h-[560px] w-[560px] animate-pulse rounded-full bg-sky-900/20 blur-[140px] [animation-delay:3s]" />
+        <div className="absolute left-[10%] top-[5%] h-[760px] w-[760px] animate-pulse rounded-full bg-fuchsia-900/35 blur-[160px]" />
+        <div className="absolute right-[5%] top-[20%] h-[560px] w-[560px] animate-pulse rounded-full bg-sky-900/25 blur-[140px] [animation-delay:3s]" />
       </div>
       <div className="fixed inset-0 z-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:100px_100px] animate-[pulse_5s_infinite]" />
       <MagicRingsGlobal className="magic-rings-fx--luck-page" containerId="mbPoleChudesTestRings" canvasId="mbPoleChudesTestRingsCanvas" />
 
       <div className="relative z-10 flex min-h-screen flex-col">
-        <div className="mx-auto mt-3 flex w-full max-w-[min(1240px,96vw)] items-center justify-end px-3 sm:px-6">
+        <div className="mx-auto mt-3 flex w-full max-w-[min(1240px,96vw)] flex-wrap items-center justify-end gap-2 px-3 sm:px-6">
+          <div className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 p-1 backdrop-blur-md">
+            {(["A", "B", "C", "D"] as BackgroundVariant[]).map((variant) => (
+              <button
+                key={variant}
+                type="button"
+                onClick={() => setBackgroundVariant(variant)}
+                className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase transition ${
+                  backgroundVariant === variant
+                    ? "bg-fuchsia-500/80 text-white shadow-[0_0_12px_rgba(217,70,239,0.5)]"
+                    : "text-white/80 hover:bg-white/10"
+                }`}
+                title={`Вариант ${variant}`}
+              >
+                {variant}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
             onClick={() => setMuted((prev) => !prev)}
@@ -204,25 +242,22 @@ export default function PoleChudesTestGame() {
               exit={{ opacity: 0 }}
               className="flex flex-1 flex-col items-center justify-center space-y-8 p-6"
             >
-              <div className="relative rounded-[40px] bg-gradient-to-br from-[#8F6B29] via-[#fcf6ba] to-[#aa771c] p-1 shadow-[0_0_100px_rgba(191,149,63,0.3)] md:p-3">
-                <div className="relative overflow-hidden rounded-[32px] border-2 border-black/40 bg-[#120422] p-4 md:p-10">
-                  <div className="absolute inset-0 flex flex-col items-center justify-between py-12 opacity-5 pointer-events-none select-none">
-                    <span className="font-serif text-2xl">Школа SSM</span>
-                    <span className="px-4 text-center font-serif text-4xl">СЛОВАРЬ СЛЭНГА ВАЙБ КОДЕРА</span>
-                    <span className="text-center font-serif text-xl italic">Первого потока курса "ВайбКОДИНГ-2026!"</span>
-                  </div>
-                  <div className="relative z-10 flex flex-col items-center">
-                    <div className="mb-6 text-center">
-                      <h2 className="mb-2 text-sm font-bold uppercase tracking-[0.5em] text-white/40">
-                        Попытка {results.length + 1} / {maxSpins}
-                      </h2>
-                      <h3 className="font-serif text-xl italic text-[#fcf6ba] drop-shadow-[0_0_10px_rgba(252,246,186,0.3)]">
-                        СЛОВАРЬ СЛЭНГА ВАЙБ КОДЕРА
-                      </h3>
-                    </div>
-                    <Wheel onSpinEnd={handleSpinEnd} isSpinning={isSpinning} setIsSpinning={setIsSpinning} />
-                  </div>
+              <div className="relative z-10 flex flex-col items-center">
+                {(backgroundVariant === "B" || backgroundVariant === "D") && (
+                  <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[80vmin] w-[80vmin] max-h-[760px] max-w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(252,246,186,0.18)_0%,rgba(217,70,239,0.16)_35%,rgba(56,189,248,0.12)_55%,rgba(0,0,0,0)_72%)] blur-2xl" />
+                )}
+                {backgroundVariant === "D" && (
+                  <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[84vmin] w-[84vmin] max-h-[800px] max-w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#fcf6ba]/25 shadow-[0_0_60px_rgba(252,246,186,0.35),0_0_120px_rgba(236,72,153,0.25)]" />
+                )}
+                <div className="mb-3 text-center">
+                  <h2 className="mb-2 text-xs font-bold uppercase tracking-[0.5em] text-white/45 sm:text-sm">
+                    Попытка {results.length + 1} / {maxSpins}
+                  </h2>
+                  <h3 className="font-serif text-lg italic text-[#fcf6ba] drop-shadow-[0_0_10px_rgba(252,246,186,0.25)] sm:text-xl">
+                    СЛОВАРЬ СЛЭНГА ВАЙБ КОДЕРА
+                  </h3>
                 </div>
+                <Wheel onSpinEnd={handleSpinEnd} isSpinning={isSpinning} setIsSpinning={setIsSpinning} muted={muted} />
               </div>
             </motion.div>
           )}

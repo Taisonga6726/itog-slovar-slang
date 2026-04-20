@@ -1,14 +1,16 @@
 import React, { useState } from "react";
 import { motion, useAnimation } from "motion/react";
+import NeonGlassButton from "@/components/NeonGlassButton";
 import { CATEGORIES } from "./constants";
 
 interface WheelProps {
   onSpinEnd: (categoryId: string) => void;
   isSpinning: boolean;
   setIsSpinning: (val: boolean) => void;
+  muted?: boolean;
 }
 
-export const Wheel: React.FC<WheelProps> = ({ onSpinEnd, isSpinning, setIsSpinning }) => {
+export const Wheel: React.FC<WheelProps> = ({ onSpinEnd, isSpinning, setIsSpinning, muted = false }) => {
   const controls = useAnimation();
   const [rotation, setRotation] = useState(0);
 
@@ -21,7 +23,7 @@ export const Wheel: React.FC<WheelProps> = ({ onSpinEnd, isSpinning, setIsSpinni
     const totalRotation = rotation + spins * 360 + extraDegrees;
 
     const clickSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3");
-    clickSound.volume = 0.2;
+    clickSound.volume = muted ? 0 : 0.2;
 
     const startTime = Date.now();
     const duration = 4000;
@@ -70,7 +72,7 @@ export const Wheel: React.FC<WheelProps> = ({ onSpinEnd, isSpinning, setIsSpinni
         <div className="h-0 w-0 border-l-[12px] border-r-[12px] border-t-[20px] border-l-transparent border-r-transparent border-t-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
       </div>
 
-      <motion.div animate={controls} initial={{ rotate: 0 }} className="relative z-10 h-[320px] w-[320px] md:h-[600px] md:w-[600px]">
+      <motion.div animate={controls} initial={{ rotate: 0 }} className="relative z-10 h-[390px] w-[390px] md:h-[700px] md:w-[700px]">
         <svg viewBox="-10 -10 120 120" className="h-full w-full -rotate-90 transform drop-shadow-[0_0_30px_rgba(147,51,234,0.3)]">
           <defs>
             <linearGradient id="goldGradientTest" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -182,17 +184,14 @@ export const Wheel: React.FC<WheelProps> = ({ onSpinEnd, isSpinning, setIsSpinni
         </div>
       </motion.div>
 
-      <button
+      <NeonGlassButton
         onClick={spin}
         disabled={isSpinning}
-        className={`z-20 mt-12 rounded-2xl px-12 py-5 text-2xl font-black uppercase transition-all active:scale-95 ${
-          isSpinning
-            ? "cursor-not-allowed border-2 border-gray-700 bg-gray-800 text-gray-400"
-            : "border-b-4 border-pink-700 bg-[#ff00ff] text-white shadow-[0_0_30px_rgba(255,0,255,0.4)] hover:scale-105 hover:shadow-[0_0_50px_rgba(255,0,255,0.6)] active:translate-y-1 active:border-b-0"
-        }`}
+        accent
+        className="z-20 !mt-10 !px-10 !py-3 !text-base sm:!text-lg"
       >
         Крутить барабан
-      </button>
+      </NeonGlassButton>
     </div>
   );
 };
