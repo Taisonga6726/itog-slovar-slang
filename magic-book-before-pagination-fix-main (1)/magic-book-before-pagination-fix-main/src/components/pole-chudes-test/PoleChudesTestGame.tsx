@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import confetti from "canvas-confetti";
 import { AppWindow, Code2, GraduationCap, RotateCcw, Sparkles, Trophy, Volume2, VolumeX, Zap } from "lucide-react";
@@ -16,110 +16,211 @@ interface SpinResult {
 
 type BackgroundVariant = "A" | "B" | "C" | "D";
 
+const BACKGROUND_FLOW: BackgroundVariant[] = ["A", "B", "D", "C"];
+const MAX_SPINS = 4;
+
+const AUDIO = {
+  START_CLICK: "КЛИК вау начало.MP3",
+  START_WOW: "вау_труба.MP3",
+  START_APPLAUSE: "фанфары аплодисменты .MP3",
+  SPIN: "прокрутка колеса 02.MP3",
+  REACTIONS: ["смех девочка1.MP3", "смех мальчик 1 .MP3", "смех мужчина 1.MP3", "довольный мальчик.MP3"],
+  FINAL: ["фанфары аплодисменты .MP3", "фейерверк фанфары аплодисменты.MP3"],
+} as const;
+
+const toAudioSrc = (fileName: string) => `/audio/${encodeURIComponent(fileName)}`;
+
 export default function PoleChudesTestGame() {
   const [stage, setStage] = useState<GameStage>("START");
   const [results, setResults] = useState<SpinResult[]>([]);
   const [currentResult, setCurrentResult] = useState<SpinResult | null>(null);
   const [usedPhrases, setUsedPhrases] = useState<Record<string, Set<string>>>({});
   const [isSpinning, setIsSpinning] = useState(false);
+  const [rotation, setRotation] = useState(0);
+  const [spinDuration, setSpinDuration] = useState(2.6);
   const [muted, setMuted] = useState(false);
   const [backgroundVariant, setBackgroundVariant] = useState<BackgroundVariant>("A");
-  const victoryFanfareRef = useRef<HTMLAudioElement | null>(null);
-  const applauseRef = useRef<HTMLAudioElement | null>(null);
+  const [playReady, setPlayReady] = useState(false);
+  const [resultReady, setResultReady] = useState(false);
+  const [finalReady, setFinalReady] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const spinResolveRef = useRef<(() => void) | null>(null);
 
-  const maxSpins = 4;
+  const playAudioToEnd = useCallback(
+    async (fileName: string, volume = 1): Promise<number> => {
+      const audio = new Audio(toAudioSrc(fileName));
+      audio.preload = "auto";
+      audio.volume = muted ? 0 : volume;
+      const durationPromise = new Promise<number>((resolve) => {
+        const settle = () => resolve(Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 2.4);
+        if (audio.readyState >= 1) settle();
+        else {
+          audio.addEventListener("loadedmetadata", settle, { once: true });
+          window.setTimeout(settle, 700);
+        }
+      });
+      const donePromise = new Promise<void>((resolve) => {
+        const done = () => resolve();
+        audio.addEventListener("ended", done, { once: true });
+        audio.addEventListener("error", done, { once: true });
+      });
+      void audio.play().catch(() => {});
+      const duration = await durationPromise;
+      await donePromise;
+      return duration;
+    },
+    [muted],
+  );
 
-  useEffect(() => {
-    victoryFanfareRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3");
-    victoryFanfareRef.current.volume = 0.75;
-    applauseRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3");
-    applauseRef.current.volume = 0.7;
-    applauseRef.current.loop = true;
+  const startAudioAndGetMeta = useCallback(
+    (fileName: string, volume = 1): { durationPromise: Promise<number>; donePromise: Promise<void> } => {
+      const audio = new Audio(toAudioSrc(fileName));
+      audio.preload = "auto";
+      audio.volume = muted ? 0 : volume;
+      const durationPromise = new Promise<number>((resolve) => {
+        const settle = () => resolve(Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 2.4);
+        if (audio.readyState >= 1) settle();
+        else {
+          audio.addEventListener("loadedmetadata", settle, { once: true });
+          window.setTimeout(settle, 700);
+        }
+      });
+      const donePromise = new Promise<void>((resolve) => {
+        const done = () => resolve();
+        audio.addEventListener("ended", done, { once: true });
+        audio.addEventListener("error", done, { once: true });
+      });
+      void audio.play().catch(() => {});
+      return { durationPromise, donePromise };
+    },
+    [muted],
+  );
 
-    return () => {
-      if (victoryFanfareRef.current) {
-        victoryFanfareRef.current.pause();
-        victoryFanfareRef.current.currentTime = 0;
-      }
-      if (applauseRef.current) {
-        applauseRef.current.pause();
-        applauseRef.current.currentTime = 0;
-      }
-    };
-  }, []);
-
-  const playVictoryStack = useCallback(() => {
-    if (muted) return;
-    const fanfare = victoryFanfareRef.current;
-    const applause = applauseRef.current;
-    if (!fanfare || !applause) return;
-
-    fanfare.currentTime = 0;
-    applause.currentTime = 0;
-    void fanfare.play().catch(() => {});
-    void applause.play().catch(() => {});
-  }, [muted]);
-
-  const stopFinalSounds = useCallback(() => {
-    if (victoryFanfareRef.current) {
-      victoryFanfareRef.current.pause();
-      victoryFanfareRef.current.currentTime = 0;
-    }
-    if (applauseRef.current) {
-      applauseRef.current.pause();
-      applauseRef.current.currentTime = 0;
-    }
-  }, []);
-
-  const handleSpinEnd = useCallback(
-    (categoryId: string) => {
-      const categoryPhrases = PHRASES[categoryId];
-      const categoryUsed = usedPhrases[categoryId] || new Set();
+  const pickSpinResult = useCallback(
+    (snapshot: Record<string, Set<string>>) => {
+      const sector = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+      const categoryPhrases = PHRASES[sector.id];
+      const categoryUsed = snapshot[sector.id] || new Set();
       const availablePhrases = categoryPhrases.filter((p) => !categoryUsed.has(p));
       const phrase =
         availablePhrases.length > 0
           ? availablePhrases[Math.floor(Math.random() * availablePhrases.length)]
           : categoryPhrases[Math.floor(Math.random() * categoryPhrases.length)];
-
-      const newResult = { category: categoryId, phrase };
-      setUsedPhrases((prev) => ({ ...prev, [categoryId]: new Set([...categoryUsed, phrase]) }));
-      setCurrentResult(newResult);
-      setResults((prev) => [...prev, newResult]);
-      setStage("RESULT");
-
-      confetti({
-        particleCount: 50,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: [CATEGORIES.find((c) => c.id === categoryId)?.color || "#ffffff"],
-      });
+      return { categoryId: sector.id, phrase };
     },
-    [usedPhrases],
+    [],
   );
 
-  const nextAction = () => {
-    if (results.length >= maxSpins) {
+  const calcTargetRotation = useCallback((currentRotation: number, categoryId: string) => {
+    const sectorSize = 360 / CATEGORIES.length;
+    const targetIndex = CATEGORIES.findIndex((c) => c.id === categoryId);
+    const finalRotation = (360 - (targetIndex + 0.5) * sectorSize + 360) % 360;
+    const wheelPos = ((currentRotation % 360) + 360) % 360;
+    let delta = (finalRotation - wheelPos + 360) % 360;
+    if (delta < 20) delta += 360;
+    const fullSpins = 360 * (4 + Math.floor(Math.random() * 2));
+    return currentRotation + fullSpins + delta;
+  }, []);
+
+  const handleStart = useCallback(async () => {
+    if (busy) return;
+    setBusy(true);
+    setPlayReady(false);
+    await playAudioToEnd(AUDIO.START_CLICK, 0.95);
+    await playAudioToEnd(AUDIO.START_WOW, 0.95);
+    await playAudioToEnd(AUDIO.START_APPLAUSE, 0.9);
+    setBackgroundVariant("A");
+    setStage("PLAYING");
+    setPlayReady(true);
+    setBusy(false);
+  }, [busy, playAudioToEnd]);
+
+  const handleSpinAnimationComplete = useCallback(() => {
+    spinResolveRef.current?.();
+    spinResolveRef.current = null;
+  }, []);
+
+  const handleSpin = useCallback(async () => {
+    if (busy || !playReady || isSpinning || stage !== "PLAYING") return;
+    setBusy(true);
+    setPlayReady(false);
+    setResultReady(false);
+
+    const usedSnapshot = usedPhrases;
+    const spinResult = pickSpinResult(usedSnapshot);
+    const nextRotation = calcTargetRotation(rotation, spinResult.categoryId);
+    const animationDone = new Promise<void>((resolve) => {
+      spinResolveRef.current = resolve;
+    });
+
+    const spinAudio = startAudioAndGetMeta(AUDIO.SPIN, 0.95);
+    setSpinDuration(2.6);
+    setIsSpinning(true);
+    setRotation(nextRotation);
+
+    await Promise.all([animationDone, spinAudio.donePromise]);
+    setIsSpinning(false);
+
+    const newResult = { category: spinResult.categoryId, phrase: spinResult.phrase };
+    const categoryUsed = usedSnapshot[spinResult.categoryId] || new Set();
+    setUsedPhrases((prev) => ({
+      ...prev,
+      [spinResult.categoryId]: new Set([...categoryUsed, spinResult.phrase]),
+    }));
+    setCurrentResult(newResult);
+    setResults((prev) => [...prev, newResult]);
+    setStage("RESULT");
+    confetti({
+      particleCount: 50,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: [CATEGORIES.find((c) => c.id === spinResult.categoryId)?.color || "#ffffff"],
+    });
+
+    const reactionBank = AUDIO.REACTIONS;
+    const reactionAudio = reactionBank[Math.floor(Math.random() * reactionBank.length)];
+    await playAudioToEnd(reactionAudio, 0.95);
+
+    setBackgroundVariant(BACKGROUND_FLOW[Math.min(results.length + 1, BACKGROUND_FLOW.length - 1)]);
+    setResultReady(true);
+    setBusy(false);
+  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, playAudioToEnd, startAudioAndGetMeta, results.length]);
+
+  const nextAction = useCallback(async () => {
+    if (!resultReady || busy) return;
+    if (results.length >= MAX_SPINS) {
+      setBusy(true);
+      setFinalReady(false);
       setStage("FINAL");
-      playVictoryStack();
-      confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 }, scalar: 1.2 });
+      confetti({ particleCount: 180, spread: 120, origin: { y: 0.5 }, scalar: 1.2 });
+      const finalBank = AUDIO.FINAL;
+      const finalAudio = finalBank[Math.floor(Math.random() * finalBank.length)];
+      await playAudioToEnd(finalAudio, 1);
+      setFinalReady(true);
+      setBusy(false);
       return;
     }
-    setStage("PLAYING");
+    setBusy(true);
     setCurrentResult(null);
-  };
+    setStage("PLAYING");
+    setPlayReady(true);
+    setBusy(false);
+  }, [resultReady, busy, results.length, playAudioToEnd]);
 
-  const resetGame = () => {
-    stopFinalSounds();
+  const resetGame = useCallback(() => {
+    if (busy) return;
     setStage("START");
     setResults([]);
     setCurrentResult(null);
     setUsedPhrases({});
-  };
-
-  useEffect(() => {
-    if (!muted) return;
-    stopFinalSounds();
-  }, [muted, stopFinalSounds]);
+    setBackgroundVariant("A");
+    setPlayReady(false);
+    setResultReady(false);
+    setFinalReady(false);
+    setBusy(false);
+    setIsSpinning(false);
+    setRotation(0);
+  }, [busy]);
 
   const getCategoryIcon = (id: string) => {
     switch (id) {
@@ -149,7 +250,7 @@ export default function PoleChudesTestGame() {
             loop
             playsInline
             preload="auto"
-            className={`h-full w-full object-cover ${backgroundVariant === "C" ? "scale-110 blur-[3px] opacity-35" : "opacity-50"}`}
+            className={`h-full w-full object-cover ${backgroundVariant === "C" ? "scale-110 blur-[3px] opacity-35" : "opacity-50"} ${backgroundVariant === "A" || backgroundVariant === "D" ? "scale-[0.9]" : ""}`}
           />
         </div>
       )}
@@ -175,23 +276,6 @@ export default function PoleChudesTestGame() {
 
       <div className="relative z-10 flex min-h-screen flex-col">
         <div className="mx-auto mt-3 flex w-full max-w-[min(1240px,96vw)] flex-wrap items-center justify-end gap-2 px-3 sm:px-6">
-          <div className="inline-flex items-center gap-1 rounded-full border border-white/20 bg-black/40 p-1 backdrop-blur-md">
-            {(["A", "B", "C", "D"] as BackgroundVariant[]).map((variant) => (
-              <button
-                key={variant}
-                type="button"
-                onClick={() => setBackgroundVariant(variant)}
-                className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase transition ${
-                  backgroundVariant === variant
-                    ? "bg-fuchsia-500/80 text-white shadow-[0_0_12px_rgba(217,70,239,0.5)]"
-                    : "text-white/80 hover:bg-white/10"
-                }`}
-                title={`Вариант ${variant}`}
-              >
-                {variant}
-              </button>
-            ))}
-          </div>
           <button
             type="button"
             onClick={() => setMuted((prev) => !prev)}
@@ -227,7 +311,7 @@ export default function PoleChudesTestGame() {
                 <p className="mb-8 text-2xl font-semibold leading-tight text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] md:text-3xl">
                   Твой финальный вайбкодерский расклад решит одно вращение.
                 </p>
-                <NeonGlassButton accent className="!px-10 !py-3 !text-base sm:!text-lg" onClick={() => setStage("PLAYING")}>
+                <NeonGlassButton accent className="!px-10 !py-3 !text-base sm:!text-lg" disabled={busy} onClick={() => void handleStart()}>
                   Крутим удачу?
                 </NeonGlassButton>
               </div>
@@ -243,21 +327,39 @@ export default function PoleChudesTestGame() {
               className="flex flex-1 flex-col items-center justify-center space-y-8 p-6"
             >
               <div className="relative z-10 flex flex-col items-center">
+                <h3 className="mb-2 text-center font-serif text-lg font-semibold tracking-[0.2em] text-white/85 drop-shadow-[0_0_12px_rgba(255,255,255,0.35)] sm:text-xl">
+                  СЛОВАРЬ СЛЭНГА ВАЙБ КОДЕРА
+                </h3>
+                {(backgroundVariant === "A" || backgroundVariant === "D") && (
+                  <div className="pointer-events-none absolute left-1/2 top-[60%] z-0 h-[64vmin] w-[64vmin] max-h-[640px] max-w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/72 blur-[1px]" />
+                )}
                 {(backgroundVariant === "B" || backgroundVariant === "D") && (
                   <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[80vmin] w-[80vmin] max-h-[760px] max-w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(252,246,186,0.18)_0%,rgba(217,70,239,0.16)_35%,rgba(56,189,248,0.12)_55%,rgba(0,0,0,0)_72%)] blur-2xl" />
                 )}
                 {backgroundVariant === "D" && (
                   <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[84vmin] w-[84vmin] max-h-[800px] max-w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#fcf6ba]/25 shadow-[0_0_60px_rgba(252,246,186,0.35),0_0_120px_rgba(236,72,153,0.25)]" />
                 )}
-                <div className="mb-3 text-center">
+                <div className="mb-2 text-center">
                   <h2 className="mb-2 text-xs font-bold uppercase tracking-[0.5em] text-white/45 sm:text-sm">
-                    Попытка {results.length + 1} / {maxSpins}
+                    Попытка {results.length + 1} / {MAX_SPINS}
                   </h2>
-                  <h3 className="font-serif text-lg italic text-[#fcf6ba] drop-shadow-[0_0_10px_rgba(252,246,186,0.25)] sm:text-xl">
-                    СЛОВАРЬ СЛЭНГА ВАЙБ КОДЕРА
-                  </h3>
                 </div>
-                <Wheel onSpinEnd={handleSpinEnd} isSpinning={isSpinning} setIsSpinning={setIsSpinning} muted={muted} />
+                <NeonGlassButton
+                  accent
+                  className="!mb-2 !px-8 !py-2.5 !text-sm sm:!mb-3 sm:!text-base"
+                  onClick={() => void handleSpin()}
+                  disabled={!playReady || isSpinning || busy}
+                >
+                  Крутить барабан
+                </NeonGlassButton>
+                <div className="-mt-4 sm:-mt-8">
+                  <Wheel
+                    rotation={rotation}
+                    spinDuration={spinDuration}
+                    isSpinning={isSpinning}
+                    onSpinAnimationComplete={handleSpinAnimationComplete}
+                  />
+                </div>
               </div>
             </motion.div>
           )}
@@ -300,8 +402,8 @@ export default function PoleChudesTestGame() {
                   {currentResult.phrase}
                 </motion.h2>
                 <div className="relative z-10 pt-10">
-                  <NeonGlassButton accent className="!w-full !py-4 !text-lg sm:!text-2xl" onClick={nextAction}>
-                    {results.length >= maxSpins ? "Узнать итог" : "Продолжить"}
+                  <NeonGlassButton accent className="!w-full !py-4 !text-lg sm:!text-2xl" disabled={!resultReady || busy} onClick={() => void nextAction()}>
+                    {results.length >= MAX_SPINS ? "Узнать итог" : "Продолжить"}
                   </NeonGlassButton>
                 </div>
               </div>
@@ -354,7 +456,7 @@ export default function PoleChudesTestGame() {
                 ))}
               </div>
               <div className="flex flex-wrap items-center justify-center gap-3">
-                <NeonGlassButton accent className="!px-8 !py-3 !text-sm sm:!text-base" onClick={resetGame}>
+                <NeonGlassButton accent className="!px-8 !py-3 !text-sm sm:!text-base" disabled={!finalReady || busy} onClick={resetGame}>
                   <span className="inline-flex items-center gap-2">
                     <RotateCcw className="h-4 w-4" />
                     Сыграть снова

@@ -1,68 +1,15 @@
-import React, { useState } from "react";
-import { motion, useAnimation } from "motion/react";
-import NeonGlassButton from "@/components/NeonGlassButton";
+import React from "react";
+import { motion } from "motion/react";
 import { CATEGORIES } from "./constants";
 
 interface WheelProps {
-  onSpinEnd: (categoryId: string) => void;
+  rotation: number;
+  spinDuration: number;
   isSpinning: boolean;
-  setIsSpinning: (val: boolean) => void;
-  muted?: boolean;
+  onSpinAnimationComplete: () => void;
 }
 
-export const Wheel: React.FC<WheelProps> = ({ onSpinEnd, isSpinning, setIsSpinning, muted = false }) => {
-  const controls = useAnimation();
-  const [rotation, setRotation] = useState(0);
-
-  const spin = async () => {
-    if (isSpinning) return;
-    setIsSpinning(true);
-
-    const spins = 5 + Math.random() * 5;
-    const extraDegrees = Math.random() * 360;
-    const totalRotation = rotation + spins * 360 + extraDegrees;
-
-    const clickSound = new Audio("https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3");
-    clickSound.volume = muted ? 0 : 0.2;
-
-    const startTime = Date.now();
-    const duration = 4000;
-    let lastClickAngle = 0;
-
-    const playClicks = () => {
-      const elapsed = Date.now() - startTime;
-      if (elapsed < duration) {
-        const progress = elapsed / duration;
-        const easedProgress = 1 - Math.pow(1 - progress, 3);
-        const currentAngle = rotation + (totalRotation - rotation) * easedProgress;
-
-        if (Math.abs(currentAngle - lastClickAngle) >= 360 / CATEGORIES.length) {
-          clickSound.currentTime = 0;
-          void clickSound.play().catch(() => {});
-          lastClickAngle = currentAngle;
-        }
-        requestAnimationFrame(playClicks);
-      }
-    };
-    playClicks();
-
-    setRotation(totalRotation);
-
-    await controls.start({
-      rotate: totalRotation,
-      transition: {
-        duration: 4,
-        ease: [0.15, 0, 0.15, 1],
-      },
-    });
-
-    const finalRotation = totalRotation % 360;
-    const sectorSize = 360 / CATEGORIES.length;
-    const targetIndex = Math.floor(((360 - (finalRotation % 360)) % 360) / sectorSize);
-    setIsSpinning(false);
-    onSpinEnd(CATEGORIES[targetIndex].id);
-  };
-
+export const Wheel: React.FC<WheelProps> = ({ rotation, spinDuration, isSpinning, onSpinAnimationComplete }) => {
   const sectorSize = 360 / CATEGORIES.length;
 
   return (
@@ -72,7 +19,15 @@ export const Wheel: React.FC<WheelProps> = ({ onSpinEnd, isSpinning, setIsSpinni
         <div className="h-0 w-0 border-l-[12px] border-r-[12px] border-t-[20px] border-l-transparent border-r-transparent border-t-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
       </div>
 
-      <motion.div animate={controls} initial={{ rotate: 0 }} className="relative z-10 h-[390px] w-[390px] md:h-[700px] md:w-[700px]">
+      <motion.div
+        initial={false}
+        animate={{ rotate: rotation }}
+        transition={{ duration: spinDuration, ease: [0.16, 0.88, 0.22, 1] }}
+        onAnimationComplete={() => {
+          if (isSpinning) onSpinAnimationComplete();
+        }}
+        className="relative z-10 h-[390px] w-[390px] md:h-[700px] md:w-[700px]"
+      >
         <svg viewBox="-10 -10 120 120" className="h-full w-full -rotate-90 transform drop-shadow-[0_0_30px_rgba(147,51,234,0.3)]">
           <defs>
             <linearGradient id="goldGradientTest" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -183,15 +138,6 @@ export const Wheel: React.FC<WheelProps> = ({ onSpinEnd, isSpinning, setIsSpinni
           </div>
         </div>
       </motion.div>
-
-      <NeonGlassButton
-        onClick={spin}
-        disabled={isSpinning}
-        accent
-        className="z-20 !mt-10 !px-10 !py-3 !text-base sm:!text-lg"
-      >
-        Крутить барабан
-      </NeonGlassButton>
     </div>
   );
 };
