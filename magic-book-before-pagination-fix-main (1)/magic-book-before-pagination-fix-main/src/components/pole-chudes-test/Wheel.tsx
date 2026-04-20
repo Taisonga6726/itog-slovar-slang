@@ -14,11 +14,6 @@ export const Wheel: React.FC<WheelProps> = ({ rotation, spinDuration, isSpinning
 
   return (
     <div className="relative flex flex-col items-center">
-      <div className="absolute top-[-30px] z-30 flex flex-col items-center">
-        <div className="h-8 w-1 bg-white shadow-[0_0_15px_#fff]" />
-        <div className="h-0 w-0 border-l-[12px] border-r-[12px] border-t-[20px] border-l-transparent border-r-transparent border-t-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
-      </div>
-
       <motion.div
         initial={false}
         animate={{ rotate: rotation }}

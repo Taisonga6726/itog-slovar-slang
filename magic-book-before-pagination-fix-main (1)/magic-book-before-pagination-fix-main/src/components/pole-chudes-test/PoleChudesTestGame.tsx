@@ -4,10 +4,11 @@ import confetti from "canvas-confetti";
 import { AppWindow, Code2, GraduationCap, RotateCcw, Sparkles, Trophy, Volume2, VolumeX, Zap } from "lucide-react";
 import MagicRingsGlobal from "@/components/MagicRingsGlobal";
 import NeonGlassButton from "@/components/NeonGlassButton";
+import VibeAiLogoMark from "@/components/VibeAiLogoMark";
 import { CATEGORIES, PHRASES } from "./constants";
 import { Wheel } from "./Wheel";
 
-type GameStage = "START" | "PLAYING" | "RESULT" | "FINAL";
+type GameStage = "START" | "SPLASH" | "PLAYING" | "RESULT" | "FINAL";
 
 interface SpinResult {
   category: string;
@@ -22,7 +23,6 @@ const MAX_SPINS = 4;
 const AUDIO = {
   START_CLICK: "КЛИК вау начало.MP3",
   START_WOW: "вау_труба.MP3",
-  START_APPLAUSE: "фанфары аплодисменты .MP3",
   SPIN: "прокрутка колеса 02.MP3",
   REACTIONS: ["смех девочка1.MP3", "смех мальчик 1 .MP3", "смех мужчина 1.MP3", "довольный мальчик.MP3"],
   FINAL: ["фанфары аплодисменты .MP3", "фейерверк фанфары аплодисменты.MP3"],
@@ -124,16 +124,30 @@ export default function PoleChudesTestGame() {
 
   const handleStart = useCallback(async () => {
     if (busy) return;
+    setStage("SPLASH");
+  }, [busy]);
+
+  const handleStartFromSplash = useCallback(async () => {
+    if (busy) return;
     setBusy(true);
     setPlayReady(false);
-    await playAudioToEnd(AUDIO.START_CLICK, 0.95);
-    await playAudioToEnd(AUDIO.START_WOW, 0.95);
-    await playAudioToEnd(AUDIO.START_APPLAUSE, 0.9);
+    const clickAudio = new Audio(toAudioSrc(AUDIO.START_CLICK));
+    clickAudio.preload = "auto";
+    clickAudio.volume = muted ? 0 : 0.95;
+    const clickDone = new Promise<void>((resolve) => {
+      const done = () => resolve();
+      clickAudio.addEventListener("ended", done, { once: true });
+      clickAudio.addEventListener("error", done, { once: true });
+    });
+    void clickAudio.play().catch(() => {});
+
     setBackgroundVariant("A");
     setStage("PLAYING");
+    await clickDone;
+    await playAudioToEnd(AUDIO.START_WOW, 0.95);
     setPlayReady(true);
     setBusy(false);
-  }, [busy, playAudioToEnd]);
+  }, [busy, muted, playAudioToEnd]);
 
   const handleSpinAnimationComplete = useCallback(() => {
     spinResolveRef.current?.();
@@ -312,6 +326,42 @@ export default function PoleChudesTestGame() {
                   Твой финальный вайбкодерский расклад решит одно вращение.
                 </p>
                 <NeonGlassButton accent className="!px-10 !py-3 !text-base sm:!text-lg" disabled={busy} onClick={() => void handleStart()}>
+                  Крутим удачу?
+                </NeonGlassButton>
+              </div>
+            </motion.div>
+          )}
+
+          {stage === "SPLASH" && (
+            <motion.div
+              key="splash"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="relative flex flex-1 items-center justify-center p-0"
+            >
+              <div className="absolute inset-0 z-0 overflow-hidden">
+                <video
+                  src="/videos/magic03.mp4"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  preload="auto"
+                  className="h-full w-full object-cover"
+                />
+                <div className="absolute inset-0 bg-black/20" />
+              </div>
+              <div className="absolute left-1/2 top-[8%] z-20 -translate-x-1/2">
+                <VibeAiLogoMark withCoverEffects className="scale-[0.82] sm:scale-100" />
+              </div>
+              <div className="absolute bottom-[10%] left-1/2 z-20 -translate-x-1/2">
+                <NeonGlassButton
+                  accent
+                  className="!px-10 !py-3 !text-base sm:!text-lg"
+                  disabled={busy}
+                  onClick={() => void handleStartFromSplash()}
+                >
                   Крутим удачу?
                 </NeonGlassButton>
               </div>
