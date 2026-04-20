@@ -1,7 +1,9 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import confetti from "canvas-confetti";
-import { AppWindow, Code2, GraduationCap, RotateCcw, Sparkles, Trophy, Zap } from "lucide-react";
+import { AppWindow, Code2, GraduationCap, RotateCcw, Sparkles, Trophy, Volume2, VolumeX, Zap } from "lucide-react";
+import MagicRingsGlobal from "@/components/MagicRingsGlobal";
+import NeonGlassButton from "@/components/NeonGlassButton";
 import { CATEGORIES, PHRASES } from "./constants";
 import { Wheel } from "./Wheel";
 
@@ -18,8 +20,53 @@ export default function PoleChudesTestGame() {
   const [currentResult, setCurrentResult] = useState<SpinResult | null>(null);
   const [usedPhrases, setUsedPhrases] = useState<Record<string, Set<string>>>({});
   const [isSpinning, setIsSpinning] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const victoryFanfareRef = useRef<HTMLAudioElement | null>(null);
+  const applauseRef = useRef<HTMLAudioElement | null>(null);
 
   const maxSpins = 4;
+
+  useEffect(() => {
+    victoryFanfareRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3");
+    victoryFanfareRef.current.volume = 0.75;
+    applauseRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/951/951-preview.mp3");
+    applauseRef.current.volume = 0.7;
+    applauseRef.current.loop = true;
+
+    return () => {
+      if (victoryFanfareRef.current) {
+        victoryFanfareRef.current.pause();
+        victoryFanfareRef.current.currentTime = 0;
+      }
+      if (applauseRef.current) {
+        applauseRef.current.pause();
+        applauseRef.current.currentTime = 0;
+      }
+    };
+  }, []);
+
+  const playVictoryStack = useCallback(() => {
+    if (muted) return;
+    const fanfare = victoryFanfareRef.current;
+    const applause = applauseRef.current;
+    if (!fanfare || !applause) return;
+
+    fanfare.currentTime = 0;
+    applause.currentTime = 0;
+    void fanfare.play().catch(() => {});
+    void applause.play().catch(() => {});
+  }, [muted]);
+
+  const stopFinalSounds = useCallback(() => {
+    if (victoryFanfareRef.current) {
+      victoryFanfareRef.current.pause();
+      victoryFanfareRef.current.currentTime = 0;
+    }
+    if (applauseRef.current) {
+      applauseRef.current.pause();
+      applauseRef.current.currentTime = 0;
+    }
+  }, []);
 
   const handleSpinEnd = useCallback(
     (categoryId: string) => {
@@ -50,9 +97,7 @@ export default function PoleChudesTestGame() {
   const nextAction = () => {
     if (results.length >= maxSpins) {
       setStage("FINAL");
-      const fanfare = new Audio("https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3");
-      fanfare.volume = 0.6;
-      void fanfare.play().catch(() => {});
+      playVictoryStack();
       confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 }, scalar: 1.2 });
       return;
     }
@@ -61,11 +106,17 @@ export default function PoleChudesTestGame() {
   };
 
   const resetGame = () => {
+    stopFinalSounds();
     setStage("START");
     setResults([]);
     setCurrentResult(null);
     setUsedPhrases({});
   };
+
+  useEffect(() => {
+    if (!muted) return;
+    stopFinalSounds();
+  }, [muted, stopFinalSounds]);
 
   const getCategoryIcon = (id: string) => {
     switch (id) {
@@ -85,22 +136,33 @@ export default function PoleChudesTestGame() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#0d021b] font-sans text-white selection:bg-purple-500/30">
-      <div
-        className="fixed inset-0 z-0 bg-cover bg-center bg-no-repeat"
-        style={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1534972195531-d756b9bfa9f2?auto=format&fit=crop&q=80&w=2048")',
-          filter: "brightness(0.2) saturate(1.5) contrast(1.1)",
-        }}
-      />
+    <div className="relative min-h-screen overflow-hidden bg-black font-book text-white selection:bg-purple-500/30">
+      <div className="pointer-events-none fixed inset-0 z-0 flex items-end justify-center bg-black">
+        <img
+          src="/images/fon-dlya-gimn.png"
+          alt=""
+          className="h-auto max-h-[100dvh] w-full max-w-[min(1600px,100vw)] select-none object-contain object-bottom"
+          draggable={false}
+        />
+      </div>
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute left-[10%] top-[5%] h-[800px] w-[800px] animate-pulse rounded-full bg-purple-900/40 blur-[180px]" />
-        <div className="absolute right-[5%] top-[20%] h-[600px] w-[600px] animate-pulse rounded-full bg-indigo-900/30 blur-[150px] [animation-delay:3s]" />
-        <div className="absolute bottom-0 left-1/2 h-[300px] w-full -translate-x-1/2 bg-gradient-to-t from-purple-900/50 to-transparent" />
+        <div className="absolute left-[10%] top-[5%] h-[760px] w-[760px] animate-pulse rounded-full bg-fuchsia-900/30 blur-[160px]" />
+        <div className="absolute right-[5%] top-[20%] h-[560px] w-[560px] animate-pulse rounded-full bg-sky-900/20 blur-[140px] [animation-delay:3s]" />
       </div>
       <div className="fixed inset-0 z-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:100px_100px] animate-[pulse_5s_infinite]" />
+      <MagicRingsGlobal className="magic-rings-fx--luck-page" containerId="mbPoleChudesTestRings" canvasId="mbPoleChudesTestRingsCanvas" />
 
       <div className="relative z-10 flex min-h-screen flex-col">
+        <div className="mx-auto mt-3 flex w-full max-w-[min(1240px,96vw)] items-center justify-end px-3 sm:px-6">
+          <button
+            type="button"
+            onClick={() => setMuted((prev) => !prev)}
+            className="inline-flex items-center gap-2 rounded-full border border-sky-400/40 bg-black/45 px-3 py-1.5 text-xs text-white/90 backdrop-blur-md"
+          >
+            {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+            {muted ? "Звук выкл" : "Звук вкл"}
+          </button>
+        </div>
         <AnimatePresence mode="wait">
           {stage === "START" && (
             <motion.div
@@ -123,16 +185,13 @@ export default function PoleChudesTestGame() {
                 </h1>
               </div>
 
-              <div className="max-w-xl rounded-2xl border border-white/20 bg-gradient-to-b from-purple-900/60 to-black/80 p-8 shadow-[0_0_50px_rgba(147,51,234,0.3)] backdrop-blur-2xl">
-                <p className="mb-8 text-2xl font-black leading-tight text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)] md:text-3xl">
-                  Твоя карьера вайбкодера зависит от одного поворота.
+              <div className="max-w-xl rounded-2xl border border-white/20 bg-black/55 p-8 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.2)] backdrop-blur-md">
+                <p className="mb-8 text-2xl font-semibold leading-tight text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] md:text-3xl">
+                  Твой финальный вайбкодерский расклад решит одно вращение.
                 </p>
-                <button
-                  onClick={() => setStage("PLAYING")}
-                  className="rounded-2xl bg-[#00ffa2] px-14 py-6 text-3xl font-black uppercase text-black shadow-[0_0_40px_rgba(0,255,162,0.6)] transition-all hover:scale-110 hover:bg-[#00ffd5] hover:shadow-[0_0_80px_rgba(0,255,162,1)] active:scale-95"
-                >
-                  Войти
-                </button>
+                <NeonGlassButton accent className="!px-10 !py-3 !text-base sm:!text-lg" onClick={() => setStage("PLAYING")}>
+                  Крутим удачу?
+                </NeonGlassButton>
               </div>
             </motion.div>
           )}
@@ -206,12 +265,9 @@ export default function PoleChudesTestGame() {
                   {currentResult.phrase}
                 </motion.h2>
                 <div className="relative z-10 pt-10">
-                  <button
-                    onClick={nextAction}
-                    className="w-full rounded-3xl bg-gradient-to-r from-[#bf953f] via-[#fcf6ba] to-[#aa771c] py-6 text-2xl font-black uppercase tracking-tighter text-black shadow-[0_0_50px_rgba(191,149,63,0.4)] transition-all hover:brightness-110 hover:shadow-[0_0_70px_rgba(191,149,63,0.6)] active:scale-95"
-                  >
+                  <NeonGlassButton accent className="!w-full !py-4 !text-lg sm:!text-2xl" onClick={nextAction}>
                     {results.length >= maxSpins ? "Узнать итог" : "Продолжить"}
-                  </button>
+                  </NeonGlassButton>
                 </div>
               </div>
             </motion.div>
@@ -262,15 +318,14 @@ export default function PoleChudesTestGame() {
                   </motion.div>
                 ))}
               </div>
-              <button
-                onClick={resetGame}
-                className="group flex items-center space-x-6 rounded-2xl border border-purple-500/50 bg-purple-600/20 px-10 py-5 text-sm font-black uppercase tracking-[0.3em] text-white shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all hover:bg-purple-600/40 hover:shadow-[0_0_50px_rgba(168,85,247,0.5)]"
-              >
-                <div className="rounded-full bg-purple-500/20 p-2 transition-transform duration-700 group-hover:rotate-180">
-                  <RotateCcw className="h-5 w-5" />
-                </div>
-                <span>Пройти инициацию заново</span>
-              </button>
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <NeonGlassButton accent className="!px-8 !py-3 !text-sm sm:!text-base" onClick={resetGame}>
+                  <span className="inline-flex items-center gap-2">
+                    <RotateCcw className="h-4 w-4" />
+                    Сыграть снова
+                  </span>
+                </NeonGlassButton>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
