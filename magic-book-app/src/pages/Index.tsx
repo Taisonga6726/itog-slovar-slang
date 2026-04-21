@@ -237,9 +237,15 @@ const Index = () => {
     /** Эффект переворота чуть громче фона. */
     flipAudio.current.volume = 1;
     return () => {
-      if (awakenTimerRef.current) window.clearTimeout(awakenTimerRef.current);
-      if (duckTimerRef.current) window.clearTimeout(duckTimerRef.current);
-      if (duckRafRef.current) window.cancelAnimationFrame(duckRafRef.current);
+      const awakenT = awakenTimerRef.current;
+      /* При unmount снимаем актуальные id таймеров из ref (числа, не DOM). */
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- намеренное чтение ref в cleanup
+      const duckT = duckTimerRef.current;
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- намеренное чтение ref в cleanup
+      const duckR = duckRafRef.current;
+      if (awakenT) window.clearTimeout(awakenT);
+      if (duckT) window.clearTimeout(duckT);
+      if (duckR) window.cancelAnimationFrame(duckR);
     };
   }, []);
 
