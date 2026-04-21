@@ -371,6 +371,14 @@ const Index = () => {
     const screen = searchParams.get("screen");
     if (entry === "slovar" && screen === "form") {
       setMode("form");
+      return;
+    }
+    if (entry === "slovar" && screen === "reading") {
+      setMode("reading");
+      return;
+    }
+    if (entry === "slovar" && screen === "final") {
+      setMode("final");
     }
   }, [searchParams]);
 

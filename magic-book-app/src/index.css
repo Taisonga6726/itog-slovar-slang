@@ -612,8 +612,8 @@
 
 /* Страница /luck без оболочки Index: кольца между фоном и контентом */
 .magic-rings-fx--luck-page.magic-rings-fx--global {
-  z-index: 8 !important;
-  opacity: 0.58;
+  z-index: 220 !important;
+  opacity: 0.72;
 }
 
 /* Финал: лого читабельнее, меньше «пустой» стек — удобнее ставить кнопку под неоновой линией */

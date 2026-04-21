@@ -3,13 +3,26 @@ import { motion } from "motion/react";
 import { CATEGORIES } from "./constants";
 
 interface WheelProps {
-  rotation: number;
+  rotation: number | number[];
   spinDuration: number;
   isSpinning: boolean;
+  spinTimes?: number[];
+  spinEases?: ("easeIn" | "easeOut" | "linear")[];
+  canSpin?: boolean;
+  onSectorClick?: () => void;
   onSpinAnimationComplete: () => void;
 }
 
-export const Wheel: React.FC<WheelProps> = ({ rotation, spinDuration, isSpinning, onSpinAnimationComplete }) => {
+export const Wheel: React.FC<WheelProps> = ({
+  rotation,
+  spinDuration,
+  isSpinning,
+  spinTimes,
+  spinEases,
+  canSpin = true,
+  onSectorClick,
+  onSpinAnimationComplete,
+}) => {
   const sectorSize = 360 / CATEGORIES.length;
 
   return (
@@ -17,11 +30,11 @@ export const Wheel: React.FC<WheelProps> = ({ rotation, spinDuration, isSpinning
       <motion.div
         initial={false}
         animate={{ rotate: rotation }}
-        transition={{ duration: spinDuration, ease: [0.16, 0.88, 0.22, 1] }}
+        transition={{ duration: spinDuration, times: spinTimes, ease: spinEases ?? [0.16, 0.88, 0.22, 1] }}
         onAnimationComplete={() => {
           if (isSpinning) onSpinAnimationComplete();
         }}
-        className="relative z-10 h-[390px] w-[390px] md:h-[700px] md:w-[700px]"
+        className="relative z-10 h-[430px] w-[430px] md:h-[760px] md:w-[760px]"
       >
         <svg viewBox="-10 -10 120 120" className="h-full w-full -rotate-90 transform drop-shadow-[0_0_30px_rgba(147,51,234,0.3)]">
           <defs>
@@ -88,7 +101,13 @@ export const Wheel: React.FC<WheelProps> = ({ rotation, spinDuration, isSpinning
             `;
 
             return (
-              <g key={category.id} className="group cursor-pointer">
+              <g
+                key={category.id}
+                className={`group ${canSpin && !isSpinning ? "cursor-pointer" : "cursor-default"}`}
+                onClick={() => {
+                  if (canSpin && !isSpinning) onSectorClick?.();
+                }}
+              >
                 <path d={bookPath} fill="rgba(0,0,0,0.5)" transform="translate(0.5, 0.5)" />
                 <path
                   d={bookPath}

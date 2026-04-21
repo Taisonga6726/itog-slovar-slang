@@ -1,10 +1,10 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import confetti from "canvas-confetti";
 import { AppWindow, Code2, GraduationCap, RotateCcw, Sparkles, Trophy, Volume2, VolumeX, Zap } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import MagicRingsGlobal from "@/components/MagicRingsGlobal";
 import NeonGlassButton from "@/components/NeonGlassButton";
-import VibeAiLogoMark from "@/components/VibeAiLogoMark";
 import { CATEGORIES, PHRASES } from "./constants";
 import { Wheel } from "./Wheel";
 
@@ -17,42 +17,81 @@ interface SpinResult {
 
 type BackgroundVariant = "A" | "B" | "C" | "D";
 
-const BACKGROUND_FLOW: BackgroundVariant[] = ["A", "B", "D", "C"];
+const BACKGROUND_FLOW: BackgroundVariant[] = ["A", "D", "C", "C"];
 const MAX_SPINS = 4;
 
 const AUDIO = {
-  START_CLICK: "КЛИК вау начало.MP3",
-  START_WOW: "вау_труба.MP3",
   SPIN: "прокрутка колеса 02.MP3",
+  SPIN_STOP: "ROCK_ ART BARABAN WOW.mp3",
   REACTIONS: ["смех девочка1.MP3", "смех мальчик 1 .MP3", "смех мужчина 1.MP3", "довольный мальчик.MP3"],
   FINAL: ["фанфары аплодисменты .MP3", "фейерверк фанфары аплодисменты.MP3"],
 } as const;
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
+const SPLASH_AUDIO_SRC = "/videos/заставка перед игрой/заставка перед игрой.MP3";
+const OPTIONAL_HYMN_SRC = "/slovar/assetss/sounds/versiya%205_hard-rok%20Tanya.mp3";
+const SPLASH_STOP_AT_SECONDS = 4.45;
 
 const toAudioSrc = (fileName: string) => `/audio/${encodeURIComponent(fileName)}`;
 
 export default function PoleChudesTestGame() {
+  const navigate = useNavigate();
   const [stage, setStage] = useState<GameStage>("SPLASH");
   const [results, setResults] = useState<SpinResult[]>([]);
   const [currentResult, setCurrentResult] = useState<SpinResult | null>(null);
   const [usedPhrases, setUsedPhrases] = useState<Record<string, Set<string>>>({});
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
+  const [rotationFrames, setRotationFrames] = useState<number | number[]>(0);
   const [spinDuration, setSpinDuration] = useState(2.6);
+  const [spinTimes, setSpinTimes] = useState<number[] | undefined>(undefined);
+  const [spinEases, setSpinEases] = useState<("easeIn" | "easeOut" | "linear")[] | undefined>(undefined);
   const [muted, setMuted] = useState(false);
   const [backgroundVariant, setBackgroundVariant] = useState<BackgroundVariant>("A");
   const [playReady, setPlayReady] = useState(false);
   const [resultReady, setResultReady] = useState(false);
   const [finalReady, setFinalReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [attemptFlashKey, setAttemptFlashKey] = useState(0);
   const spinResolveRef = useRef<(() => void) | null>(null);
+  const splashVideoRef = useRef<HTMLVideoElement | null>(null);
+  const splashAudioRef = useRef<HTMLAudioElement | null>(null);
+  const activeAudioRef = useRef<Array<{ audio: HTMLAudioElement; baseVolume: number }>>([]);
+
+  useEffect(() => {
+    if (!splashAudioRef.current) {
+      const splashAudio = new Audio(SPLASH_AUDIO_SRC);
+      splashAudio.preload = "auto";
+      splashAudioRef.current = splashAudio;
+    }
+    const splashAudio = splashAudioRef.current;
+    if (splashAudio) splashAudio.volume = muted ? 0 : 0.88;
+
+    activeAudioRef.current.forEach(({ audio, baseVolume }) => {
+      audio.volume = muted ? 0 : baseVolume;
+    });
+  }, [muted]);
+
+  useEffect(() => {
+    if (stage !== "SPLASH") {
+      splashAudioRef.current?.pause();
+    }
+  }, [stage]);
+
+  const stopActiveAudio = useCallback(() => {
+    activeAudioRef.current.forEach(({ audio }) => {
+      audio.pause();
+      audio.currentTime = 0;
+    });
+    activeAudioRef.current = [];
+  }, []);
 
   const playAudioToEnd = useCallback(
     async (fileName: string, volume = 1): Promise<number> => {
       const audio = new Audio(toAudioSrc(fileName));
       audio.preload = "auto";
       audio.volume = muted ? 0 : volume;
+      activeAudioRef.current.push({ audio, baseVolume: volume });
       const durationPromise = new Promise<number>((resolve) => {
         const settle = () => resolve(Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 2.4);
         if (audio.readyState >= 1) settle();
@@ -62,9 +101,13 @@ export default function PoleChudesTestGame() {
         }
       });
       const donePromise = new Promise<void>((resolve) => {
-        const done = () => resolve();
+        const done = () => {
+          activeAudioRef.current = activeAudioRef.current.filter((item) => item.audio !== audio);
+          resolve();
+        };
         audio.addEventListener("ended", done, { once: true });
         audio.addEventListener("error", done, { once: true });
+        window.setTimeout(done, 9000);
       });
       void audio.play().catch(() => {});
       const duration = await durationPromise;
@@ -79,6 +122,7 @@ export default function PoleChudesTestGame() {
       const audio = new Audio(toAudioSrc(fileName));
       audio.preload = "auto";
       audio.volume = muted ? 0 : volume;
+      activeAudioRef.current.push({ audio, baseVolume: volume });
       const durationPromise = new Promise<number>((resolve) => {
         const settle = () => resolve(Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 2.4);
         if (audio.readyState >= 1) settle();
@@ -88,7 +132,10 @@ export default function PoleChudesTestGame() {
         }
       });
       const donePromise = new Promise<void>((resolve) => {
-        const done = () => resolve();
+        const done = () => {
+          activeAudioRef.current = activeAudioRef.current.filter((item) => item.audio !== audio);
+          resolve();
+        };
         audio.addEventListener("ended", done, { once: true });
         audio.addEventListener("error", done, { once: true });
       });
@@ -128,23 +175,11 @@ export default function PoleChudesTestGame() {
     if (busy) return;
     setBusy(true);
     setPlayReady(false);
-    const clickAudio = new Audio(toAudioSrc(AUDIO.START_CLICK));
-    clickAudio.preload = "auto";
-    clickAudio.volume = muted ? 0 : 0.95;
-    const clickDone = new Promise<void>((resolve) => {
-      const done = () => resolve();
-      clickAudio.addEventListener("ended", done, { once: true });
-      clickAudio.addEventListener("error", done, { once: true });
-    });
-    void clickAudio.play().catch(() => {});
-
     setBackgroundVariant("A");
     setStage("PLAYING");
-    await clickDone;
-    await playAudioToEnd(AUDIO.START_WOW, 0.95);
     setPlayReady(true);
     setBusy(false);
-  }, [busy, muted, playAudioToEnd]);
+  }, [busy]);
 
   const handleSpinAnimationComplete = useCallback(() => {
     spinResolveRef.current?.();
@@ -159,18 +194,31 @@ export default function PoleChudesTestGame() {
 
     const usedSnapshot = usedPhrases;
     const spinResult = pickSpinResult(usedSnapshot);
+    setAttemptFlashKey((k) => k + 1);
     const nextRotation = calcTargetRotation(rotation, spinResult.categoryId);
     const animationDone = new Promise<void>((resolve) => {
       spinResolveRef.current = resolve;
     });
 
-    const spinAudio = startAudioAndGetMeta(AUDIO.SPIN, 0.95);
-    setSpinDuration(2.6);
+    stopActiveAudio();
+    const spinAudio = startAudioAndGetMeta(AUDIO.SPIN, 0.92);
+    const spinAudioDuration = await spinAudio.durationPromise;
+    const totalSpinDuration = Math.max(3.2, spinAudioDuration + 0.45);
+    const preRotation = rotation + 180;
+    const fastRotation = rotation + 1080;
+    setSpinDuration(totalSpinDuration);
+    setSpinTimes([0, 0.2, 0.75, 1]);
+    setSpinEases(["easeIn", "linear", "easeOut"]);
+    setRotationFrames([rotation, preRotation, fastRotation, nextRotation]);
     setIsSpinning(true);
     setRotation(nextRotation);
 
     await Promise.all([animationDone, spinAudio.donePromise]);
+    await playAudioToEnd(AUDIO.SPIN_STOP, 0.92);
     setIsSpinning(false);
+    setRotationFrames(nextRotation);
+    setSpinTimes(undefined);
+    setSpinEases(undefined);
 
     const newResult = { category: spinResult.categoryId, phrase: spinResult.phrase };
     const categoryUsed = usedSnapshot[spinResult.categoryId] || new Set();
@@ -188,14 +236,13 @@ export default function PoleChudesTestGame() {
       colors: [CATEGORIES.find((c) => c.id === spinResult.categoryId)?.color || "#ffffff"],
     });
 
-    const reactionBank = AUDIO.REACTIONS;
-    const reactionAudio = reactionBank[Math.floor(Math.random() * reactionBank.length)];
-    await playAudioToEnd(reactionAudio, 0.95);
-
     setBackgroundVariant(BACKGROUND_FLOW[Math.min(results.length + 1, BACKGROUND_FLOW.length - 1)]);
+    const reactionBank = AUDIO.REACTIONS;
+    const reactionAudio = reactionBank[results.length % reactionBank.length];
+    await playAudioToEnd(reactionAudio, 0.88);
     setResultReady(true);
     setBusy(false);
-  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, playAudioToEnd, startAudioAndGetMeta, results.length]);
+  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, playAudioToEnd, startAudioAndGetMeta, results.length, stopActiveAudio]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady || busy) return;
@@ -203,10 +250,8 @@ export default function PoleChudesTestGame() {
       setBusy(true);
       setFinalReady(false);
       setStage("FINAL");
-      confetti({ particleCount: 180, spread: 120, origin: { y: 0.5 }, scalar: 1.2 });
-      const finalBank = AUDIO.FINAL;
-      const finalAudio = finalBank[Math.floor(Math.random() * finalBank.length)];
-      await playAudioToEnd(finalAudio, 1);
+      confetti({ particleCount: 260, spread: 150, origin: { y: 0.52 }, scalar: 1.25 });
+      await playAudioToEnd("фейерверк фанфары аплодисменты.MP3", 1);
       setFinalReady(true);
       setBusy(false);
       return;
@@ -231,6 +276,9 @@ export default function PoleChudesTestGame() {
     setBusy(false);
     setIsSpinning(false);
     setRotation(0);
+    setRotationFrames(0);
+    setSpinTimes(undefined);
+    setSpinEases(undefined);
   }, [busy]);
 
   const getCategoryIcon = (id: string) => {
@@ -252,7 +300,7 @@ export default function PoleChudesTestGame() {
 
   return (
     <div className="relative min-h-screen overflow-hidden bg-black font-book text-white selection:bg-purple-500/30">
-      {(backgroundVariant === "A" || backgroundVariant === "C" || backgroundVariant === "D") && (
+      {stage !== "SPLASH" && (backgroundVariant === "A" || backgroundVariant === "C" || backgroundVariant === "D") && (
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
           <video
             src="/videos/grok-read-book-03.mp4"
@@ -260,13 +308,13 @@ export default function PoleChudesTestGame() {
             muted
             loop
             playsInline
-            preload="auto"
+            preload="metadata"
             className={`h-full w-full object-cover ${backgroundVariant === "C" ? "scale-110 blur-[3px] opacity-35" : "opacity-50"} ${backgroundVariant === "A" || backgroundVariant === "D" ? "scale-[0.9]" : ""}`}
           />
         </div>
       )}
 
-      {(backgroundVariant === "B" || backgroundVariant === "C") && (
+      {stage !== "SPLASH" && (backgroundVariant === "B" || backgroundVariant === "C") && (
         <div className="pointer-events-none fixed inset-0 z-0 bg-black">
           <img
             src="/images/open-book.png"
@@ -286,7 +334,12 @@ export default function PoleChudesTestGame() {
       <MagicRingsGlobal className="magic-rings-fx--luck-page" containerId="mbPoleChudesTestRings" canvasId="mbPoleChudesTestRingsCanvas" />
 
       <div className="relative z-10 flex min-h-screen flex-col">
-        <div className="mx-auto mt-3 flex w-full max-w-[min(1240px,96vw)] flex-wrap items-center justify-end gap-2 px-3 sm:px-6">
+        <div className="mx-auto mt-3 flex w-full max-w-[min(1240px,96vw)] flex-wrap items-center justify-between gap-2 px-3 sm:px-6">
+          <div className="rounded-xl border border-sky-400/35 bg-black/45 px-2 py-1.5 backdrop-blur-md">
+            <audio controls preload="none" src={OPTIONAL_HYMN_SRC} className="h-8 max-w-[46vw] sm:max-w-[320px]">
+              Ваш браузер не поддерживает аудио.
+            </audio>
+          </div>
           <button
             type="button"
             onClick={() => setMuted((prev) => !prev)}
@@ -305,22 +358,35 @@ export default function PoleChudesTestGame() {
               exit={{ opacity: 0 }}
               className="relative flex flex-1 items-center justify-center p-0"
             >
-              <div className="absolute inset-0 z-0 overflow-hidden">
-                <video
-                  src={SPLASH_VIDEO_SRC}
-                  autoPlay
-                  muted
-                  loop
-                  playsInline
-                  preload="auto"
-                  className="h-full w-full object-cover"
-                />
-                <div className="absolute inset-0 bg-black/20" />
-              </div>
-              <div className="absolute left-1/2 top-[8%] z-20 -translate-x-1/2">
-                <VibeAiLogoMark withCoverEffects className="scale-[0.82] sm:scale-100" />
-              </div>
-              <div className="absolute bottom-[10%] left-1/2 z-20 -translate-x-1/2">
+              <div className="absolute inset-0 z-0 bg-black/35" />
+              <div className="relative z-10 flex w-full max-w-[min(1120px,90vw)] flex-col items-center gap-5 px-3">
+                <div className="w-full overflow-hidden rounded-xl">
+                  <video
+                    ref={splashVideoRef}
+                    src={SPLASH_VIDEO_SRC}
+                    autoPlay
+                    muted
+                    playsInline
+                    preload="metadata"
+                    onTimeUpdate={(e) => {
+                      const video = e.currentTarget;
+                      if (video.currentTime >= SPLASH_STOP_AT_SECONDS) {
+                        video.pause();
+                        splashAudioRef.current?.pause();
+                      }
+                    }}
+                    onLoadedMetadata={(e) => {
+                      const video = e.currentTarget;
+                      video.currentTime = 0;
+                      const splashAudio = splashAudioRef.current;
+                      if (!splashAudio) return;
+                      splashAudio.currentTime = 0;
+                      splashAudio.volume = muted ? 0 : 0.9;
+                      void splashAudio.play().catch(() => {});
+                    }}
+                    className="aspect-video w-full object-contain"
+                  />
+                </div>
                 <NeonGlassButton
                   accent
                   className="!px-10 !py-3 !text-base sm:!text-lg"
@@ -339,12 +405,25 @@ export default function PoleChudesTestGame() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-1 flex-col items-center justify-center space-y-8 p-6"
+              className="flex flex-1 flex-col items-center justify-center p-2 sm:p-4"
             >
               <div className="relative z-10 flex flex-col items-center">
-                <h3 className="mb-2 text-center font-serif text-lg font-semibold tracking-[0.2em] text-white/85 drop-shadow-[0_0_12px_rgba(255,255,255,0.35)] sm:text-xl">
-                  СЛОВАРЬ СЛЭНГА ВАЙБ КОДЕРА
-                </h3>
+                <AnimatePresence mode="wait">
+                  {attemptFlashKey > 0 && (
+                    <motion.div
+                      key={`attempt-${attemptFlashKey}`}
+                      initial={{ opacity: 0, scale: 0.88, y: -12 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 1.14, y: -16 }}
+                      transition={{ duration: 0.52, ease: "easeOut" }}
+                      className="mb-2 rounded-xl border border-fuchsia-200/70 bg-[radial-gradient(circle,_rgba(255,255,255,0.96)_0%,_rgba(236,72,153,0.83)_35%,_rgba(126,34,206,0.8)_68%,_rgba(0,0,0,0.25)_100%)] px-6 py-2 text-center shadow-[0_0_44px_rgba(236,72,153,0.9),0_0_86px_rgba(168,85,247,0.78)]"
+                    >
+                      <div className="text-sm font-black uppercase tracking-[0.22em] text-white sm:text-base">
+                        Попытка {results.length + 1} / {MAX_SPINS}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
                 {(backgroundVariant === "A" || backgroundVariant === "D") && (
                   <div className="pointer-events-none absolute left-1/2 top-[60%] z-0 h-[64vmin] w-[64vmin] max-h-[640px] max-w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/72 blur-[1px]" />
                 )}
@@ -354,26 +433,31 @@ export default function PoleChudesTestGame() {
                 {backgroundVariant === "D" && (
                   <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[84vmin] w-[84vmin] max-h-[800px] max-w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#fcf6ba]/25 shadow-[0_0_60px_rgba(252,246,186,0.35),0_0_120px_rgba(236,72,153,0.25)]" />
                 )}
-                <div className="mb-2 text-center">
-                  <h2 className="mb-2 text-xs font-bold uppercase tracking-[0.5em] text-white/45 sm:text-sm">
-                    Попытка {results.length + 1} / {MAX_SPINS}
-                  </h2>
-                </div>
-                <NeonGlassButton
-                  accent
-                  className="!mb-2 !px-8 !py-2.5 !text-sm sm:!mb-3 sm:!text-base"
-                  onClick={() => void handleSpin()}
-                  disabled={!playReady || isSpinning || busy}
-                >
-                  Крутить барабан
-                </NeonGlassButton>
-                <div className="-mt-4 sm:-mt-8">
+                <div className="mt-1 sm:mt-3">
                   <Wheel
-                    rotation={rotation}
+                    rotation={rotationFrames}
                     spinDuration={spinDuration}
                     isSpinning={isSpinning}
+                    spinTimes={spinTimes}
+                    spinEases={spinEases}
+                    canSpin={playReady && !busy}
+                    onSectorClick={() => void handleSpin()}
                     onSpinAnimationComplete={handleSpinAnimationComplete}
                   />
+                </div>
+                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                  <NeonGlassButton className="!px-4 !py-2 !text-xs sm:!text-sm" onClick={() => navigate("/")}>
+                    Назад к игре
+                  </NeonGlassButton>
+                  <NeonGlassButton className="!px-4 !py-2 !text-xs sm:!text-sm" onClick={() => navigate("/?entry=slovar&screen=form")}>
+                    Внести слово
+                  </NeonGlassButton>
+                  <NeonGlassButton className="!px-4 !py-2 !text-xs sm:!text-sm" onClick={() => navigate("/?entry=slovar&screen=reading")}>
+                    Читать книгу
+                  </NeonGlassButton>
+                  <NeonGlassButton className="!px-4 !py-2 !text-xs sm:!text-sm" onClick={() => navigate("/?entry=slovar&screen=final")}>
+                    Выбрать гимн
+                  </NeonGlassButton>
                 </div>
               </div>
             </motion.div>
@@ -474,7 +558,7 @@ export default function PoleChudesTestGame() {
                 <NeonGlassButton accent className="!px-8 !py-3 !text-sm sm:!text-base" disabled={!finalReady || busy} onClick={resetGame}>
                   <span className="inline-flex items-center gap-2">
                     <RotateCcw className="h-4 w-4" />
-                    Сыграть снова
+                    Еще раз крутить
                   </span>
                 </NeonGlassButton>
               </div>
