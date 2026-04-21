@@ -33,7 +33,8 @@ function slovarAssetSyncPlugin() {
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
-  base: mode === "production" ? "/itog-slovar-slang/" : "/",
+  // Vercel ожидает корень "/", GitHub Pages - имя репозитория.
+  base: process.env.VERCEL ? "/" : mode === "production" ? "/itog-slovar-slang/" : "/",
   server: {
     host: "::",
     port: 8080,
