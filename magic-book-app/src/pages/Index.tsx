@@ -442,11 +442,13 @@ const Index = () => {
 
   const openLuckyWheel = useCallback(() => {
     if (LUCKY_WHEEL_ENTRY === "route") {
+      /** Отдельная страница `/luck` без оболочки книги — глушим фоновый гимн, чтобы не накладывался на эффекты игры. */
+      pauseBackgroundHymnSoft();
       navigate("/luck");
     } else {
       setLuckyWheelOpen(true);
     }
-  }, [navigate]);
+  }, [navigate, pauseBackgroundHymnSoft]);
 
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black">

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import confetti from "canvas-confetti";
-import { AppWindow, Code2, GraduationCap, RotateCcw, Sparkles, Trophy, Volume2, VolumeX, Zap } from "lucide-react";
+import { AppWindow, Code2, GraduationCap, RotateCcw, Sparkles, Volume2, VolumeX, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MagicRingsGlobal from "@/components/MagicRingsGlobal";
 import NeonGlassButton from "@/components/NeonGlassButton";
@@ -610,48 +610,48 @@ export default function PoleChudesTestGame() {
               key="final"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex flex-1 flex-col items-center justify-center space-y-12 p-6 md:p-12"
+              className="flex min-h-0 flex-1 flex-col px-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-1 sm:px-5 sm:pb-4"
             >
-              <div className="space-y-5 text-center">
-                <div className="sr-only">Итоги Вайбкодера</div>
-                <div
-                  className="inline-flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#bf953f]/55 bg-yellow-500/15 text-[#fcf6ba] shadow-[0_0_48px_rgba(191,149,63,0.45)] sm:h-24 sm:w-24"
-                  aria-hidden
-                >
-                  <Trophy className="h-10 w-10 sm:h-12 sm:w-12" />
+              <div className="sr-only">Итоги Вайбкодера</div>
+              {/* Под зону «VIBE CODER» + «Итоги» на самом баннере — плашки в средней/нижней части кадра */}
+              <div
+                className="pointer-events-none shrink-0 select-none"
+                aria-hidden
+                style={{ height: "clamp(9.25rem, 26vh, 14.5rem)" }}
+              />
+              <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-2 sm:py-4">
+                <div className="grid w-full max-w-[min(1100px,96vw)] grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-5">
+                  {results.map((res, idx) => (
+                    <motion.div
+                      key={`${res.category}-${idx}`}
+                      initial={{ opacity: 0, y: 16 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: idx * 0.12 }}
+                      className="group flex min-h-0 items-center gap-4 rounded-2xl border border-[#fcf6ba]/35 bg-[#14061f]/82 p-4 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-md sm:gap-5 sm:rounded-[28px] sm:p-6 md:gap-6 md:p-7"
+                    >
+                      <div
+                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition-transform group-hover:scale-105 sm:h-14 sm:w-14 sm:rounded-2xl md:h-16 md:w-16"
+                        style={{
+                          backgroundColor: `${CATEGORIES.find((c) => c.id === res.category)?.color}18`,
+                          color: CATEGORIES.find((c) => c.id === res.category)?.color,
+                          borderColor: `${CATEGORIES.find((c) => c.id === res.category)?.color}44`,
+                        }}
+                      >
+                        {React.cloneElement(getCategoryIcon(res.category) as React.ReactElement, { className: "h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8" })}
+                      </div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <h4 className="mb-1 text-[9px] font-black uppercase tracking-[0.42em] text-white/55 sm:text-[10px] sm:tracking-[0.5em]">
+                          {CATEGORIES.find((c) => c.id === res.category)?.label}
+                        </h4>
+                        <p className="text-lg font-black leading-snug text-[#fff7dc] drop-shadow-[0_0_10px_rgba(252,246,186,0.35)] sm:text-xl md:text-2xl md:leading-tight">
+                          {res.phrase}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
               </div>
-              <div className="grid w-full max-w-5xl grid-cols-1 gap-6 md:grid-cols-2">
-                {results.map((res, idx) => (
-                  <motion.div
-                    key={`${res.category}-${idx}`}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.15 }}
-                    className="group flex items-center space-x-8 rounded-[32px] border border-[#fcf6ba]/30 bg-[#261433]/78 p-8 backdrop-blur-md transition-all hover:bg-[#311a44]/88"
-                  >
-                    <div
-                      className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border transition-all group-hover:scale-110"
-                      style={{
-                        backgroundColor: `${CATEGORIES.find((c) => c.id === res.category)?.color}11`,
-                        color: CATEGORIES.find((c) => c.id === res.category)?.color,
-                        borderColor: `${CATEGORIES.find((c) => c.id === res.category)?.color}33`,
-                      }}
-                    >
-                      {React.cloneElement(getCategoryIcon(res.category) as React.ReactElement, { className: "h-8 w-8" })}
-                    </div>
-                    <div>
-                      <h4 className="mb-2 text-[10px] font-black uppercase tracking-[0.5em] text-white/50">
-                        {CATEGORIES.find((c) => c.id === res.category)?.label}
-                      </h4>
-                      <p className="text-[2rem] font-black leading-tight text-[#fff7dc] drop-shadow-[0_0_12px_rgba(252,246,186,0.45)] md:text-[2.3rem]">
-                        {res.phrase}
-                      </p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-              <div className="flex flex-wrap items-center justify-center gap-3">
+              <div className="flex shrink-0 flex-wrap items-center justify-center gap-3 pt-3 sm:pt-4">
                 <NeonGlassButton accent className="!px-8 !py-3 !text-sm sm:!text-base" disabled={!finalReady || busy} onClick={resetGame}>
                   <span className="inline-flex items-center gap-2">
                     <RotateCcw className="h-4 w-4" />
@@ -663,6 +663,13 @@ export default function PoleChudesTestGame() {
           )}
         </AnimatePresence>
       </div>
+      {isFinalStage && (
+        <MagicRingsGlobal
+          className="magic-rings-fx--luck-final"
+          containerId="mbPoleChudesFinalRings"
+          canvasId="mbPoleChudesFinalRingsCanvas"
+        />
+      )}
     </div>
   );
 }

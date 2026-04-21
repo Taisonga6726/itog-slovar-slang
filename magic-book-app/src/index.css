@@ -616,6 +616,12 @@
   opacity: 0.72;
 }
 
+/* Финал на /luck: неоновые кольца поверх баннера и плашек (клики сквозь слой — pointer-events у базового класса) */
+.magic-rings-fx--luck-final.magic-rings-fx--global {
+  z-index: 280 !important;
+  opacity: 0.82;
+}
+
 @keyframes tzScanlinesMove {
   0% { transform: translateY(0); }
   100% { transform: translateY(12px); }
