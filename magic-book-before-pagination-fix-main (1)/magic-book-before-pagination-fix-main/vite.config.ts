@@ -33,6 +33,7 @@ function slovarAssetSyncPlugin() {
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: mode === "production" ? "/itog-slovar-slang/" : "/",
   server: {
     host: "::",
     port: 8080,
