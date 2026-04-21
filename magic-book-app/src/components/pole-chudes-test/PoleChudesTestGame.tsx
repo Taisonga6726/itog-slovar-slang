@@ -29,6 +29,7 @@ const AUDIO = {
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
 const SPLASH_AUDIO_SRC = "/videos/заставка перед игрой/заставка перед игрой.MP3";
+const SPLASH_IMAGE_SRC = "/images/pole%20vxod.png";
 const OPTIONAL_HYMN_SRC = "/slovar/assetss/sounds/versiya%205_hard-rok%20Tanya.mp3";
 const SPLASH_STOP_AT_SECONDS = 4.45;
 
@@ -335,11 +336,13 @@ export default function PoleChudesTestGame() {
 
       <div className="relative z-10 flex min-h-screen flex-col">
         <div className="mx-auto mt-3 flex w-full max-w-[min(1240px,96vw)] flex-wrap items-center justify-between gap-2 px-3 sm:px-6">
-          <div className="rounded-xl border border-sky-400/35 bg-black/45 px-2 py-1.5 backdrop-blur-md">
-            <audio controls preload="none" src={OPTIONAL_HYMN_SRC} className="h-8 max-w-[46vw] sm:max-w-[320px]">
-              Ваш браузер не поддерживает аудио.
-            </audio>
-          </div>
+          {stage !== "SPLASH" && (
+            <div className="rounded-xl border border-sky-400/35 bg-black/45 px-2 py-1.5 backdrop-blur-md">
+              <audio controls preload="none" src={OPTIONAL_HYMN_SRC} className="h-8 max-w-[46vw] sm:max-w-[320px]">
+                Ваш браузер не поддерживает аудио.
+              </audio>
+            </div>
+          )}
           <button
             type="button"
             onClick={() => setMuted((prev) => !prev)}
@@ -359,8 +362,9 @@ export default function PoleChudesTestGame() {
               className="relative flex flex-1 items-center justify-center p-0"
             >
               <div className="absolute inset-0 z-0 bg-black/35" />
-              <div className="relative z-10 flex w-full max-w-[min(1120px,90vw)] flex-col items-center gap-5 px-3">
-                <div className="w-full overflow-hidden rounded-xl">
+              <div className="relative z-10 flex w-full max-w-[min(1520px,98vw)] items-center justify-center px-2">
+                <div className="relative w-full overflow-hidden">
+                  <img src={SPLASH_IMAGE_SRC} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-100" />
                   <video
                     ref={splashVideoRef}
                     src={SPLASH_VIDEO_SRC}
@@ -386,15 +390,27 @@ export default function PoleChudesTestGame() {
                     }}
                     className="aspect-video w-full object-contain"
                   />
+                  <div className="tz-splash-scanlines pointer-events-none absolute inset-0" />
+                  {Array.from({ length: 12 }).map((_, idx) => (
+                    <div
+                      key={`code-col-${idx}`}
+                      className="tz-splash-code-column pointer-events-none absolute top-0 h-full text-[10px] font-mono text-white/22 sm:text-xs"
+                      style={{ left: `${idx * 8.6 + 1.5}%`, animationDelay: `${idx * 0.23}s` }}
+                    >
+                      01001101 110101 010101 100101 001011
+                    </div>
+                  ))}
+                  <div className="absolute bottom-[5.2%] left-1/2 z-20 -translate-x-1/2">
+                    <NeonGlassButton
+                      accent
+                      className="!px-10 !py-3 !text-base sm:!text-lg"
+                      disabled={busy}
+                      onClick={() => void handleStartFromSplash()}
+                    >
+                      Крутим удачу?
+                    </NeonGlassButton>
+                  </div>
                 </div>
-                <NeonGlassButton
-                  accent
-                  className="!px-10 !py-3 !text-base sm:!text-lg"
-                  disabled={busy}
-                  onClick={() => void handleStartFromSplash()}
-                >
-                  Крутим удачу?
-                </NeonGlassButton>
               </div>
             </motion.div>
           )}

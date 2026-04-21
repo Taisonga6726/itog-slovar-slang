@@ -616,6 +616,38 @@
   opacity: 0.72;
 }
 
+@keyframes tzScanlinesMove {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(12px); }
+}
+
+@keyframes tzCodeDrift {
+  0% { transform: translateY(-20%); opacity: 0; }
+  10% { opacity: 0.25; }
+  85% { opacity: 0.25; }
+  100% { transform: translateY(120%); opacity: 0; }
+}
+
+.tz-splash-scanlines {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.48) 0px,
+    rgba(0, 0, 0, 0.48) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+  mix-blend-mode: multiply;
+  opacity: 0.42;
+  animation: tzScanlinesMove 0.45s linear infinite;
+}
+
+.tz-splash-code-column {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  letter-spacing: 1px;
+  animation: tzCodeDrift 4.2s linear infinite;
+}
+
 /* Финал: лого читабельнее, меньше «пустой» стек — удобнее ставить кнопку под неоновой линией */
 .tz-vibe-ai-brand--banner .tz-vibe-ai-brand__stack {
   min-height: min(13vh, 108px);
