@@ -21,6 +21,7 @@ const BACKGROUND_FLOW: BackgroundVariant[] = ["A", "D", "C", "C"];
 const MAX_SPINS = 4;
 
 const AUDIO = {
+  START_WOW: "вау_труба.MP3",
   SPIN: "прокрутка колеса 02.MP3",
   SPIN_STOP: "ROCK_ ART BARABAN WOW.mp3",
   REACTIONS: ["смех девочка1.MP3", "смех мальчик 1 .MP3", "смех мужчина 1.MP3", "довольный мальчик.MP3"],
@@ -29,8 +30,9 @@ const AUDIO = {
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
 const SPLASH_AUDIO_SRC = "/videos/заставка перед игрой/заставка перед игрой.MP3";
-const SPLASH_IMAGE_SRC = "/images/pole%20vxod.png";
-const OPTIONAL_HYMN_SRC = "/slovar/assetss/sounds/versiya%205_hard-rok%20Tanya.mp3";
+const OPTIONAL_HYMN_FILE = "versiya 5_hard-rok Tanya.mp3";
+const OPTIONAL_HYMN_SRC = `/slovar/assets/sounds/${encodeURIComponent(OPTIONAL_HYMN_FILE)}`;
+const FINAL_BANNER_SRC = `/images/${encodeURIComponent("финал аплодисменты игра.png")}`;
 const SPLASH_STOP_AT_SECONDS = 4.45;
 
 const toAudioSrc = (fileName: string) => `/audio/${encodeURIComponent(fileName)}`;
@@ -57,6 +59,7 @@ export default function PoleChudesTestGame() {
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const splashAudioRef = useRef<HTMLAudioElement | null>(null);
+  const optionalHymnRef = useRef<HTMLAudioElement | null>(null);
   const activeAudioRef = useRef<Array<{ audio: HTMLAudioElement; baseVolume: number }>>([]);
 
   useEffect(() => {
@@ -86,6 +89,38 @@ export default function PoleChudesTestGame() {
     });
     activeAudioRef.current = [];
   }, []);
+
+  /** Страховка: при уходе со страницы / повторной игре гасим любые <audio>/<video> внутри этого экрана (в т.ч. controls). */
+  const silenceEmbeddedMedia = useCallback(() => {
+    try {
+      optionalHymnRef.current?.pause();
+    } catch {
+      /* ignore */
+    }
+    if (typeof document === "undefined") return;
+    const root = document.getElementById("pole-chudes-test-root");
+    if (!root) return;
+    root.querySelectorAll("audio, video").forEach((el) => {
+      try {
+        (el as HTMLMediaElement).pause();
+        (el as HTMLMediaElement).currentTime = 0;
+      } catch {
+        /* ignore */
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopActiveAudio();
+      try {
+        splashAudioRef.current?.pause();
+      } catch {
+        /* ignore */
+      }
+      silenceEmbeddedMedia();
+    };
+  }, [silenceEmbeddedMedia, stopActiveAudio]);
 
   const playAudioToEnd = useCallback(
     async (fileName: string, volume = 1): Promise<number> => {
@@ -133,12 +168,24 @@ export default function PoleChudesTestGame() {
         }
       });
       const donePromise = new Promise<void>((resolve) => {
+        let settled = false;
         const done = () => {
+          if (settled) return;
+          settled = true;
+          window.clearTimeout(safetyTimer);
           activeAudioRef.current = activeAudioRef.current.filter((item) => item.audio !== audio);
           resolve();
         };
         audio.addEventListener("ended", done, { once: true });
         audio.addEventListener("error", done, { once: true });
+        const safetyTimer = window.setTimeout(() => {
+          try {
+            audio.pause();
+          } catch {
+            /* ignore */
+          }
+          done();
+        }, 30000);
       });
       void audio.play().catch(() => {});
       return { durationPromise, donePromise };
@@ -176,11 +223,13 @@ export default function PoleChudesTestGame() {
     if (busy) return;
     setBusy(true);
     setPlayReady(false);
+    stopActiveAudio();
+    void playAudioToEnd(AUDIO.START_WOW, 0.95);
     setBackgroundVariant("A");
     setStage("PLAYING");
     setPlayReady(true);
     setBusy(false);
-  }, [busy]);
+  }, [busy, playAudioToEnd, stopActiveAudio]);
 
   const handleSpinAnimationComplete = useCallback(() => {
     spinResolveRef.current?.();
@@ -215,7 +264,6 @@ export default function PoleChudesTestGame() {
     setRotation(nextRotation);
 
     await Promise.all([animationDone, spinAudio.donePromise]);
-    await playAudioToEnd(AUDIO.SPIN_STOP, 0.92);
     setIsSpinning(false);
     setRotationFrames(nextRotation);
     setSpinTimes(undefined);
@@ -240,7 +288,7 @@ export default function PoleChudesTestGame() {
     setBackgroundVariant(BACKGROUND_FLOW[Math.min(results.length + 1, BACKGROUND_FLOW.length - 1)]);
     const reactionBank = AUDIO.REACTIONS;
     const reactionAudio = reactionBank[results.length % reactionBank.length];
-    await playAudioToEnd(reactionAudio, 0.88);
+    await Promise.all([playAudioToEnd(AUDIO.SPIN_STOP, 0.95), playAudioToEnd(reactionAudio, 0.92)]);
     setResultReady(true);
     setBusy(false);
   }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, playAudioToEnd, startAudioAndGetMeta, results.length, stopActiveAudio]);
@@ -266,6 +314,19 @@ export default function PoleChudesTestGame() {
 
   const resetGame = useCallback(() => {
     if (busy) return;
+    stopActiveAudio();
+    try {
+      optionalHymnRef.current?.pause();
+      if (optionalHymnRef.current) optionalHymnRef.current.currentTime = 0;
+    } catch {
+      /* ignore */
+    }
+    try {
+      splashAudioRef.current?.pause();
+      if (splashAudioRef.current) splashAudioRef.current.currentTime = 0;
+    } catch {
+      /* ignore */
+    }
     setStage("SPLASH");
     setResults([]);
     setCurrentResult(null);
@@ -280,7 +341,7 @@ export default function PoleChudesTestGame() {
     setRotationFrames(0);
     setSpinTimes(undefined);
     setSpinEases(undefined);
-  }, [busy]);
+  }, [busy, stopActiveAudio]);
 
   const getCategoryIcon = (id: string) => {
     switch (id) {
@@ -299,9 +360,17 @@ export default function PoleChudesTestGame() {
     }
   };
 
+  const isFinalStage = stage === "FINAL";
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-black font-book text-white selection:bg-purple-500/30">
-      {stage !== "SPLASH" && (backgroundVariant === "A" || backgroundVariant === "C" || backgroundVariant === "D") && (
+    <div id="pole-chudes-test-root" className="relative min-h-screen overflow-hidden bg-black font-book text-white selection:bg-purple-500/30">
+      {isFinalStage && (
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-black">
+          <img src={FINAL_BANNER_SRC} alt="" className="h-full w-full object-cover object-top" draggable={false} />
+        </div>
+      )}
+
+      {!isFinalStage && stage !== "SPLASH" && (backgroundVariant === "A" || backgroundVariant === "C" || backgroundVariant === "D") && (
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
           <video
             src="/videos/grok-read-book-03.mp4"
@@ -315,7 +384,7 @@ export default function PoleChudesTestGame() {
         </div>
       )}
 
-      {stage !== "SPLASH" && (backgroundVariant === "B" || backgroundVariant === "C") && (
+      {!isFinalStage && stage !== "SPLASH" && (backgroundVariant === "B" || backgroundVariant === "C") && (
         <div className="pointer-events-none fixed inset-0 z-0 bg-black">
           <img
             src="/images/open-book.png"
@@ -326,19 +395,31 @@ export default function PoleChudesTestGame() {
         </div>
       )}
 
-      <div className={`pointer-events-none fixed inset-0 z-0 ${backgroundVariant === "B" ? "bg-black/42" : "bg-black/48"}`} />
-      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-        <div className="absolute left-[10%] top-[5%] h-[760px] w-[760px] animate-pulse rounded-full bg-fuchsia-900/35 blur-[160px]" />
-        <div className="absolute right-[5%] top-[20%] h-[560px] w-[560px] animate-pulse rounded-full bg-sky-900/25 blur-[140px] [animation-delay:3s]" />
-      </div>
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:100px_100px] animate-[pulse_5s_infinite]" />
-      <MagicRingsGlobal className="magic-rings-fx--luck-page" containerId="mbPoleChudesTestRings" canvasId="mbPoleChudesTestRingsCanvas" />
+      {!isFinalStage && (
+        <div className={`pointer-events-none fixed inset-0 z-0 ${backgroundVariant === "B" ? "bg-black/42" : "bg-black/48"}`} />
+      )}
+      {!isFinalStage && (
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
+          <div className="absolute left-[10%] top-[5%] h-[760px] w-[760px] animate-pulse rounded-full bg-fuchsia-900/35 blur-[160px]" />
+          <div className="absolute right-[5%] top-[20%] h-[560px] w-[560px] animate-pulse rounded-full bg-sky-900/25 blur-[140px] [animation-delay:3s]" />
+        </div>
+      )}
+      {!isFinalStage && (
+        <div className="fixed inset-0 z-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:100px_100px] animate-[pulse_5s_infinite]" />
+      )}
+      {!isFinalStage && <MagicRingsGlobal className="magic-rings-fx--luck-page" containerId="mbPoleChudesTestRings" canvasId="mbPoleChudesTestRingsCanvas" />}
 
       <div className="relative z-10 flex min-h-screen flex-col">
         <div className="mx-auto mt-3 flex w-full max-w-[min(1240px,96vw)] flex-wrap items-center justify-between gap-2 px-3 sm:px-6">
           {stage !== "SPLASH" && (
             <div className="rounded-xl border border-sky-400/35 bg-black/45 px-2 py-1.5 backdrop-blur-md">
-              <audio controls preload="none" src={OPTIONAL_HYMN_SRC} className="h-8 max-w-[46vw] sm:max-w-[320px]">
+              <audio
+                ref={optionalHymnRef}
+                controls
+                preload="none"
+                src={OPTIONAL_HYMN_SRC}
+                className="h-8 max-w-[46vw] sm:max-w-[320px]"
+              >
                 Ваш браузер не поддерживает аудио.
               </audio>
             </div>
@@ -364,7 +445,6 @@ export default function PoleChudesTestGame() {
               <div className="absolute inset-0 z-0 bg-black/35" />
               <div className="relative z-10 flex w-full max-w-[min(1520px,98vw)] items-center justify-center px-2">
                 <div className="relative w-full overflow-hidden">
-                  <img src={SPLASH_IMAGE_SRC} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-contain opacity-100" />
                   <video
                     ref={splashVideoRef}
                     src={SPLASH_VIDEO_SRC}
@@ -532,13 +612,14 @@ export default function PoleChudesTestGame() {
               animate={{ opacity: 1 }}
               className="flex flex-1 flex-col items-center justify-center space-y-12 p-6 md:p-12"
             >
-              <div className="space-y-4 text-center">
-                <div className="mb-4 inline-flex h-24 w-24 items-center justify-center rounded-full border-2 border-[#bf953f]/50 bg-yellow-500/20 text-[#fcf6ba] shadow-[0_0_60px_rgba(191,149,63,0.4)]">
-                  <Trophy className="h-12 w-12" />
+              <div className="space-y-5 text-center">
+                <div className="sr-only">Итоги Вайбкодера</div>
+                <div
+                  className="inline-flex h-20 w-20 items-center justify-center rounded-full border-2 border-[#bf953f]/55 bg-yellow-500/15 text-[#fcf6ba] shadow-[0_0_48px_rgba(191,149,63,0.45)] sm:h-24 sm:w-24"
+                  aria-hidden
+                >
+                  <Trophy className="h-10 w-10 sm:h-12 sm:w-12" />
                 </div>
-                <h1 className="bg-gradient-to-r from-[#bf953f] via-[#fcf6ba] to-[#aa771c] bg-clip-text text-5xl font-black uppercase tracking-tighter text-transparent drop-shadow-[0_0_30px_rgba(191,149,63,0.3)] md:text-8xl">
-                  ИТОГИ ВАЙБКОДЕРА
-                </h1>
               </div>
               <div className="grid w-full max-w-5xl grid-cols-1 gap-6 md:grid-cols-2">
                 {results.map((res, idx) => (
@@ -547,7 +628,7 @@ export default function PoleChudesTestGame() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.15 }}
-                    className="group flex items-center space-x-8 rounded-[32px] border border-white/5 bg-black/40 p-8 backdrop-blur-md transition-all hover:bg-white/5"
+                    className="group flex items-center space-x-8 rounded-[32px] border border-[#fcf6ba]/30 bg-[#261433]/78 p-8 backdrop-blur-md transition-all hover:bg-[#311a44]/88"
                   >
                     <div
                       className="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-2xl border transition-all group-hover:scale-110"
@@ -563,7 +644,7 @@ export default function PoleChudesTestGame() {
                       <h4 className="mb-2 text-[10px] font-black uppercase tracking-[0.5em] text-white/50">
                         {CATEGORIES.find((c) => c.id === res.category)?.label}
                       </h4>
-                      <p className="text-2xl font-black leading-tight text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.4)] md:text-3xl">
+                      <p className="text-[2rem] font-black leading-tight text-[#fff7dc] drop-shadow-[0_0_12px_rgba(252,246,186,0.45)] md:text-[2.3rem]">
                         {res.phrase}
                       </p>
                     </div>
