@@ -1,8 +1,6 @@
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import MagicRingsGlobal from "@/components/MagicRingsGlobal";
-import LuckyWheelGame from "@/components/lucky-wheel/LuckyWheelGame";
-import { VIBE_PANEL_BG_SRC } from "@/components/VibeAudioTestPanel";
+import PoleChudesTestGame from "@/components/pole-chudes-test/PoleChudesTestGame";
 
 type LuckyWheelPanelProps = {
   open: boolean;
@@ -10,33 +8,18 @@ type LuckyWheelPanelProps = {
 };
 
 /**
- * Вариант A: полноэкранная панель (как панель гимна), z поверх финала.
+ * Полноэкранная панель с полной игрой «Поле чудес» поверх книги — один URL сайта, без отдельного /luck.
  */
 export default function LuckyWheelPanel({ open, onClose }: LuckyWheelPanelProps) {
   if (!open) return null;
 
   const node = (
     <div
-      className="fixed inset-0 z-[255] flex flex-col overflow-y-auto overflow-x-hidden text-white"
+      className="fixed inset-0 z-[255] flex flex-col overflow-hidden bg-black text-white"
       role="dialog"
       aria-modal="true"
       aria-label="Поле чудес — игра"
     >
-      <div className="pointer-events-none fixed inset-0 z-0 flex items-end justify-center bg-black">
-        <img
-          src={VIBE_PANEL_BG_SRC}
-          alt=""
-          className="h-auto max-h-[100dvh] w-full max-w-[min(1600px,100vw)] select-none object-contain object-bottom"
-          draggable={false}
-        />
-      </div>
-
-      <MagicRingsGlobal
-        className="magic-rings-fx--hymn-panel"
-        containerId="mbLuckyPanelMagicRings"
-        canvasId="mbLuckyPanelMagicRingsCanvas"
-      />
-
       <button
         type="button"
         onClick={onClose}
@@ -47,8 +30,8 @@ export default function LuckyWheelPanel({ open, onClose }: LuckyWheelPanelProps)
         <X className="h-5 w-5" />
       </button>
 
-      <div className="relative z-[256] mx-auto flex min-h-[100dvh] w-full max-w-[min(1240px,96vw)] flex-col items-center px-3 pb-8 pt-[max(3rem,env(safe-area-inset-top))] sm:px-5">
-        <LuckyWheelGame variant="panel" onClose={onClose} skipIntro />
+      <div className="relative z-[256] flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden">
+        <PoleChudesTestGame layout="panel" onClosePanel={onClose} />
       </div>
     </div>
   );

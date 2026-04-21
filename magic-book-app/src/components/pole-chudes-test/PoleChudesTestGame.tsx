@@ -7,6 +7,7 @@ import MagicRingsGlobal from "@/components/MagicRingsGlobal";
 import NeonGlassButton from "@/components/NeonGlassButton";
 import VibeAiBrand from "@/components/VibeAiBrand";
 import HeroWave from "@/components/ui/dynamic-wave-canvas-background";
+import { cn } from "@/lib/utils";
 import { CATEGORIES, PHRASES } from "./constants";
 import { Wheel } from "./Wheel";
 
@@ -34,11 +35,27 @@ const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/зас�
 const SPLASH_AUDIO_SRC = "/videos/заставка перед игрой/заставка перед игрой.MP3";
 const FINAL_BANNER_SRC = `/images/${encodeURIComponent("финал аплодисменты игра.png")}`;
 const COVER_BOOK_SRC = "/images/cover-book.png";
+/** После видеозаставки — только статичный фон-книга (без циклического видео). */
+const OPEN_BOOK_BG_SRC = "/images/open-book.png";
 
 const toAudioSrc = (fileName: string) => `/audio/${encodeURIComponent(fileName)}`;
 
-export default function PoleChudesTestGame() {
+export interface PoleChudesTestGameProps {
+  /** Если игра открыта панелью поверх книги — закрыть панель при переходе в другой раздел. */
+  onClosePanel?: () => void;
+  /** `panel` — встроено в оверлей (высота от родителя); `page` — отдельная страница /luck. */
+  layout?: "page" | "panel";
+}
+
+export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: PoleChudesTestGameProps = {}) {
   const navigate = useNavigate();
+  const closeAndNavigate = useCallback(
+    (to: string) => {
+      onClosePanel?.();
+      navigate(to);
+    },
+    [navigate, onClosePanel],
+  );
   const [stage, setStage] = useState<GameStage>("SPLASH");
   const [results, setResults] = useState<SpinResult[]>([]);
   const [currentResult, setCurrentResult] = useState<SpinResult | null>(null);
@@ -362,10 +379,15 @@ export default function PoleChudesTestGame() {
 
   const showLuckBrandLogo = stage === "SPLASH" || stage === "PLAYING" || stage === "RESULT";
 
+  const isPanelLayout = layout === "panel";
+
   return (
     <div
       id="pole-chudes-test-root"
-      className="relative flex h-[100dvh] max-h-[100dvh] min-h-0 flex-col overflow-hidden bg-black font-book text-white selection:bg-purple-500/30"
+      className={cn(
+        "relative flex min-h-0 w-full flex-col overflow-hidden bg-black font-book text-white selection:bg-purple-500/30",
+        isPanelLayout ? "h-full max-h-full flex-1" : "h-[100dvh] max-h-[100dvh]",
+      )}
     >
       {isFinalStage && (
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-black">
@@ -373,26 +395,18 @@ export default function PoleChudesTestGame() {
         </div>
       )}
 
-      {!isFinalStage && stage !== "SPLASH" && (backgroundVariant === "A" || backgroundVariant === "C" || backgroundVariant === "D") && (
-        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-          <video
-            src="/videos/grok-read-book-03.mp4"
-            autoPlay
-            muted
-            loop
-            playsInline
-            preload="metadata"
-            className={`h-full w-full object-cover ${backgroundVariant === "C" ? "scale-110 blur-[3px] opacity-35" : "opacity-50"} ${backgroundVariant === "A" || backgroundVariant === "D" ? "scale-[0.9]" : ""}`}
-          />
-        </div>
-      )}
-
-      {!isFinalStage && stage !== "SPLASH" && (backgroundVariant === "B" || backgroundVariant === "C") && (
-        <div className="pointer-events-none fixed inset-0 z-0 bg-black">
+      {!isFinalStage && stage !== "SPLASH" && (
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-black">
           <img
-            src="/images/open-book.png"
+            src={OPEN_BOOK_BG_SRC}
             alt=""
-            className={`h-full w-full select-none object-cover ${backgroundVariant === "B" ? "scale-110 opacity-34 blur-sm" : "scale-105 opacity-22 blur-md"}`}
+            className={cn(
+              "h-full w-full select-none object-cover",
+              backgroundVariant === "A" && "scale-[0.9] opacity-50",
+              backgroundVariant === "B" && "scale-110 opacity-[0.34] blur-sm",
+              backgroundVariant === "C" && "scale-105 opacity-[0.22] blur-md",
+              backgroundVariant === "D" && "scale-[0.9] opacity-50",
+            )}
             draggable={false}
           />
         </div>
@@ -414,12 +428,18 @@ export default function PoleChudesTestGame() {
 
       {showLuckBrandLogo && (
         <div className="pointer-events-none fixed inset-x-0 top-0 z-[50] flex justify-center pt-[max(0.25rem,env(safe-area-inset-top))]">
-          <VibeAiBrand banner className="!relative !max-w-[min(92vw,420px)] scale-[0.85] sm:scale-90 md:scale-95" />
+          <VibeAiBrand
+            banner
+            className={cn(
+              "!relative !max-w-[min(92vw,380px)]",
+              isPanelLayout ? "scale-[0.72] sm:scale-[0.8]" : "scale-[0.85] sm:scale-90 md:scale-95",
+            )}
+          />
         </div>
       )}
 
-      <div className="relative z-10 flex min-h-0 flex-1 flex-col">
-        <div className="mx-auto mt-2 flex w-full max-w-[min(1240px,96vw)] shrink-0 justify-end px-3 sm:mt-3 sm:px-6">
+      <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
+        <div className="mx-auto mt-1 flex w-full max-w-[min(1240px,96vw)] shrink-0 justify-end px-2 sm:mt-2 sm:px-4">
           <button
             type="button"
             onClick={() => setMuted((prev) => !prev)}
@@ -442,8 +462,8 @@ export default function PoleChudesTestGame() {
                 <HeroWave />
               </div>
               <div className="absolute inset-0 z-[3] bg-black/25" />
-              <div className="relative z-10 flex w-full max-w-[min(1520px,98vw)] min-h-0 flex-1 items-center justify-center px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-14 sm:pt-16">
-                <div className="relative w-full max-h-full overflow-hidden">
+              <div className="relative z-10 flex w-full max-w-[min(1520px,98vw)] min-h-0 flex-1 items-center justify-center px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[clamp(3.25rem,11dvh,5rem)] sm:pt-[clamp(3.5rem,12dvh,5.5rem)]">
+                <div className="relative w-full max-h-full min-h-0 overflow-hidden">
                   <video
                     ref={splashVideoRef}
                     src={SPLASH_VIDEO_SRC}
@@ -467,7 +487,7 @@ export default function PoleChudesTestGame() {
                       splashAudio.volume = muted ? 0 : 0.9;
                       void splashAudio.play().catch(() => {});
                     }}
-                    className="aspect-video max-h-[min(56dvh,520px)] w-full object-contain sm:max-h-[min(62dvh,600px)]"
+                    className="aspect-video max-h-[min(48svh,460px)] w-full object-contain sm:max-h-[min(54svh,540px)]"
                   />
                   <div className="tz-splash-scanlines pointer-events-none absolute inset-0" />
                   {Array.from({ length: 12 }).map((_, idx) => (
@@ -500,9 +520,9 @@ export default function PoleChudesTestGame() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden p-2 pt-10 sm:p-3 sm:pt-12"
+              className="grid min-h-0 w-full flex-1 grid-rows-[auto_minmax(0,1fr)_auto] items-stretch overflow-hidden px-1.5 pb-1 pt-[clamp(3rem,10dvh,4.5rem)] sm:px-2 sm:pb-2 sm:pt-[clamp(3.25rem,11dvh,5rem)]"
             >
-              <div className="relative z-10 flex min-h-0 w-full max-w-[min(100vw,920px)] flex-col items-center">
+              <div className="relative z-10 flex min-h-0 min-w-0 w-full max-w-[min(100vw,920px)] flex-col items-center justify-self-center [grid-row:2]">
                 <AnimatePresence mode="wait">
                   {attemptFlashKey > 0 && (
                     <motion.div
@@ -528,14 +548,14 @@ export default function PoleChudesTestGame() {
                 {backgroundVariant === "D" && (
                   <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[84vmin] w-[84vmin] max-h-[800px] max-w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#fcf6ba]/25 shadow-[0_0_60px_rgba(252,246,186,0.35),0_0_120px_rgba(236,72,153,0.25)]" />
                 )}
-                <div className="relative mt-1 w-full max-w-full sm:mt-2">
+                <div className="relative mt-0 flex min-h-0 w-full max-w-full min-w-0 flex-1 items-center justify-center sm:mt-0.5">
                   <img
                     src={COVER_BOOK_SRC}
                     alt=""
-                    className="pointer-events-none absolute left-1/2 top-[52%] z-0 max-h-[min(58vmin,380px)] w-[min(92%,420px)] -translate-x-1/2 -translate-y-1/2 rounded-lg object-contain opacity-[0.92] shadow-[0_12px_48px_rgba(0,0,0,0.65)]"
+                    className="pointer-events-none absolute left-1/2 top-1/2 z-0 max-h-[min(38svh,280px)] w-[min(88%,min(90vw,380px))] max-w-[100%] -translate-x-1/2 -translate-y-1/2 rounded-lg object-contain opacity-[0.92] shadow-[0_12px_48px_rgba(0,0,0,0.65)] sm:max-h-[min(44svh,340px)]"
                     draggable={false}
                   />
-                  <div className="relative z-10 mx-auto flex justify-center">
+                  <div className="relative z-10 mx-auto flex max-h-full min-h-0 w-full min-w-0 justify-center overflow-hidden">
                     <Wheel
                       rotation={rotationFrames}
                       spinDuration={spinDuration}
@@ -548,17 +568,17 @@ export default function PoleChudesTestGame() {
                     />
                   </div>
                 </div>
-                <div className="mt-2 flex max-w-full flex-wrap items-center justify-center gap-1.5 sm:mt-3 sm:gap-2">
-                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => navigate("/")}>
+                <div className="mt-1 flex max-w-full flex-wrap items-center justify-center gap-1 self-center [grid-row:3] sm:mt-1.5 sm:gap-1.5">
+                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/")}>
                     Назад к книге
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => navigate("/?entry=slovar&screen=form")}>
+                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=form")}>
                     Внести слово
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => navigate("/?entry=slovar&screen=reading")}>
+                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=reading")}>
                     Читать книгу
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => navigate("/?entry=slovar&screen=final")}>
+                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=final")}>
                     Выбрать гимн
                   </NeonGlassButton>
                 </div>
@@ -659,10 +679,10 @@ export default function PoleChudesTestGame() {
                 </div>
               </div>
               <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:gap-3 sm:pt-3">
-                <NeonGlassButton className="!px-4 !py-2 !text-[11px] sm:!px-5 sm:!text-xs" onClick={() => navigate("/")}>
+                <NeonGlassButton className="!px-4 !py-2 !text-[11px] sm:!px-5 sm:!text-xs" onClick={() => closeAndNavigate("/")}>
                   Назад к книге
                 </NeonGlassButton>
-                <NeonGlassButton className="!px-4 !py-2 !text-[11px] sm:!px-5 sm:!text-xs" onClick={() => navigate("/?entry=slovar&screen=form")}>
+                <NeonGlassButton className="!px-4 !py-2 !text-[11px] sm:!px-5 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=form")}>
                   Внести слово
                 </NeonGlassButton>
                 <NeonGlassButton accent className="!px-5 !py-2 !text-[11px] sm:!px-8 sm:!py-3 sm:!text-sm" disabled={!finalReady || busy} onClick={resetGame}>

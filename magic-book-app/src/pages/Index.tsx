@@ -447,9 +447,9 @@ const Index = () => {
   }, [playFlipSound]);
 
   const openLuckyWheel = useCallback(() => {
+    /** Глушим фоновый гимн книги, чтобы не накладывался на эффекты игры (и панель, и /luck). */
+    pauseBackgroundHymnSoft();
     if (LUCKY_WHEEL_ENTRY === "route") {
-      /** Отдельная страница `/luck` без оболочки книги — глушим фоновый гимн, чтобы не накладывался на эффекты игры. */
-      pauseBackgroundHymnSoft();
       navigate("/luck");
     } else {
       setLuckyWheelOpen(true);
@@ -593,7 +593,13 @@ const Index = () => {
         }
       />
 
-      <LuckyWheelPanel open={luckyWheelOpen} onClose={() => setLuckyWheelOpen(false)} />
+      <LuckyWheelPanel
+        open={luckyWheelOpen}
+        onClose={() => {
+          setLuckyWheelOpen(false);
+          resumeBackgroundHymnAfterPanel();
+        }}
+      />
 
       {mode !== "intro" && mode !== "awakening" && mode !== "hands" && !luckyWheelOpen && (
         <ControlBar
