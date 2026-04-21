@@ -26,14 +26,14 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          cache-dependency-path: "magic-book-before-pagination-fix-main (1)/magic-book-before-pagination-fix-main/package-lock.json"
+          cache-dependency-path: "magic-book-app/package-lock.json"
 
       - name: Install dependencies
-        working-directory: "magic-book-before-pagination-fix-main (1)/magic-book-before-pagination-fix-main"
+        working-directory: "magic-book-app"
         run: npm ci
 
       - name: Build for GitHub Pages base path
-        working-directory: "magic-book-before-pagination-fix-main (1)/magic-book-before-pagination-fix-main"
+        working-directory: "magic-book-app"
         run: npm run build -- --base /itog-slovar-slang/
 
       - name: Setup Pages
@@ -42,7 +42,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: "magic-book-before-pagination-fix-main (1)/magic-book-before-pagination-fix-main/dist"
+          path: "magic-book-app/dist"
 
   deploy:
     environment:

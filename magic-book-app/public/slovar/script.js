@@ -195,10 +195,7 @@
           /* GitHub Pages: собранный Magic Book лежит в корне Pages сайта */
           href = "/itog-slovar-slang/";
         } else {
-          href = new URL(
-            "../magic-book-before-pagination-fix-main (1)/magic-book-before-pagination-fix-main/dist/index.html",
-            window.location.href
-          ).href;
+          href = new URL("../magic-book-app/dist/index.html", window.location.href).href;
         }
         try {
           var u = new URL(href, window.location.href);
