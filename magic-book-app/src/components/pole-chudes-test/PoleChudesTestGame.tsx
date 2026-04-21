@@ -28,6 +28,8 @@ const AUDIO = {
   FINAL: ["фанфары аплодисменты .MP3", "фейерверк фанфары аплодисменты.MP3"],
 } as const;
 
+const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
+
 const toAudioSrc = (fileName: string) => `/audio/${encodeURIComponent(fileName)}`;
 
 export default function PoleChudesTestGame() {
@@ -342,7 +344,7 @@ export default function PoleChudesTestGame() {
             >
               <div className="absolute inset-0 z-0 overflow-hidden">
                 <video
-                  src="/videos/magic03.mp4"
+                  src={SPLASH_VIDEO_SRC}
                   autoPlay
                   muted
                   loop
