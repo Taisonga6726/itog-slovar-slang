@@ -8,7 +8,7 @@ import VibeAiLogoMark from "@/components/VibeAiLogoMark";
 import { CATEGORIES, PHRASES } from "./constants";
 import { Wheel } from "./Wheel";
 
-type GameStage = "START" | "SPLASH" | "PLAYING" | "RESULT" | "FINAL";
+type GameStage = "SPLASH" | "PLAYING" | "RESULT" | "FINAL";
 
 interface SpinResult {
   category: string;
@@ -33,7 +33,7 @@ const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/зас�
 const toAudioSrc = (fileName: string) => `/audio/${encodeURIComponent(fileName)}`;
 
 export default function PoleChudesTestGame() {
-  const [stage, setStage] = useState<GameStage>("START");
+  const [stage, setStage] = useState<GameStage>("SPLASH");
   const [results, setResults] = useState<SpinResult[]>([]);
   const [currentResult, setCurrentResult] = useState<SpinResult | null>(null);
   const [usedPhrases, setUsedPhrases] = useState<Record<string, Set<string>>>({});
@@ -123,11 +123,6 @@ export default function PoleChudesTestGame() {
     const fullSpins = 360 * (4 + Math.floor(Math.random() * 2));
     return currentRotation + fullSpins + delta;
   }, []);
-
-  const handleStart = useCallback(async () => {
-    if (busy) return;
-    setStage("SPLASH");
-  }, [busy]);
 
   const handleStartFromSplash = useCallback(async () => {
     if (busy) return;
@@ -225,7 +220,7 @@ export default function PoleChudesTestGame() {
 
   const resetGame = useCallback(() => {
     if (busy) return;
-    setStage("START");
+    setStage("SPLASH");
     setResults([]);
     setCurrentResult(null);
     setUsedPhrases({});
@@ -302,38 +297,6 @@ export default function PoleChudesTestGame() {
           </button>
         </div>
         <AnimatePresence mode="wait">
-          {stage === "START" && (
-            <motion.div
-              key="start"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="flex flex-1 flex-col items-center justify-center space-y-12 p-6 text-center"
-            >
-              <div className="relative space-y-4">
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  className="bg-gradient-to-b from-cyan-300 via-white to-purple-400 bg-clip-text text-8xl font-black leading-none tracking-tighter text-transparent drop-shadow-[0_0_60px_rgba(168,85,247,0.6)] md:text-[180px]"
-                >
-                  AI
-                </motion.div>
-                <h1 className="text-4xl font-black uppercase tracking-tighter text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.4)] md:text-7xl">
-                  Поле чудес
-                </h1>
-              </div>
-
-              <div className="max-w-xl rounded-2xl border border-white/20 bg-black/55 p-8 shadow-[inset_0_0_0_1px_rgba(168,85,247,0.2)] backdrop-blur-md">
-                <p className="mb-8 text-2xl font-semibold leading-tight text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] md:text-3xl">
-                  Твой финальный вайбкодерский расклад решит одно вращение.
-                </p>
-                <NeonGlassButton accent className="!px-10 !py-3 !text-base sm:!text-lg" disabled={busy} onClick={() => void handleStart()}>
-                  Крутим удачу?
-                </NeonGlassButton>
-              </div>
-            </motion.div>
-          )}
-
           {stage === "SPLASH" && (
             <motion.div
               key="splash"
