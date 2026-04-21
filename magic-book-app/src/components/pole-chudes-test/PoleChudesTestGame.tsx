@@ -5,6 +5,8 @@ import { AppWindow, Code2, GraduationCap, RotateCcw, Sparkles, Volume2, VolumeX,
 import { useNavigate } from "react-router-dom";
 import MagicRingsGlobal from "@/components/MagicRingsGlobal";
 import NeonGlassButton from "@/components/NeonGlassButton";
+import VibeAiBrand from "@/components/VibeAiBrand";
+import HeroWave from "@/components/ui/dynamic-wave-canvas-background";
 import { CATEGORIES, PHRASES } from "./constants";
 import { Wheel } from "./Wheel";
 
@@ -30,10 +32,8 @@ const AUDIO = {
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
 const SPLASH_AUDIO_SRC = "/videos/заставка перед игрой/заставка перед игрой.MP3";
-const OPTIONAL_HYMN_FILE = "versiya 5_hard-rok Tanya.mp3";
-const OPTIONAL_HYMN_SRC = `/slovar/assets/sounds/${encodeURIComponent(OPTIONAL_HYMN_FILE)}`;
 const FINAL_BANNER_SRC = `/images/${encodeURIComponent("финал аплодисменты игра.png")}`;
-const SPLASH_STOP_AT_SECONDS = 4.45;
+const COVER_BOOK_SRC = "/images/cover-book.png";
 
 const toAudioSrc = (fileName: string) => `/audio/${encodeURIComponent(fileName)}`;
 
@@ -59,7 +59,6 @@ export default function PoleChudesTestGame() {
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const splashAudioRef = useRef<HTMLAudioElement | null>(null);
-  const optionalHymnRef = useRef<HTMLAudioElement | null>(null);
   const activeAudioRef = useRef<Array<{ audio: HTMLAudioElement; baseVolume: number }>>([]);
 
   useEffect(() => {
@@ -90,13 +89,8 @@ export default function PoleChudesTestGame() {
     activeAudioRef.current = [];
   }, []);
 
-  /** Страховка: при уходе со страницы / повторной игре гасим любые <audio>/<video> внутри этого экрана (в т.ч. controls). */
+  /** Страховка: при уходе со страницы / повторной игре гасим любые <audio>/<video> внутри этого экрана. */
   const silenceEmbeddedMedia = useCallback(() => {
-    try {
-      optionalHymnRef.current?.pause();
-    } catch {
-      /* ignore */
-    }
     if (typeof document === "undefined") return;
     const root = document.getElementById("pole-chudes-test-root");
     if (!root) return;
@@ -143,7 +137,7 @@ export default function PoleChudesTestGame() {
         };
         audio.addEventListener("ended", done, { once: true });
         audio.addEventListener("error", done, { once: true });
-        window.setTimeout(done, 9000);
+        window.setTimeout(done, 120000);
       });
       void audio.play().catch(() => {});
       const duration = await durationPromise;
@@ -223,6 +217,13 @@ export default function PoleChudesTestGame() {
     if (busy) return;
     setBusy(true);
     setPlayReady(false);
+    try {
+      splashVideoRef.current?.pause();
+      splashAudioRef.current?.pause();
+      if (splashAudioRef.current) splashAudioRef.current.currentTime = 0;
+    } catch {
+      /* ignore */
+    }
     stopActiveAudio();
     void playAudioToEnd(AUDIO.START_WOW, 0.95);
     setBackgroundVariant("A");
@@ -251,7 +252,7 @@ export default function PoleChudesTestGame() {
     });
 
     stopActiveAudio();
-    const spinAudio = startAudioAndGetMeta(AUDIO.SPIN, 0.92);
+    const spinAudio = startAudioAndGetMeta(AUDIO.SPIN, 1);
     const spinAudioDuration = await spinAudio.durationPromise;
     const totalSpinDuration = Math.max(3.2, spinAudioDuration + 0.45);
     const preRotation = rotation + 180;
@@ -288,7 +289,8 @@ export default function PoleChudesTestGame() {
     setBackgroundVariant(BACKGROUND_FLOW[Math.min(results.length + 1, BACKGROUND_FLOW.length - 1)]);
     const reactionBank = AUDIO.REACTIONS;
     const reactionAudio = reactionBank[results.length % reactionBank.length];
-    await Promise.all([playAudioToEnd(AUDIO.SPIN_STOP, 0.95), playAudioToEnd(reactionAudio, 0.92)]);
+    await playAudioToEnd(AUDIO.SPIN_STOP, 1);
+    await playAudioToEnd(reactionAudio, 0.95);
     setResultReady(true);
     setBusy(false);
   }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, playAudioToEnd, startAudioAndGetMeta, results.length, stopActiveAudio]);
@@ -299,8 +301,10 @@ export default function PoleChudesTestGame() {
       setBusy(true);
       setFinalReady(false);
       setStage("FINAL");
-      confetti({ particleCount: 260, spread: 150, origin: { y: 0.52 }, scalar: 1.25 });
-      await playAudioToEnd("фейерверк фанфары аплодисменты.MP3", 1);
+      confetti({ particleCount: 220, spread: 130, origin: { y: 0.55 }, scalar: 1.2 });
+      await playAudioToEnd(AUDIO.FINAL[0], 1);
+      confetti({ particleCount: 300, spread: 160, origin: { y: 0.48 }, scalar: 1.35, ticks: 420 });
+      await playAudioToEnd(AUDIO.FINAL[1], 1);
       setFinalReady(true);
       setBusy(false);
       return;
@@ -315,12 +319,6 @@ export default function PoleChudesTestGame() {
   const resetGame = useCallback(() => {
     if (busy) return;
     stopActiveAudio();
-    try {
-      optionalHymnRef.current?.pause();
-      if (optionalHymnRef.current) optionalHymnRef.current.currentTime = 0;
-    } catch {
-      /* ignore */
-    }
     try {
       splashAudioRef.current?.pause();
       if (splashAudioRef.current) splashAudioRef.current.currentTime = 0;
@@ -362,8 +360,13 @@ export default function PoleChudesTestGame() {
 
   const isFinalStage = stage === "FINAL";
 
+  const showLuckBrandLogo = stage === "SPLASH" || stage === "PLAYING" || stage === "RESULT";
+
   return (
-    <div id="pole-chudes-test-root" className="relative min-h-screen overflow-hidden bg-black font-book text-white selection:bg-purple-500/30">
+    <div
+      id="pole-chudes-test-root"
+      className="relative flex h-[100dvh] max-h-[100dvh] min-h-0 flex-col overflow-hidden bg-black font-book text-white selection:bg-purple-500/30"
+    >
       {isFinalStage && (
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-black">
           <img src={FINAL_BANNER_SRC} alt="" className="h-full w-full object-cover object-top" draggable={false} />
@@ -409,21 +412,14 @@ export default function PoleChudesTestGame() {
       )}
       {!isFinalStage && <MagicRingsGlobal className="magic-rings-fx--luck-page" containerId="mbPoleChudesTestRings" canvasId="mbPoleChudesTestRingsCanvas" />}
 
-      <div className="relative z-10 flex min-h-screen flex-col">
-        <div className="mx-auto mt-3 flex w-full max-w-[min(1240px,96vw)] flex-wrap items-center justify-between gap-2 px-3 sm:px-6">
-          {stage !== "SPLASH" && (
-            <div className="rounded-xl border border-sky-400/35 bg-black/45 px-2 py-1.5 backdrop-blur-md">
-              <audio
-                ref={optionalHymnRef}
-                controls
-                preload="none"
-                src={OPTIONAL_HYMN_SRC}
-                className="h-8 max-w-[46vw] sm:max-w-[320px]"
-              >
-                Ваш браузер не поддерживает аудио.
-              </audio>
-            </div>
-          )}
+      {showLuckBrandLogo && (
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-[50] flex justify-center pt-[max(0.25rem,env(safe-area-inset-top))]">
+          <VibeAiBrand banner className="!relative !max-w-[min(92vw,420px)] scale-[0.85] sm:scale-90 md:scale-95" />
+        </div>
+      )}
+
+      <div className="relative z-10 flex min-h-0 flex-1 flex-col">
+        <div className="mx-auto mt-2 flex w-full max-w-[min(1240px,96vw)] shrink-0 justify-end px-3 sm:mt-3 sm:px-6">
           <button
             type="button"
             onClick={() => setMuted((prev) => !prev)}
@@ -440,11 +436,14 @@ export default function PoleChudesTestGame() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="relative flex flex-1 items-center justify-center p-0"
+              className="relative flex min-h-0 flex-1 flex-col items-center justify-center p-0"
             >
-              <div className="absolute inset-0 z-0 bg-black/35" />
-              <div className="relative z-10 flex w-full max-w-[min(1520px,98vw)] items-center justify-center px-2">
-                <div className="relative w-full overflow-hidden">
+              <div className="pointer-events-none fixed inset-0 z-[2] opacity-[0.32]">
+                <HeroWave />
+              </div>
+              <div className="absolute inset-0 z-[3] bg-black/25" />
+              <div className="relative z-10 flex w-full max-w-[min(1520px,98vw)] min-h-0 flex-1 items-center justify-center px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-14 sm:pt-16">
+                <div className="relative w-full max-h-full overflow-hidden">
                   <video
                     ref={splashVideoRef}
                     src={SPLASH_VIDEO_SRC}
@@ -452,11 +451,11 @@ export default function PoleChudesTestGame() {
                     muted
                     playsInline
                     preload="metadata"
-                    onTimeUpdate={(e) => {
-                      const video = e.currentTarget;
-                      if (video.currentTime >= SPLASH_STOP_AT_SECONDS) {
-                        video.pause();
+                    onEnded={() => {
+                      try {
                         splashAudioRef.current?.pause();
+                      } catch {
+                        /* ignore */
                       }
                     }}
                     onLoadedMetadata={(e) => {
@@ -468,7 +467,7 @@ export default function PoleChudesTestGame() {
                       splashAudio.volume = muted ? 0 : 0.9;
                       void splashAudio.play().catch(() => {});
                     }}
-                    className="aspect-video w-full object-contain"
+                    className="aspect-video max-h-[min(56dvh,520px)] w-full object-contain sm:max-h-[min(62dvh,600px)]"
                   />
                   <div className="tz-splash-scanlines pointer-events-none absolute inset-0" />
                   {Array.from({ length: 12 }).map((_, idx) => (
@@ -501,9 +500,9 @@ export default function PoleChudesTestGame() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="flex flex-1 flex-col items-center justify-center p-2 sm:p-4"
+              className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden p-2 pt-10 sm:p-3 sm:pt-12"
             >
-              <div className="relative z-10 flex flex-col items-center">
+              <div className="relative z-10 flex min-h-0 w-full max-w-[min(100vw,920px)] flex-col items-center">
                 <AnimatePresence mode="wait">
                   {attemptFlashKey > 0 && (
                     <motion.div
@@ -529,29 +528,37 @@ export default function PoleChudesTestGame() {
                 {backgroundVariant === "D" && (
                   <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[84vmin] w-[84vmin] max-h-[800px] max-w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#fcf6ba]/25 shadow-[0_0_60px_rgba(252,246,186,0.35),0_0_120px_rgba(236,72,153,0.25)]" />
                 )}
-                <div className="mt-1 sm:mt-3">
-                  <Wheel
-                    rotation={rotationFrames}
-                    spinDuration={spinDuration}
-                    isSpinning={isSpinning}
-                    spinTimes={spinTimes}
-                    spinEases={spinEases}
-                    canSpin={playReady && !busy}
-                    onSectorClick={() => void handleSpin()}
-                    onSpinAnimationComplete={handleSpinAnimationComplete}
+                <div className="relative mt-1 w-full max-w-full sm:mt-2">
+                  <img
+                    src={COVER_BOOK_SRC}
+                    alt=""
+                    className="pointer-events-none absolute left-1/2 top-[52%] z-0 max-h-[min(58vmin,380px)] w-[min(92%,420px)] -translate-x-1/2 -translate-y-1/2 rounded-lg object-contain opacity-[0.92] shadow-[0_12px_48px_rgba(0,0,0,0.65)]"
+                    draggable={false}
                   />
+                  <div className="relative z-10 mx-auto flex justify-center">
+                    <Wheel
+                      rotation={rotationFrames}
+                      spinDuration={spinDuration}
+                      isSpinning={isSpinning}
+                      spinTimes={spinTimes}
+                      spinEases={spinEases}
+                      canSpin={playReady && !busy}
+                      onSectorClick={() => void handleSpin()}
+                      onSpinAnimationComplete={handleSpinAnimationComplete}
+                    />
+                  </div>
                 </div>
-                <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                  <NeonGlassButton className="!px-4 !py-2 !text-xs sm:!text-sm" onClick={() => navigate("/")}>
-                    Назад к игре
+                <div className="mt-2 flex max-w-full flex-wrap items-center justify-center gap-1.5 sm:mt-3 sm:gap-2">
+                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => navigate("/")}>
+                    Назад к книге
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-4 !py-2 !text-xs sm:!text-sm" onClick={() => navigate("/?entry=slovar&screen=form")}>
+                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => navigate("/?entry=slovar&screen=form")}>
                     Внести слово
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-4 !py-2 !text-xs sm:!text-sm" onClick={() => navigate("/?entry=slovar&screen=reading")}>
+                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => navigate("/?entry=slovar&screen=reading")}>
                     Читать книгу
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-4 !py-2 !text-xs sm:!text-sm" onClick={() => navigate("/?entry=slovar&screen=final")}>
+                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => navigate("/?entry=slovar&screen=final")}>
                     Выбрать гимн
                   </NeonGlassButton>
                 </div>
@@ -565,10 +572,10 @@ export default function PoleChudesTestGame() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
-              className="flex flex-1 flex-col items-center justify-center p-6 text-center"
+              className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden p-3 pt-12 text-center sm:p-5 sm:pt-14"
             >
               <div
-                className="relative w-full max-w-xl space-y-8 overflow-hidden rounded-[40px] border-4 bg-[#11041c] p-12 shadow-2xl"
+                className="relative w-full max-w-[min(100%,28rem)] space-y-4 overflow-hidden rounded-3xl border-[3px] bg-[#11041c] p-6 shadow-2xl sm:space-y-5 sm:rounded-[32px] sm:p-8"
                 style={{ borderColor: CATEGORIES.find((c) => c.id === currentResult.category)?.color }}
               >
                 <div
@@ -576,28 +583,28 @@ export default function PoleChudesTestGame() {
                   style={{ backgroundColor: CATEGORIES.find((c) => c.id === currentResult.category)?.color }}
                 />
                 <div
-                  className="relative z-10 mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-3xl border-2"
+                  className="relative z-10 mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-2 sm:mb-4 sm:h-20 sm:w-20 sm:rounded-3xl"
                   style={{
                     backgroundColor: `${CATEGORIES.find((c) => c.id === currentResult.category)?.color}11`,
                     color: CATEGORIES.find((c) => c.id === currentResult.category)?.color,
                     borderColor: CATEGORIES.find((c) => c.id === currentResult.category)?.color,
                   }}
                 >
-                  {React.cloneElement(getCategoryIcon(currentResult.category) as React.ReactElement, { className: "h-10 w-10" })}
+                  {React.cloneElement(getCategoryIcon(currentResult.category) as React.ReactElement, { className: "h-8 w-8 sm:h-9 sm:w-9" })}
                 </div>
-                <h3 className="relative z-10 text-2xl font-medium uppercase tracking-[0.3em] text-white/50">
+                <h3 className="relative z-10 text-lg font-medium uppercase tracking-[0.28em] text-white/50 sm:text-xl">
                   {CATEGORIES.find((c) => c.id === currentResult.category)?.label}
                 </h3>
                 <motion.h2
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="relative z-10 text-4xl font-black uppercase leading-tight text-white drop-shadow-lg md:text-6xl"
+                  className="relative z-10 text-2xl font-black uppercase leading-tight text-white drop-shadow-lg sm:text-3xl md:text-4xl"
                 >
                   {currentResult.phrase}
                 </motion.h2>
-                <div className="relative z-10 pt-10">
-                  <NeonGlassButton accent className="!w-full !py-4 !text-lg sm:!text-2xl" disabled={!resultReady || busy} onClick={() => void nextAction()}>
+                <div className="relative z-10 pt-4 sm:pt-6">
+                  <NeonGlassButton accent className="!w-full !py-3 !text-base sm:!py-3.5 sm:!text-lg" disabled={!resultReady || busy} onClick={() => void nextAction()}>
                     {results.length >= MAX_SPINS ? "Узнать итог" : "Продолжить"}
                   </NeonGlassButton>
                 </div>
@@ -610,40 +617,40 @@ export default function PoleChudesTestGame() {
               key="final"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex min-h-0 flex-1 flex-col px-3 pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] pt-1 sm:px-5 sm:pb-4"
+              className="flex min-h-0 flex-1 flex-col overflow-hidden px-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-10 sm:px-4 sm:pb-3 sm:pt-12"
             >
               <div className="sr-only">Итоги Вайбкодера</div>
-              {/* Под зону «VIBE CODER» + «Итоги» на самом баннере — плашки в средней/нижней части кадра */}
+              {/* Ниже зоны «VIBE CODER» / «Итоги» на PNG — чтобы плашки не заезжали на подпись */}
               <div
                 className="pointer-events-none shrink-0 select-none"
                 aria-hidden
-                style={{ height: "clamp(9.25rem, 26vh, 14.5rem)" }}
+                style={{ height: "clamp(12.5rem, 36vh, 22rem)" }}
               />
-              <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-2 sm:py-4">
-                <div className="grid w-full max-w-[min(1100px,96vw)] grid-cols-1 gap-3 sm:gap-4 md:grid-cols-2 md:gap-5">
+              <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-1 sm:py-2">
+                <div className="grid w-full max-w-[min(960px,96vw)] grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 md:gap-3.5">
                   {results.map((res, idx) => (
                     <motion.div
                       key={`${res.category}-${idx}`}
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.12 }}
-                      className="group flex min-h-0 items-center gap-4 rounded-2xl border border-[#fcf6ba]/35 bg-[#14061f]/82 p-4 shadow-[0_8px_32px_rgba(0,0,0,0.45)] backdrop-blur-md sm:gap-5 sm:rounded-[28px] sm:p-6 md:gap-6 md:p-7"
+                      className="group flex min-h-0 items-center gap-3 rounded-xl border border-[#fcf6ba]/35 bg-[#14061f]/88 p-3 shadow-[0_6px_24px_rgba(0,0,0,0.5)] backdrop-blur-md sm:gap-4 sm:rounded-2xl sm:p-4"
                     >
                       <div
-                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border transition-transform group-hover:scale-105 sm:h-14 sm:w-14 sm:rounded-2xl md:h-16 md:w-16"
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-transform group-hover:scale-105 sm:h-11 sm:w-11 sm:rounded-xl md:h-12 md:w-12"
                         style={{
                           backgroundColor: `${CATEGORIES.find((c) => c.id === res.category)?.color}18`,
                           color: CATEGORIES.find((c) => c.id === res.category)?.color,
                           borderColor: `${CATEGORIES.find((c) => c.id === res.category)?.color}44`,
                         }}
                       >
-                        {React.cloneElement(getCategoryIcon(res.category) as React.ReactElement, { className: "h-6 w-6 sm:h-7 sm:w-7 md:h-8 md:w-8" })}
+                        {React.cloneElement(getCategoryIcon(res.category) as React.ReactElement, { className: "h-5 w-5 sm:h-6 sm:w-6" })}
                       </div>
                       <div className="min-w-0 flex-1 text-left">
-                        <h4 className="mb-1 text-[9px] font-black uppercase tracking-[0.42em] text-white/55 sm:text-[10px] sm:tracking-[0.5em]">
+                        <h4 className="mb-0.5 text-[8px] font-black uppercase tracking-[0.38em] text-white/55 sm:text-[9px] sm:tracking-[0.42em]">
                           {CATEGORIES.find((c) => c.id === res.category)?.label}
                         </h4>
-                        <p className="text-lg font-black leading-snug text-[#fff7dc] drop-shadow-[0_0_10px_rgba(252,246,186,0.35)] sm:text-xl md:text-2xl md:leading-tight">
+                        <p className="text-sm font-black leading-snug text-[#fff7dc] drop-shadow-[0_0_8px_rgba(252,246,186,0.3)] sm:text-base md:text-lg md:leading-tight">
                           {res.phrase}
                         </p>
                       </div>
@@ -651,10 +658,16 @@ export default function PoleChudesTestGame() {
                   ))}
                 </div>
               </div>
-              <div className="flex shrink-0 flex-wrap items-center justify-center gap-3 pt-3 sm:pt-4">
-                <NeonGlassButton accent className="!px-8 !py-3 !text-sm sm:!text-base" disabled={!finalReady || busy} onClick={resetGame}>
+              <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:gap-3 sm:pt-3">
+                <NeonGlassButton className="!px-4 !py-2 !text-[11px] sm:!px-5 sm:!text-xs" onClick={() => navigate("/")}>
+                  Назад к книге
+                </NeonGlassButton>
+                <NeonGlassButton className="!px-4 !py-2 !text-[11px] sm:!px-5 sm:!text-xs" onClick={() => navigate("/?entry=slovar&screen=form")}>
+                  Внести слово
+                </NeonGlassButton>
+                <NeonGlassButton accent className="!px-5 !py-2 !text-[11px] sm:!px-8 sm:!py-3 sm:!text-sm" disabled={!finalReady || busy} onClick={resetGame}>
                   <span className="inline-flex items-center gap-2">
-                    <RotateCcw className="h-4 w-4" />
+                    <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     Еще раз крутить
                   </span>
                 </NeonGlassButton>
