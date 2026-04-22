@@ -18,9 +18,11 @@ interface SpinResult {
 }
 
 type BackgroundVariant = "A" | "B" | "C" | "D";
+type GameWordBase = Record<string, string[]>;
 const BG_PLAYING: BackgroundVariant = "A";
 const BG_RESULT: BackgroundVariant = "B";
 const MAX_SPINS = 4;
+const GAME_WORDS_STORAGE_KEY = "game_words";
 
 function toAudioSrc(fileName: string) {
   return `/audio/${encodeURIComponent(fileName)}`;
@@ -76,7 +78,23 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [resultReady, setResultReady] = useState(false);
   const [finalReady, setFinalReady] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [isFirstSpin, setIsFirstSpin] = useState(true);
+  const [gameWordBase, setGameWordBase] = useState<GameWordBase>(() => {
+    try {
+      const raw = localStorage.getItem(GAME_WORDS_STORAGE_KEY);
+      if (!raw) return PHRASES;
+      const parsed = JSON.parse(raw) as unknown;
+      if (!parsed || typeof parsed !== "object") return PHRASES;
+      const out: GameWordBase = {};
+      CATEGORIES.forEach((cat) => {
+        const list = (parsed as Record<string, unknown>)[cat.id];
+        out[cat.id] = Array.isArray(list) ? list.filter((v): v is string => typeof v === "string" && v.trim().length > 0) : [...PHRASES[cat.id]];
+        if (out[cat.id].length === 0) out[cat.id] = [...PHRASES[cat.id]];
+      });
+      return out;
+    } catch {
+      return PHRASES;
+    }
+  });
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const soundManagerRef = useRef<SoundManager | null>(null);
@@ -97,10 +115,59 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   const sound = useCallback(() => soundManagerRef.current, []);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(GAME_WORDS_STORAGE_KEY, JSON.stringify(gameWordBase));
+    } catch {
+      /* ignore */
+    }
+  }, [gameWordBase]);
+
+  useEffect(() => {
+    const categories = CATEGORIES.map((c) => c.id);
+    const pickCategory = (text: string) => {
+      const sum = Array.from(text).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
+      return categories[sum % categories.length];
+    };
+
+    try {
+      const raw = localStorage.getItem("magic-book-entries");
+      if (!raw) return;
+      const entries = JSON.parse(raw) as unknown;
+      if (!Array.isArray(entries)) return;
+      const incoming = entries
+        .map((e) => {
+          const item = e as { word?: unknown; description?: unknown };
+          const text = String(item?.description || item?.word || "").trim();
+          return text;
+        })
+        .filter((v) => v.length > 0);
+      if (!incoming.length) return;
+
+      setGameWordBase((prev) => {
+        const next: GameWordBase = {};
+        CATEGORIES.forEach((cat) => {
+          next[cat.id] = [...(prev[cat.id] ?? PHRASES[cat.id])];
+        });
+        let changed = false;
+        incoming.forEach((phrase) => {
+          const catId = pickCategory(phrase);
+          if (!next[catId].includes(phrase)) {
+            next[catId].push(phrase);
+            changed = true;
+          }
+        });
+        return changed ? next : prev;
+      });
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   const pickSpinResult = useCallback(
     (snapshot: Record<string, Set<string>>) => {
       const sector = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
-      const categoryPhrases = PHRASES[sector.id];
+      const categoryPhrases = gameWordBase[sector.id] ?? PHRASES[sector.id];
       const categoryUsed = snapshot[sector.id] || new Set();
       const availablePhrases = categoryPhrases.filter((p) => !categoryUsed.has(p));
       const phrase =
@@ -109,7 +176,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
           : categoryPhrases[Math.floor(Math.random() * categoryPhrases.length)];
       return { categoryId: sector.id, phrase };
     },
-    [],
+    [gameWordBase],
   );
 
   const calcTargetRotation = useCallback((currentRotation: number, categoryId: string) => {
@@ -179,7 +246,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     }));
     setCurrentResult(newResult);
     setResults((prev) => [...prev, newResult]);
+    // Точка синхронизации "тарелка -> открытие": в один момент звук + показ результата.
+    const drumHitPromise = sound()?.play("drumHit", { waitForEnd: true }) ?? Promise.resolve();
     setStage("RESULT");
+    setResultReady(true);
+    setBusy(false);
     confetti({
       particleCount: 50,
       spread: 70,
@@ -188,24 +259,18 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     });
 
     setBackgroundVariant(BG_RESULT);
-    await sound()?.play("drumHit", { waitForEnd: true });
-    if (isFirstSpin) {
-      await sound()?.play("truba", { waitForEnd: true });
-      void sound()?.play("happyBoy");
-      setIsFirstSpin(false);
-    } else {
-      void sound()?.play("laughGirl");
-    }
+    const reactionSounds: Array<"laughGirl"> = ["laughGirl"];
+    const reaction = reactionSounds[Math.floor(Math.random() * reactionSounds.length)];
+    await drumHitPromise;
+    await sound()?.play(reaction, { waitForEnd: true });
     /**
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
      * иначе на статичном экране слышны повторяющиеся эффекты.
      */
-    setResultReady(true);
-    setBusy(false);
-  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, isFirstSpin, onPauseBookHymn, sound]);
+  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, onPauseBookHymn, sound]);
 
   const nextAction = useCallback(async () => {
-    if (!resultReady || busy) return;
+    if (!resultReady) return;
     sound()?.stopAll();
     if (results.length >= MAX_SPINS) {
       setBusy(true);
@@ -224,7 +289,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setStage("PLAYING");
     setPlayReady(true);
     setBusy(false);
-  }, [resultReady, busy, results.length, sound]);
+  }, [resultReady, results.length, sound]);
 
   const resetGame = useCallback(() => {
     if (busy) return;
@@ -233,7 +298,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setResults([]);
     setCurrentResult(null);
     setUsedPhrases({});
-    setIsFirstSpin(true);
     setBackgroundVariant(BG_PLAYING);
     setPlayReady(false);
     setResultReady(false);
@@ -418,7 +482,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   <NeonGlassButton
                     accent
                     className="pole-chudes-result-cta !w-full !py-3 !text-base !font-semibold !text-white sm:!py-3.5 sm:!text-lg"
-                    disabled={busy}
                     onClick={() => void nextAction()}
                   >
                     {results.length >= MAX_SPINS ? "Узнать итог" : "Продолжить"}
