@@ -22,19 +22,20 @@ type GameWordBase = Record<string, string[]>;
 const BG_PLAYING: BackgroundVariant = "A";
 const BG_RESULT: BackgroundVariant = "B";
 const MAX_SPINS = 4;
-const GAME_WORDS_STORAGE_KEY = "game_words";
 
 function toAudioSrc(fileName: string) {
   return `/audio/${encodeURIComponent(fileName)}`;
 }
 
 const SOUND_CONFIG = {
-  clickWowStart: { src: toAudioSrc("КЛИК вау начало.MP3"), volume: 0.95 },
+  wowStart: { src: toAudioSrc("КЛИК вау начало.MP3"), volume: 0.95 },
   spin: { src: toAudioSrc("прокрутка колеса 02.MP3"), volume: 1 },
   drumHit: { src: toAudioSrc("ROCK_ ART BARABAN WOW.mp3"), volume: 0.95 },
   truba: { src: toAudioSrc("вау_труба.MP3"), volume: 0.95 },
-  happyBoy: { src: toAudioSrc("довольный мальчик.MP3"), volume: 0.9 },
-  laughGirl: { src: toAudioSrc("смех девочка1.MP3"), volume: 0.9 },
+  happyBoy: { src: toAudioSrc("довольный мальчик.MP3"), volume: 0.95 },
+  laughGirl: { src: toAudioSrc("смех девочка1.MP3"), volume: 0.95 },
+  laughMan: { src: toAudioSrc("смех мужчина 1.MP3"), volume: 0.95 },
+  laughBoy: { src: toAudioSrc("смех мальчик 1 .MP3"), volume: 0.95 },
   finalApl: { src: toAudioSrc("фанфары аплодисменты .MP3"), volume: 1 },
   finalFire: { src: toAudioSrc("фейерверк фанфары аплодисменты.MP3"), volume: 1 },
 } as const;
@@ -78,31 +79,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [resultReady, setResultReady] = useState(false);
   const [finalReady, setFinalReady] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [gameWordBase, setGameWordBase] = useState<GameWordBase>(() => {
-    try {
-      const raw = localStorage.getItem(GAME_WORDS_STORAGE_KEY);
-      if (!raw) return PHRASES;
-      const parsed = JSON.parse(raw) as unknown;
-      if (!parsed || typeof parsed !== "object") return PHRASES;
-      const out: GameWordBase = {};
-      CATEGORIES.forEach((cat) => {
-        const list = (parsed as Record<string, unknown>)[cat.id];
-        out[cat.id] = Array.isArray(list) ? list.filter((v): v is string => typeof v === "string" && v.trim().length > 0) : [...PHRASES[cat.id]];
-        if (out[cat.id].length === 0) out[cat.id] = [...PHRASES[cat.id]];
-      });
-      return out;
-    } catch {
-      return PHRASES;
-    }
-  });
+  const [splashVideoMuted, setSplashVideoMuted] = useState(true);
+  const [gameWordBase, setGameWordBase] = useState<GameWordBase>(() => PHRASES);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const soundManagerRef = useRef<SoundManager | null>(null);
 
   useEffect(() => {
-    if (stage === "RESULT" || stage === "PLAYING") {
-      onPauseBookHymn?.();
-    }
+    // Внутри игры фоновый гимн запрещен на всех этапах, включая заставку.
+    onPauseBookHymn?.();
   }, [stage, onPauseBookHymn]);
 
   useEffect(() => {
@@ -116,64 +101,80 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const sound = useCallback(() => soundManagerRef.current, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(GAME_WORDS_STORAGE_KEY, JSON.stringify(gameWordBase));
-    } catch {
-      /* ignore */
-    }
-  }, [gameWordBase]);
-
-  useEffect(() => {
     const categories = CATEGORIES.map((c) => c.id);
     const pickCategory = (text: string) => {
       const sum = Array.from(text).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
       return categories[sum % categories.length];
     };
 
-    try {
-      const raw = localStorage.getItem("magic-book-entries");
-      if (!raw) return;
-      const entries = JSON.parse(raw) as unknown;
-      if (!Array.isArray(entries)) return;
-      const incoming = entries
-        .map((e) => {
-          const item = e as { word?: unknown; description?: unknown };
-          const text = String(item?.description || item?.word || "").trim();
-          return text;
-        })
-        .filter((v) => v.length > 0);
-      if (!incoming.length) return;
-
-      setGameWordBase((prev) => {
+    const hydrateFromBookEntries = () => {
+      try {
+        const raw = localStorage.getItem("magic-book-entries");
+        if (!raw) {
+          setGameWordBase(PHRASES);
+          return;
+        }
+        const entries = JSON.parse(raw) as unknown;
+        if (!Array.isArray(entries)) {
+          setGameWordBase(PHRASES);
+          return;
+        }
+        const incoming = entries
+          .map((e) => {
+            const item = e as { word?: unknown; description?: unknown };
+            const text = String(item?.description || item?.word || "").trim();
+            return text;
+          })
+          .filter((v) => v.length > 0);
+        if (!incoming.length) {
+          setGameWordBase(PHRASES);
+          return;
+        }
+        const seen = new Set<string>();
+        const uniqueIncoming = incoming.filter((phrase) => {
+          const key = phrase.toLowerCase();
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
         const next: GameWordBase = {};
         CATEGORIES.forEach((cat) => {
-          next[cat.id] = [...(prev[cat.id] ?? PHRASES[cat.id])];
+          next[cat.id] = [];
         });
-        let changed = false;
-        incoming.forEach((phrase) => {
+        uniqueIncoming.forEach((phrase) => {
           const catId = pickCategory(phrase);
-          if (!next[catId].includes(phrase)) {
-            next[catId].push(phrase);
-            changed = true;
-          }
+          next[catId].push(phrase);
         });
-        return changed ? next : prev;
-      });
-    } catch {
-      /* ignore */
-    }
+        setGameWordBase(next);
+      } catch {
+        setGameWordBase(PHRASES);
+      }
+    };
+    hydrateFromBookEntries();
+    const onStorage = (event: StorageEvent) => {
+      if (event.key === "magic-book-entries") hydrateFromBookEntries();
+    };
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", hydrateFromBookEntries);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", hydrateFromBookEntries);
+    };
   }, []);
 
   const pickSpinResult = useCallback(
     (snapshot: Record<string, Set<string>>) => {
-      const sector = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)];
+      const nonEmptyCategories = CATEGORIES.filter((c) => (gameWordBase[c.id] ?? []).length > 0);
+      const sectorPool = nonEmptyCategories.length > 0 ? nonEmptyCategories : CATEGORIES;
+      const sector = sectorPool[Math.floor(Math.random() * sectorPool.length)];
       const categoryPhrases = gameWordBase[sector.id] ?? PHRASES[sector.id];
+      const safePhrases = categoryPhrases.length > 0 ? categoryPhrases : PHRASES[sector.id];
       const categoryUsed = snapshot[sector.id] || new Set();
-      const availablePhrases = categoryPhrases.filter((p) => !categoryUsed.has(p));
+      const availablePhrases = safePhrases.filter((p) => !categoryUsed.has(p));
       const phrase =
         availablePhrases.length > 0
           ? availablePhrases[Math.floor(Math.random() * availablePhrases.length)]
-          : categoryPhrases[Math.floor(Math.random() * categoryPhrases.length)];
+          : safePhrases[Math.floor(Math.random() * safePhrases.length)];
       return { categoryId: sector.id, phrase };
     },
     [gameWordBase],
@@ -195,7 +196,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setBusy(true);
     setPlayReady(false);
     onPauseBookHymn?.();
-    void sound()?.play("clickWowStart");
+    setSplashVideoMuted(false);
+    void sound()?.play("wowStart");
+    const video = splashVideoRef.current;
+    if (video) {
+      video.muted = false;
+      void video.play().catch(() => {});
+    }
     setBackgroundVariant(BG_PLAYING);
     setStage("PLAYING");
     setPlayReady(true);
@@ -214,6 +221,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setResultReady(false);
 
     const usedSnapshot = usedPhrases;
+    const attempt = results.length + 1;
     const spinResult = pickSpinResult(usedSnapshot);
     const nextRotation = calcTargetRotation(rotation, spinResult.categoryId);
     const animationDone = new Promise<void>((resolve) => {
@@ -246,11 +254,23 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     }));
     setCurrentResult(newResult);
     setResults((prev) => [...prev, newResult]);
-    // Точка синхронизации "тарелка -> открытие": в один момент звук + показ результата.
-    const drumHitPromise = sound()?.play("drumHit", { waitForEnd: true }) ?? Promise.resolve();
+    const drumHitDone = sound()?.play("drumHit", { waitForEnd: true }) ?? Promise.resolve();
+    const openSoundByAttempt: Record<number, "truba" | "wowStart" | "happyBoy"> = {
+      1: "truba",
+      2: "wowStart",
+      3: "truba",
+      4: "happyBoy",
+    };
+    const laughByAttempt: Partial<Record<number, "laughGirl" | "laughMan" | "laughBoy">> = {
+      1: "laughGirl",
+      2: "laughMan",
+      3: "laughBoy",
+    };
+    const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
     setStage("RESULT");
     setResultReady(true);
     setBusy(false);
+    const openSoundDone = sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve();
     confetti({
       particleCount: 50,
       spread: 70,
@@ -259,15 +279,16 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     });
 
     setBackgroundVariant(BG_RESULT);
-    const reactionSounds: Array<"laughGirl"> = ["laughGirl"];
-    const reaction = reactionSounds[Math.floor(Math.random() * reactionSounds.length)];
-    await drumHitPromise;
-    await sound()?.play(reaction, { waitForEnd: true });
+    await Promise.all([drumHitDone, openSoundDone]);
+    const laughSound = laughByAttempt[attempt];
+    if (laughSound) {
+      await sound()?.play(laughSound, { waitForEnd: true });
+    }
     /**
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
      * иначе на статичном экране слышны повторяющиеся эффекты.
      */
-  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, onPauseBookHymn, sound]);
+  }, [busy, playReady, isSpinning, stage, usedPhrases, results.length, pickSpinResult, calcTargetRotation, rotation, onPauseBookHymn, sound]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady) return;
@@ -375,10 +396,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                     src={SPLASH_VIDEO_SRC}
                     autoPlay
                     loop
-                    muted
+                    muted={splashVideoMuted}
                     playsInline
                     preload="metadata"
-                    className="aspect-video max-h-[min(56svh,620px)] w-full object-cover"
+                    className="max-h-[min(56svh,620px)] w-full object-contain object-center"
                   />
                 </div>
                 <div className="mt-8 flex justify-center">
@@ -403,7 +424,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               exit={{ opacity: 0 }}
               className="grid min-h-0 w-full flex-1 grid-rows-[auto_minmax(0,1fr)_auto] items-stretch overflow-hidden px-1.5 pb-1 pt-[clamp(2.75rem,9dvh,4.25rem)] sm:px-2 sm:pb-2 sm:pt-[clamp(3rem,10dvh,4.75rem)]"
             >
-              <div className="relative z-10 flex h-1 w-full max-w-[min(100vw,920px)] shrink-0 justify-self-center px-0.5" />
+              <div className="relative z-10 flex w-full max-w-[min(100vw,920px)] shrink-0 flex-col items-center justify-self-center gap-1 px-0.5">
+                <div className="rounded-full border border-cyan-300/35 bg-[#06020c]/65 px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-[#e9f4ff] sm:text-xs">
+                  {`ПОПЫТКА ${Math.min(results.length + 1, MAX_SPINS)}`}
+                </div>
+              </div>
 
               <div className="relative z-10 flex min-h-0 min-w-0 w-full max-w-[min(100vw,920px)] flex-col items-center justify-self-center overflow-hidden">
                 <div className="relative flex min-h-0 w-full max-w-full min-w-0 flex-1 items-center justify-center">
