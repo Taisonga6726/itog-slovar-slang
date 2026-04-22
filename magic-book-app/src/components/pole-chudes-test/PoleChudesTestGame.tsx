@@ -1,14 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import confetti from "canvas-confetti";
-import { AppWindow, Code2, GraduationCap, RotateCcw, Sparkles, Volume2, VolumeX, Zap } from "lucide-react";
+import { AppWindow, Code2, GraduationCap, RotateCcw, Sparkles, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import MagicRingsGlobal from "@/components/MagicRingsGlobal";
 import NeonGlassButton from "@/components/NeonGlassButton";
-import VibeAiLogoMark from "@/components/VibeAiLogoMark";
-import HeroWave from "@/components/ui/dynamic-wave-canvas-background";
 import { cn } from "@/lib/utils";
 import { CATEGORIES, PHRASES } from "./constants";
+import GlobalFXLayer from "./GlobalFXLayer";
+import { SoundManager } from "./SoundManager";
 import { Wheel } from "./Wheel";
 
 type GameStage = "SPLASH" | "PLAYING" | "RESULT" | "FINAL";
@@ -23,23 +22,26 @@ const BG_PLAYING: BackgroundVariant = "A";
 const BG_RESULT: BackgroundVariant = "B";
 const MAX_SPINS = 4;
 
-const AUDIO = {
-  START_WOW: "вау_труба.MP3",
-  SPIN: "прокрутка колеса 02.MP3",
-  SPIN_STOP: "ROCK_ ART BARABAN WOW.mp3",
-  /** На карточках предсказания: только реакции девочка/мальчик, без аплодисментов и без фоновой музыки. */
-  REACTIONS: ["смех девочка1.MP3", "смех мальчик 1 .MP3"],
-  FINAL: ["фанфары аплодисменты .MP3", "фейерверк фанфары аплодисменты.MP3"],
+function toAudioSrc(fileName: string) {
+  return `/audio/${encodeURIComponent(fileName)}`;
+}
+
+const SOUND_CONFIG = {
+  clickWowStart: { src: toAudioSrc("КЛИК вау начало.MP3"), volume: 0.95 },
+  spin: { src: toAudioSrc("прокрутка колеса 02.MP3"), volume: 1 },
+  drumHit: { src: toAudioSrc("ROCK_ ART BARABAN WOW.mp3"), volume: 0.95 },
+  truba: { src: toAudioSrc("вау_труба.MP3"), volume: 0.95 },
+  happyBoy: { src: toAudioSrc("довольный мальчик.MP3"), volume: 0.9 },
+  laughGirl: { src: toAudioSrc("смех девочка1.MP3"), volume: 0.9 },
+  finalApl: { src: toAudioSrc("фанфары аплодисменты .MP3"), volume: 1 },
+  finalFire: { src: toAudioSrc("фейерверк фанфары аплодисменты.MP3"), volume: 1 },
 } as const;
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
-const SPLASH_AUDIO_SRC = "/videos/заставка перед игрой/заставка перед игрой.MP3";
 const FINAL_BANNER_SRC = `/images/${encodeURIComponent("финал аплодисменты игра.png")}`;
 /** По ТЗ: крутить барабан на магическом круге; предсказание показывать на фоне книги. */
 const DRUM_BG_PLAY_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
-
-const toAudioSrc = (fileName: string) => `/audio/${encodeURIComponent(fileName)}`;
 
 export interface PoleChudesTestGameProps {
   /** Если игра открыта панелью поверх книги — закрыть панель при переходе в другой раздел. */
@@ -69,37 +71,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [spinDuration, setSpinDuration] = useState(2.6);
   const [spinTimes, setSpinTimes] = useState<number[] | undefined>(undefined);
   const [spinEases, setSpinEases] = useState<("easeIn" | "easeOut" | "linear")[] | undefined>(undefined);
-  const [muted, setMuted] = useState(false);
   const [backgroundVariant, setBackgroundVariant] = useState<BackgroundVariant>(BG_PLAYING);
   const [playReady, setPlayReady] = useState(false);
   const [resultReady, setResultReady] = useState(false);
   const [finalReady, setFinalReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [isFirstSpin, setIsFirstSpin] = useState(true);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
-  const splashAudioRef = useRef<HTMLAudioElement | null>(null);
-  const activeAudioRef = useRef<Array<{ audio: HTMLAudioElement; baseVolume: number }>>([]);
-
-  useEffect(() => {
-    if (!splashAudioRef.current) {
-      const splashAudio = new Audio(SPLASH_AUDIO_SRC);
-      splashAudio.preload = "auto";
-      splashAudio.loop = true;
-      splashAudioRef.current = splashAudio;
-    }
-    const splashAudio = splashAudioRef.current;
-    if (splashAudio) splashAudio.volume = muted ? 0 : 0.88;
-
-    activeAudioRef.current.forEach(({ audio, baseVolume }) => {
-      audio.volume = muted ? 0 : baseVolume;
-    });
-  }, [muted]);
-
-  useEffect(() => {
-    if (stage !== "SPLASH") {
-      splashAudioRef.current?.pause();
-    }
-  }, [stage]);
+  const soundManagerRef = useRef<SoundManager | null>(null);
 
   useEffect(() => {
     if (stage === "RESULT" || stage === "PLAYING") {
@@ -107,135 +87,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     }
   }, [stage, onPauseBookHymn]);
 
-  const stopActiveAudio = useCallback(() => {
-    activeAudioRef.current.forEach(({ audio }) => {
-      audio.pause();
-      audio.currentTime = 0;
-    });
-    activeAudioRef.current = [];
-  }, []);
-
-  /** Страховка: при уходе со страницы / повторной игре гасим любые <audio>/<video> внутри этого экрана. */
-  const silenceEmbeddedMedia = useCallback(() => {
-    if (typeof document === "undefined") return;
-    const root = document.getElementById("pole-chudes-test-root");
-    if (!root) return;
-    root.querySelectorAll("audio, video").forEach((el) => {
-      try {
-        (el as HTMLMediaElement).pause();
-        (el as HTMLMediaElement).currentTime = 0;
-      } catch {
-        /* ignore */
-      }
-    });
-  }, []);
-
   useEffect(() => {
+    soundManagerRef.current = new SoundManager(SOUND_CONFIG);
     return () => {
-      stopActiveAudio();
-      try {
-        splashAudioRef.current?.pause();
-      } catch {
-        /* ignore */
-      }
-      silenceEmbeddedMedia();
+      soundManagerRef.current?.stopAll();
+      soundManagerRef.current = null;
     };
-  }, [silenceEmbeddedMedia, stopActiveAudio]);
+  }, []);
 
-  const playAudioToEnd = useCallback(
-    async (fileName: string, volume = 1): Promise<number> => {
-      stopActiveAudio();
-      const audio = new Audio(toAudioSrc(fileName));
-      audio.preload = "auto";
-      audio.volume = muted ? 0 : volume;
-      activeAudioRef.current.push({ audio, baseVolume: volume });
-      const durationPromise = new Promise<number>((resolve) => {
-        const settle = () => resolve(Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 2.4);
-        if (audio.readyState >= 1) settle();
-        else {
-          audio.addEventListener("loadedmetadata", settle, { once: true });
-          window.setTimeout(settle, 700);
-        }
-      });
-      const donePromise = new Promise<void>((resolve) => {
-        const done = () => {
-          activeAudioRef.current = activeAudioRef.current.filter((item) => item.audio !== audio);
-          resolve();
-        };
-        audio.addEventListener("ended", done, { once: true });
-        audio.addEventListener("error", done, { once: true });
-        window.setTimeout(done, 120000);
-      });
-      void audio.play().catch(() => {});
-      const duration = await durationPromise;
-      await donePromise;
-      return duration;
-    },
-    [muted, stopActiveAudio],
-  );
-
-  const playPredictionImpact = useCallback(() => {
-    stopActiveAudio();
-    const tracks: Array<{ fileName: string; volume: number }> = [
-      { fileName: AUDIO.SPIN_STOP, volume: 0.95 },
-      ...AUDIO.REACTIONS.map((fileName) => ({ fileName, volume: 0.88 })),
-    ];
-
-    tracks.forEach(({ fileName, volume }) => {
-      const audio = new Audio(toAudioSrc(fileName));
-      audio.preload = "auto";
-      audio.volume = muted ? 0 : volume;
-      activeAudioRef.current.push({ audio, baseVolume: volume });
-      const cleanup = () => {
-        activeAudioRef.current = activeAudioRef.current.filter((item) => item.audio !== audio);
-      };
-      audio.addEventListener("ended", cleanup, { once: true });
-      audio.addEventListener("error", cleanup, { once: true });
-      window.setTimeout(cleanup, 30000);
-      void audio.play().catch(() => {});
-    });
-  }, [muted, stopActiveAudio]);
-
-  const startAudioAndGetMeta = useCallback(
-    (fileName: string, volume = 1): { durationPromise: Promise<number>; donePromise: Promise<void> } => {
-      stopActiveAudio();
-      const audio = new Audio(toAudioSrc(fileName));
-      audio.preload = "auto";
-      audio.volume = muted ? 0 : volume;
-      activeAudioRef.current.push({ audio, baseVolume: volume });
-      const durationPromise = new Promise<number>((resolve) => {
-        const settle = () => resolve(Number.isFinite(audio.duration) && audio.duration > 0 ? audio.duration : 2.4);
-        if (audio.readyState >= 1) settle();
-        else {
-          audio.addEventListener("loadedmetadata", settle, { once: true });
-          window.setTimeout(settle, 700);
-        }
-      });
-      const donePromise = new Promise<void>((resolve) => {
-        let settled = false;
-        const done = () => {
-          if (settled) return;
-          settled = true;
-          window.clearTimeout(safetyTimer);
-          activeAudioRef.current = activeAudioRef.current.filter((item) => item.audio !== audio);
-          resolve();
-        };
-        audio.addEventListener("ended", done, { once: true });
-        audio.addEventListener("error", done, { once: true });
-        const safetyTimer = window.setTimeout(() => {
-          try {
-            audio.pause();
-          } catch {
-            /* ignore */
-          }
-          done();
-        }, 30000);
-      });
-      void audio.play().catch(() => {});
-      return { durationPromise, donePromise };
-    },
-    [muted, stopActiveAudio],
-  );
+  const sound = useCallback(() => soundManagerRef.current, []);
 
   const pickSpinResult = useCallback(
     (snapshot: Record<string, Set<string>>) => {
@@ -267,21 +127,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     if (busy) return;
     setBusy(true);
     setPlayReady(false);
-    try {
-      splashVideoRef.current?.pause();
-      splashAudioRef.current?.pause();
-      if (splashAudioRef.current) splashAudioRef.current.currentTime = 0;
-    } catch {
-      /* ignore */
-    }
-    stopActiveAudio();
     onPauseBookHymn?.();
-    void playAudioToEnd(AUDIO.START_WOW, 0.95);
+    void sound()?.play("clickWowStart");
     setBackgroundVariant(BG_PLAYING);
     setStage("PLAYING");
     setPlayReady(true);
     setBusy(false);
-  }, [busy, playAudioToEnd, stopActiveAudio, onPauseBookHymn]);
+  }, [busy, onPauseBookHymn, sound]);
 
   const handleSpinAnimationComplete = useCallback(() => {
     spinResolveRef.current?.();
@@ -302,10 +154,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     });
 
     onPauseBookHymn?.();
-    stopActiveAudio();
-    const spinAudio = startAudioAndGetMeta(AUDIO.SPIN, 1);
-    const spinAudioDuration = await spinAudio.durationPromise;
-    const totalSpinDuration = Math.max(3.2, spinAudioDuration + 0.45);
+    const spinAudioDone = sound()?.play("spin", { waitForEnd: true }) ?? Promise.resolve();
+    const totalSpinDuration = 2.8;
     const preRotation = rotation + 180;
     const fastRotation = rotation + 1080;
     setSpinDuration(totalSpinDuration);
@@ -315,7 +165,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setIsSpinning(true);
     setRotation(nextRotation);
 
-    await Promise.all([animationDone, spinAudio.donePromise]);
+    await Promise.all([animationDone, spinAudioDone]);
     setIsSpinning(false);
     setRotationFrames(nextRotation);
     setSpinTimes(undefined);
@@ -338,27 +188,33 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     });
 
     setBackgroundVariant(BG_RESULT);
-    // В момент открытия предсказания: тарелка + мальчик/девочка одновременно.
-    playPredictionImpact();
+    await sound()?.play("drumHit", { waitForEnd: true });
+    if (isFirstSpin) {
+      await sound()?.play("truba", { waitForEnd: true });
+      void sound()?.play("happyBoy");
+      setIsFirstSpin(false);
+    } else {
+      void sound()?.play("laughGirl");
+    }
     /**
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
      * иначе на статичном экране слышны повторяющиеся эффекты.
      */
     setResultReady(true);
     setBusy(false);
-  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, playPredictionImpact, startAudioAndGetMeta, stopActiveAudio, onPauseBookHymn]);
+  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, isFirstSpin, onPauseBookHymn, sound]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady || busy) return;
-    stopActiveAudio();
+    sound()?.stopAll();
     if (results.length >= MAX_SPINS) {
       setBusy(true);
       setFinalReady(false);
       setStage("FINAL");
       confetti({ particleCount: 220, spread: 130, origin: { y: 0.55 }, scalar: 1.2 });
-      await playAudioToEnd(AUDIO.FINAL[0], 1);
+      await sound()?.play("finalApl", { waitForEnd: true });
       confetti({ particleCount: 300, spread: 160, origin: { y: 0.48 }, scalar: 1.35, ticks: 420 });
-      await playAudioToEnd(AUDIO.FINAL[1], 1);
+      await sound()?.play("finalFire", { waitForEnd: true });
       setFinalReady(true);
       setBusy(false);
       return;
@@ -368,21 +224,16 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setStage("PLAYING");
     setPlayReady(true);
     setBusy(false);
-  }, [resultReady, busy, results.length, playAudioToEnd, stopActiveAudio]);
+  }, [resultReady, busy, results.length, sound]);
 
   const resetGame = useCallback(() => {
     if (busy) return;
-    stopActiveAudio();
-    try {
-      splashAudioRef.current?.pause();
-      if (splashAudioRef.current) splashAudioRef.current.currentTime = 0;
-    } catch {
-      /* ignore */
-    }
+    sound()?.stopAll();
     setStage("SPLASH");
     setResults([]);
     setCurrentResult(null);
     setUsedPhrases({});
+    setIsFirstSpin(true);
     setBackgroundVariant(BG_PLAYING);
     setPlayReady(false);
     setResultReady(false);
@@ -393,7 +244,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setRotationFrames(0);
     setSpinTimes(undefined);
     setSpinEases(undefined);
-  }, [busy, stopActiveAudio]);
+  }, [busy, sound]);
 
   const getCategoryIcon = (id: string) => {
     switch (id) {
@@ -414,8 +265,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   const isFinalStage = stage === "FINAL";
 
-  const showLuckBrandLogo = stage === "SPLASH";
-
   const isPanelLayout = layout === "panel";
   return (
     <div
@@ -425,12 +274,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         isPanelLayout ? "h-full max-h-full flex-1" : "h-[100dvh] max-h-[100dvh]",
       )}
     >
-      <div className="pole-chudes-scene__cosmos" aria-hidden />
-      <div className="pole-chudes-scene__nebula" aria-hidden />
-      <div className="pole-chudes-scene__sparkles" aria-hidden />
-
-      {!isFinalStage && <div className="pole-chudes-scene__dot-grid" aria-hidden />}
-
       {isFinalStage && (
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#06020c]">
           <img src={FINAL_BANNER_SRC} alt="" className="h-full w-full object-contain object-top" draggable={false} />
@@ -448,29 +291,9 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         </div>
       )}
 
-      {!isFinalStage && <div className="pointer-events-none fixed inset-0 z-[1]" />}
-      {!isFinalStage && <MagicRingsGlobal className="magic-rings-fx--luck-page" containerId="mbPoleChudesTestRings" canvasId="mbPoleChudesTestRingsCanvas" />}
-
-      {showLuckBrandLogo && (
-        <div className="pointer-events-none fixed inset-x-0 top-0 z-[50] flex flex-col items-center pt-[max(0.25rem,env(safe-area-inset-top))]">
-          <VibeAiLogoMark withCoverEffects className={cn(isPanelLayout ? "scale-[0.76] sm:scale-[0.84]" : "scale-[0.9] sm:scale-[0.95]")} />
-          <p className="pole-chudes-scene__tagline mt-1 px-4 text-center">Словарь сленга вайб кодера</p>
-        </div>
-      )}
+      <GlobalFXLayer />
 
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
-        {stage !== "FINAL" && (
-          <div className="mx-auto mt-1 flex w-full max-w-[min(1240px,96vw)] shrink-0 justify-end px-2 sm:mt-2 sm:px-4">
-            <button
-              type="button"
-              onClick={() => setMuted((prev) => !prev)}
-              className="pole-chudes-mute-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs text-white/90"
-            >
-              {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-              {muted ? "Звук выкл" : "Звук вкл"}
-            </button>
-          </div>
-        )}
         <AnimatePresence mode="wait">
           {stage === "SPLASH" && (
             <motion.div
@@ -480,11 +303,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               exit={{ opacity: 0 }}
               className="relative flex min-h-0 flex-1 flex-col items-center justify-center p-0"
             >
-              <div className="pointer-events-none fixed inset-0 z-[2] opacity-[0.32]">
-                <HeroWave />
-              </div>
               <div className="absolute inset-0 z-[3] bg-black/25" />
-              <div className="relative z-10 flex w-full max-w-[min(1520px,98vw)] min-h-0 flex-1 items-center justify-center px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[clamp(3.25rem,11dvh,5rem)] sm:pt-[clamp(3.5rem,12dvh,5.5rem)]">
+              <div className="relative z-10 flex w-full max-w-[min(1100px,96vw)] min-h-0 flex-1 flex-col items-center justify-center px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[clamp(2rem,8dvh,4rem)]">
                 <div className="pole-chudes-splash-frame relative w-full max-h-full min-h-0 overflow-hidden">
                   <video
                     ref={splashVideoRef}
@@ -494,37 +314,18 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                     muted
                     playsInline
                     preload="metadata"
-                    onLoadedMetadata={(e) => {
-                      const video = e.currentTarget;
-                      video.currentTime = 0;
-                      const splashAudio = splashAudioRef.current;
-                      if (!splashAudio) return;
-                      splashAudio.currentTime = 0;
-                      splashAudio.volume = muted ? 0 : 0.9;
-                      void splashAudio.play().catch(() => {});
-                    }}
-                    className="aspect-video max-h-[min(48svh,460px)] w-full object-contain sm:max-h-[min(54svh,540px)]"
+                    className="aspect-video max-h-[min(56svh,620px)] w-full object-cover"
                   />
-                  <div className="tz-splash-scanlines pointer-events-none absolute inset-0" />
-                  {Array.from({ length: 12 }).map((_, idx) => (
-                    <div
-                      key={`code-col-${idx}`}
-                      className="tz-splash-code-column pointer-events-none absolute top-0 h-full text-[10px] font-mono text-white/22 sm:text-xs"
-                      style={{ left: `${idx * 8.6 + 1.5}%`, animationDelay: `${idx * 0.23}s` }}
-                    >
-                      01001101 110101 010101 100101 001011
-                    </div>
-                  ))}
-                  <div className="absolute bottom-[5.2%] left-1/2 z-20 -translate-x-1/2">
-                    <NeonGlassButton
-                      accent
-                      className="!px-10 !py-3 !text-base sm:!text-lg"
-                      disabled={busy}
-                      onClick={() => void handleStartFromSplash()}
-                    >
-                      Крутим удачу?
-                    </NeonGlassButton>
-                  </div>
+                </div>
+                <div className="mt-8 flex justify-center">
+                  <NeonGlassButton
+                    accent
+                    className="!px-10 !py-3 !text-base sm:!text-lg"
+                    disabled={busy}
+                    onClick={() => void handleStartFromSplash()}
+                  >
+                    Крутим удачу?
+                  </NeonGlassButton>
                 </div>
               </div>
             </motion.div>
@@ -696,22 +497,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
           )}
         </AnimatePresence>
       </div>
-      {isFinalStage && (
-        <MagicRingsGlobal
-          className="magic-rings-fx--luck-final"
-          containerId="mbPoleChudesFinalRings"
-          canvasId="mbPoleChudesFinalRingsCanvas"
-        />
-      )}
-
-      {(stage === "SPLASH" || stage === "PLAYING" || stage === "RESULT" || stage === "FINAL") && (
-        <p
-          className="pole-chudes-signature fixed bottom-0 left-0 right-0 z-[60] pb-[max(0.6rem,env(safe-area-inset-bottom,0px))] text-center"
-          aria-hidden
-        >
-          Tanya Gaiduk
-        </p>
-      )}
     </div>
   );
 }
