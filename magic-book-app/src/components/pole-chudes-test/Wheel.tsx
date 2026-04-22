@@ -34,7 +34,7 @@ export const Wheel: React.FC<WheelProps> = ({
         onAnimationComplete={() => {
           if (isSpinning) onSpinAnimationComplete();
         }}
-        className="relative z-10 h-[min(min(72vw,58vmin),38svh,300px)] w-[min(min(72vw,58vmin),38svh,300px)] sm:h-[min(min(68vw,52vmin),42svh,360px)] sm:w-[min(min(68vw,52vmin),42svh,360px)] md:h-[min(48vmin,45svh,480px)] md:w-[min(48vmin,45svh,480px)] lg:h-[min(46vmin,560px)] lg:w-[min(46vmin,560px)]"
+        className="relative z-10 h-[min(min(64vw,50vmin),34svh,260px)] w-[min(min(64vw,50vmin),34svh,260px)] sm:h-[min(min(60vw,46vmin),38svh,320px)] sm:w-[min(min(60vw,46vmin),38svh,320px)] md:h-[min(42vmin,38svh,420px)] md:w-[min(42vmin,38svh,420px)] lg:h-[min(40vmin,500px)] lg:w-[min(40vmin,500px)]"
       >
         <svg viewBox="-10 -10 120 120" className="h-full w-full -rotate-90 transform drop-shadow-[0_0_30px_rgba(147,51,234,0.3)]">
           <defs>

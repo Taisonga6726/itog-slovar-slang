@@ -27,14 +27,14 @@ const AUDIO = {
   START_WOW: "вау_труба.MP3",
   SPIN: "прокрутка колеса 02.MP3",
   SPIN_STOP: "ROCK_ ART BARABAN WOW.mp3",
-  REACTIONS: ["смех девочка1.MP3", "смех мальчик 1 .MP3", "смех мужчина 1.MP3", "довольный мальчик.MP3"],
+  /** На карточках предсказания: только реакции девочка/мальчик, без аплодисментов и без фоновой музыки. */
+  REACTIONS: ["смех девочка1.MP3", "смех мальчик 1 .MP3"],
   FINAL: ["фанфары аплодисменты .MP3", "фейерверк фанфары аплодисменты.MP3"],
 } as const;
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
 const SPLASH_AUDIO_SRC = "/videos/заставка перед игрой/заставка перед игрой.MP3";
 const FINAL_BANNER_SRC = `/images/${encodeURIComponent("финал аплодисменты игра.png")}`;
-const COVER_BOOK_SRC = "/images/cover-book.png";
 const DRUM_BG_PLAY_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 
@@ -74,7 +74,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [resultReady, setResultReady] = useState(false);
   const [finalReady, setFinalReady] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [attemptFlashKey, setAttemptFlashKey] = useState(0);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const splashAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -84,6 +83,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     if (!splashAudioRef.current) {
       const splashAudio = new Audio(SPLASH_AUDIO_SRC);
       splashAudio.preload = "auto";
+      splashAudio.loop = true;
       splashAudioRef.current = splashAudio;
     }
     const splashAudio = splashAudioRef.current;
@@ -172,6 +172,28 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     },
     [muted, stopActiveAudio],
   );
+
+  const playPredictionImpact = useCallback(() => {
+    stopActiveAudio();
+    const tracks: Array<{ fileName: string; volume: number }> = [
+      { fileName: AUDIO.SPIN_STOP, volume: 0.95 },
+      ...AUDIO.REACTIONS.map((fileName) => ({ fileName, volume: 0.88 })),
+    ];
+
+    tracks.forEach(({ fileName, volume }) => {
+      const audio = new Audio(toAudioSrc(fileName));
+      audio.preload = "auto";
+      audio.volume = muted ? 0 : volume;
+      activeAudioRef.current.push({ audio, baseVolume: volume });
+      const cleanup = () => {
+        activeAudioRef.current = activeAudioRef.current.filter((item) => item.audio !== audio);
+      };
+      audio.addEventListener("ended", cleanup, { once: true });
+      audio.addEventListener("error", cleanup, { once: true });
+      window.setTimeout(cleanup, 30000);
+      void audio.play().catch(() => {});
+    });
+  }, [muted, stopActiveAudio]);
 
   const startAudioAndGetMeta = useCallback(
     (fileName: string, volume = 1): { durationPromise: Promise<number>; donePromise: Promise<void> } => {
@@ -273,7 +295,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
     const usedSnapshot = usedPhrases;
     const spinResult = pickSpinResult(usedSnapshot);
-    setAttemptFlashKey((k) => k + 1);
     const nextRotation = calcTargetRotation(rotation, spinResult.categoryId);
     const animationDone = new Promise<void>((resolve) => {
       spinResolveRef.current = resolve;
@@ -316,23 +337,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     });
 
     setBackgroundVariant(BG_RESULT);
-    const reactionBank = AUDIO.REACTIONS;
-    const reactionAudio = reactionBank[results.length % reactionBank.length];
-    void (async () => {
-      try {
-        await playAudioToEnd(AUDIO.SPIN_STOP, 0.95);
-        await playAudioToEnd(reactionAudio, 0.9);
-      } catch {
-        /* ignore */
-      }
-    })();
+    // В момент открытия предсказания: тарелка + мальчик/девочка одновременно.
+    playPredictionImpact();
     /**
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
      * иначе на статичном экране слышны повторяющиеся эффекты.
      */
     setResultReady(true);
     setBusy(false);
-  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, playAudioToEnd, startAudioAndGetMeta, results.length, stopActiveAudio, onPauseBookHymn]);
+  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, playPredictionImpact, startAudioAndGetMeta, stopActiveAudio, onPauseBookHymn]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady || busy) return;
@@ -400,7 +413,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   const isFinalStage = stage === "FINAL";
 
-  const showLuckBrandLogo = stage === "SPLASH" || stage === "PLAYING" || stage === "RESULT";
+  const showLuckBrandLogo = stage === "SPLASH";
 
   const isPanelLayout = layout === "panel";
   return (
@@ -428,7 +441,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
           <img
             src={backgroundVariant === BG_RESULT ? DRUM_BG_RESULT_SRC : DRUM_BG_PLAY_SRC}
             alt=""
-            className="h-full w-full select-none object-cover object-center"
+            className="h-full w-full select-none object-contain object-center"
             draggable={false}
           />
         </div>
@@ -445,16 +458,18 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       )}
 
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
-        <div className="mx-auto mt-1 flex w-full max-w-[min(1240px,96vw)] shrink-0 justify-end px-2 sm:mt-2 sm:px-4">
-          <button
-            type="button"
-            onClick={() => setMuted((prev) => !prev)}
-            className="pole-chudes-mute-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs text-white/90"
-          >
-            {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
-            {muted ? "Звук выкл" : "Звук вкл"}
-          </button>
-        </div>
+        {stage !== "FINAL" && (
+          <div className="mx-auto mt-1 flex w-full max-w-[min(1240px,96vw)] shrink-0 justify-end px-2 sm:mt-2 sm:px-4">
+            <button
+              type="button"
+              onClick={() => setMuted((prev) => !prev)}
+              className="pole-chudes-mute-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs text-white/90"
+            >
+              {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+              {muted ? "Звук выкл" : "Звук вкл"}
+            </button>
+          </div>
+        )}
         <AnimatePresence mode="wait">
           {stage === "SPLASH" && (
             <motion.div
@@ -474,16 +489,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                     ref={splashVideoRef}
                     src={SPLASH_VIDEO_SRC}
                     autoPlay
+                    loop
                     muted
                     playsInline
                     preload="metadata"
-                    onEnded={() => {
-                      try {
-                        splashAudioRef.current?.pause();
-                      } catch {
-                        /* ignore */
-                      }
-                    }}
                     onLoadedMetadata={(e) => {
                       const video = e.currentTarget;
                       video.currentTime = 0;
@@ -528,33 +537,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               exit={{ opacity: 0 }}
               className="grid min-h-0 w-full flex-1 grid-rows-[auto_minmax(0,1fr)_auto] items-stretch overflow-hidden px-1.5 pb-1 pt-[clamp(2.75rem,9dvh,4.25rem)] sm:px-2 sm:pb-2 sm:pt-[clamp(3rem,10dvh,4.75rem)]"
             >
-              <div className="relative z-10 flex w-full max-w-[min(100vw,920px)] shrink-0 flex-col items-center justify-self-center px-0.5">
-                <AnimatePresence mode="wait">
-                  {attemptFlashKey > 0 && (
-                    <motion.div
-                      key={`attempt-${attemptFlashKey}`}
-                      initial={{ opacity: 0, scale: 0.88, y: -12 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 1.14, y: -16 }}
-                      transition={{ duration: 0.52, ease: "easeOut" }}
-                      className="pole-chudes-attempt-chip mb-1 px-4 py-1.5 text-center sm:mb-1.5 sm:px-6 sm:py-2"
-                    >
-                      <div className="pole-chudes-attempt-chip__label text-xs font-semibold uppercase text-white/95 sm:text-sm md:text-base">
-                        Попытка {results.length + 1} / {MAX_SPINS}
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
+              <div className="relative z-10 flex h-1 w-full max-w-[min(100vw,920px)] shrink-0 justify-self-center px-0.5" />
 
               <div className="relative z-10 flex min-h-0 min-w-0 w-full max-w-[min(100vw,920px)] flex-col items-center justify-self-center overflow-hidden">
                 <div className="relative flex min-h-0 w-full max-w-full min-w-0 flex-1 items-center justify-center">
-                  <img
-                    src={COVER_BOOK_SRC}
-                    alt=""
-                    className="pointer-events-none absolute left-1/2 top-1/2 z-0 max-h-[min(36svh,260px)] w-[min(88%,min(90vw,380px))] max-w-[100%] -translate-x-1/2 -translate-y-1/2 rounded-lg object-contain opacity-[0.92] shadow-[0_12px_48px_rgba(0,0,0,0.65)] sm:max-h-[min(40svh,300px)]"
-                    draggable={false}
-                  />
                   <div className="pole-chudes-wheel-frame relative z-10 mx-auto flex max-h-full min-h-0 w-full min-w-0 justify-center overflow-hidden">
                     <Wheel
                       rotation={rotationFrames}
@@ -654,7 +640,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 className="pointer-events-none shrink-0 select-none"
                 aria-hidden
                 style={{
-                  height: isPanelLayout ? "clamp(9rem, 28vh, 16rem)" : "clamp(14rem, 40vh, 24rem)",
+                  height: isPanelLayout ? "clamp(10.5rem, 32vh, 18rem)" : "clamp(18rem, 50vh, 31rem)",
                 }}
               />
               <div className="flex min-h-0 flex-1 flex-col items-center justify-start py-1 sm:py-2">
