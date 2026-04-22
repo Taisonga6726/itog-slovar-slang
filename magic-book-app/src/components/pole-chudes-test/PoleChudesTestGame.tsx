@@ -19,9 +19,56 @@ interface SpinResult {
 }
 
 type BackgroundVariant = "A" | "B" | "C" | "D";
+type VisualPreset = "balanced" | "bright" | "cinema";
 
-const BACKGROUND_FLOW: BackgroundVariant[] = ["A", "D", "C", "C"];
+/** По ТЗ: после запуска фоны идут в порядке B -> D -> C (для 4-й попытки остаётся C). */
+const BACKGROUND_FLOW: BackgroundVariant[] = ["A", "B", "D", "C"];
 const MAX_SPINS = 4;
+const VISUAL_PRESET_STORAGE_KEY = "pole-chudes-visual-preset-v1";
+const VISUAL_PRESETS: Record<
+  VisualPreset,
+  {
+    label: string;
+    splashFilter: string;
+    finalBannerFilter: string;
+    nonFinalOverlayA: string;
+    nonFinalOverlayB: string;
+    pageTopGap: string;
+    panelTopGap: string;
+    finalGridMax: string;
+  }
+> = {
+  balanced: {
+    label: "Базовый",
+    splashFilter: "brightness(1.02) saturate(1.05)",
+    finalBannerFilter: "brightness(1.02) saturate(1.06)",
+    nonFinalOverlayA: "bg-[#12081c]/52",
+    nonFinalOverlayB: "bg-[#1a0f28]/48",
+    pageTopGap: "clamp(15rem, 42vh, 25rem)",
+    panelTopGap: "clamp(9.5rem, 30vh, 17rem)",
+    finalGridMax: "min(900px,94vw)",
+  },
+  bright: {
+    label: "Ярче",
+    splashFilter: "brightness(1.12) saturate(1.18)",
+    finalBannerFilter: "brightness(1.14) saturate(1.16)",
+    nonFinalOverlayA: "bg-[#12081c]/44",
+    nonFinalOverlayB: "bg-[#1a0f28]/40",
+    pageTopGap: "clamp(16rem, 44vh, 26rem)",
+    panelTopGap: "clamp(10rem, 31vh, 18rem)",
+    finalGridMax: "min(920px,95vw)",
+  },
+  cinema: {
+    label: "Кино",
+    splashFilter: "brightness(0.94) saturate(1.06) contrast(1.06)",
+    finalBannerFilter: "brightness(0.92) saturate(1.02) contrast(1.08)",
+    nonFinalOverlayA: "bg-[#12081c]/60",
+    nonFinalOverlayB: "bg-[#1a0f28]/56",
+    pageTopGap: "clamp(14.5rem, 40vh, 24rem)",
+    panelTopGap: "clamp(9rem, 28vh, 16.5rem)",
+    finalGridMax: "min(880px,93vw)",
+  },
+};
 
 const AUDIO = {
   START_WOW: "вау_труба.MP3",
@@ -75,6 +122,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [finalReady, setFinalReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [attemptFlashKey, setAttemptFlashKey] = useState(0);
+  const [visualPreset, setVisualPreset] = useState<VisualPreset>(() => {
+    try {
+      const raw = localStorage.getItem(VISUAL_PRESET_STORAGE_KEY);
+      if (raw === "bright" || raw === "cinema" || raw === "balanced") return raw;
+    } catch {
+      /* ignore */
+    }
+    return "balanced";
+  });
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const splashAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -316,23 +372,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     });
 
     setBackgroundVariant(BACKGROUND_FLOW[Math.min(results.length + 1, BACKGROUND_FLOW.length - 1)]);
-    const reactionBank = AUDIO.REACTIONS;
-    const reactionAudio = reactionBank[results.length % reactionBank.length];
-    /** Первая карточка: без доп. треков; со 2-й — барабан+реакция в фоне, кнопка «Продолжить» активна сразу (не ждём окончания звука). */
-    const isFirstReveal = results.length === 0;
+    /**
+     * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
+     * иначе на статичном экране слышны повторяющиеся эффекты.
+     */
     setResultReady(true);
     setBusy(false);
-    if (!isFirstReveal) {
-      void (async () => {
-        try {
-          await playAudioToEnd(AUDIO.SPIN_STOP, 1);
-          await playAudioToEnd(reactionAudio, 0.95);
-        } catch {
-          /* ignore */
-        }
-      })();
-    }
-  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, playAudioToEnd, startAudioAndGetMeta, results.length, stopActiveAudio, onPauseBookHymn]);
+  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, startAudioAndGetMeta, results.length, stopActiveAudio, onPauseBookHymn]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady || busy) return;
@@ -403,6 +449,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const showLuckBrandLogo = stage === "SPLASH" || stage === "PLAYING" || stage === "RESULT";
 
   const isPanelLayout = layout === "panel";
+  const visual = VISUAL_PRESETS[visualPreset];
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(VISUAL_PRESET_STORAGE_KEY, visualPreset);
+    } catch {
+      /* ignore */
+    }
+  }, [visualPreset]);
 
   return (
     <div
@@ -420,7 +475,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
       {isFinalStage && (
         <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#06020c]">
-          <img src={FINAL_BANNER_SRC} alt="" className="h-full w-full object-cover object-top" draggable={false} />
+          <img
+            src={FINAL_BANNER_SRC}
+            alt=""
+            className="h-full w-full object-contain object-top transition-[filter] duration-300"
+            style={{ filter: visual.finalBannerFilter }}
+            draggable={false}
+          />
         </div>
       )}
 
@@ -445,7 +506,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         <div
           className={cn(
             "pointer-events-none fixed inset-0 z-[1]",
-            backgroundVariant === "B" ? "bg-[#1a0f28]/48" : "bg-[#12081c]/52",
+            backgroundVariant === "B" ? visual.nonFinalOverlayB : visual.nonFinalOverlayA,
           )}
         />
       )}
@@ -465,7 +526,22 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       )}
 
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
-        <div className="mx-auto mt-1 flex w-full max-w-[min(1240px,96vw)] shrink-0 justify-end px-2 sm:mt-2 sm:px-4">
+        <div className="mx-auto mt-1 flex w-full max-w-[min(1240px,96vw)] shrink-0 items-center justify-between gap-2 px-2 sm:mt-2 sm:px-4">
+          <div className="inline-flex items-center gap-1 rounded-full border border-fuchsia-300/30 bg-black/45 p-1 backdrop-blur-md">
+            {(Object.keys(VISUAL_PRESETS) as VisualPreset[]).map((presetKey) => (
+              <button
+                key={presetKey}
+                type="button"
+                onClick={() => setVisualPreset(presetKey)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.08em] transition-colors sm:text-xs",
+                  visualPreset === presetKey ? "bg-fuchsia-500/60 text-white" : "text-white/75 hover:bg-white/10",
+                )}
+              >
+                {VISUAL_PRESETS[presetKey].label}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
             onClick={() => setMuted((prev) => !prev)}
@@ -513,6 +589,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                       splashAudio.volume = muted ? 0 : 0.9;
                       void splashAudio.play().catch(() => {});
                     }}
+                    style={{ filter: visual.splashFilter }}
                     className="aspect-video max-h-[min(48svh,460px)] w-full object-contain sm:max-h-[min(54svh,540px)]"
                   />
                   <div className="tz-splash-scanlines pointer-events-none absolute inset-0" />
@@ -673,7 +750,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               className={cn(
-                "flex min-h-0 flex-1 flex-col overflow-hidden px-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:px-4 sm:pb-3",
+                "flex min-h-0 flex-1 flex-col overflow-hidden px-2 pb-[max(2rem,env(safe-area-inset-bottom,0px))] sm:px-4 sm:pb-4",
                 isPanelLayout ? "pt-[clamp(2.75rem,9dvh,4rem)]" : "pt-10 sm:pt-12",
               )}
             >
@@ -683,11 +760,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 className="pointer-events-none shrink-0 select-none"
                 aria-hidden
                 style={{
-                  height: isPanelLayout ? "clamp(8rem, 26vh, 16rem)" : "clamp(12.5rem, 36vh, 22rem)",
+                  height: isPanelLayout ? visual.panelTopGap : visual.pageTopGap,
                 }}
               />
-              <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-1 sm:py-2">
-                <div className="grid w-full max-w-[min(960px,96vw)] grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 md:gap-3.5">
+              <div className="flex min-h-0 flex-1 flex-col items-center justify-start py-1 sm:py-2">
+                <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-2.5 md:gap-3" style={{ maxWidth: visual.finalGridMax }}>
                   {results.map((res, idx) => (
                     <motion.div
                       key={`${res.category}-${idx}`}
@@ -744,7 +821,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         />
       )}
 
-      {(stage === "SPLASH" || stage === "PLAYING" || stage === "RESULT") && (
+      {(stage === "SPLASH" || stage === "PLAYING" || stage === "RESULT" || stage === "FINAL") && (
         <p
           className="pole-chudes-signature fixed bottom-0 left-0 right-0 z-[60] pb-[max(0.6rem,env(safe-area-inset-bottom,0px))] text-center"
           aria-hidden

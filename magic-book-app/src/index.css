@@ -750,11 +750,8 @@
 }
 
 .pole-chudes-splash-frame {
-  border-radius: 14px;
-  box-shadow:
-    0 0 0 2px rgba(201, 162, 39, 0.38),
-    0 0 48px rgba(168, 85, 247, 0.28),
-    0 0 96px rgba(56, 189, 248, 0.1);
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .pole-chudes-attempt-chip {
