@@ -270,6 +270,16 @@ const Index = () => {
     }
   }, []);
 
+  /** Игра «Поле чудес»: пауза + сброс позиции гимна, чтобы отложенный play() не накладывался на SFX при первом предсказании. */
+  const pauseBookHymnForGame = useCallback(() => {
+    pauseBackgroundHymnSoft();
+    try {
+      if (hymnAudio.current) hymnAudio.current.currentTime = 0;
+    } catch {
+      /* ignore */
+    }
+  }, [pauseBackgroundHymnSoft]);
+
   /** После выхода из панели выбора аудио возвращаем фон, если он уже запускался. */
   const resumeBackgroundHymnAfterPanel = useCallback(() => {
     if (!hymnStartedRef.current || !hymnAudio.current) return;
@@ -448,16 +458,21 @@ const Index = () => {
 
   const openLuckyWheel = useCallback(() => {
     /** Глушим фоновый гимн книги, чтобы не накладывался на эффекты игры (и панель, и /luck). */
-    pauseBackgroundHymnSoft();
+    pauseBookHymnForGame();
     if (LUCKY_WHEEL_ENTRY === "route") {
       navigate("/luck");
     } else {
       setLuckyWheelOpen(true);
     }
-  }, [navigate, pauseBackgroundHymnSoft]);
+  }, [navigate, pauseBookHymnForGame]);
+
+  /** Пока открыта панель игры — держим гимн на паузе (страховка, если где-то вызвали play() асинхронно). */
+  useEffect(() => {
+    if (luckyWheelOpen) pauseBookHymnForGame();
+  }, [luckyWheelOpen, pauseBookHymnForGame]);
 
   return (
-    <div className="fixed inset-0 w-screen h-screen overflow-hidden bg-black">
+    <div className="fixed inset-0 w-screen h-[100dvh] max-h-[100dvh] min-h-0 overflow-hidden bg-black">
       {mode === "intro" && (
         <IntroSlovarEmbed
           onOpenForm={handleOpenFormFromIntro}
@@ -595,6 +610,7 @@ const Index = () => {
 
       <LuckyWheelPanel
         open={luckyWheelOpen}
+        onPauseBookHymn={pauseBookHymnForGame}
         onClose={() => {
           setLuckyWheelOpen(false);
           resumeBackgroundHymnAfterPanel();

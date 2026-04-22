@@ -34,7 +34,7 @@ export const Wheel: React.FC<WheelProps> = ({
         onAnimationComplete={() => {
           if (isSpinning) onSpinAnimationComplete();
         }}
-        className="relative z-10 h-[min(58vmin,340px)] w-[min(58vmin,340px)] sm:h-[min(52vmin,400px)] sm:w-[min(52vmin,400px)] md:h-[min(48vmin,520px)] md:w-[min(48vmin,520px)] lg:h-[min(46vmin,600px)] lg:w-[min(46vmin,600px)]"
+        className="relative z-10 h-[min(min(72vw,58vmin),38svh,300px)] w-[min(min(72vw,58vmin),38svh,300px)] sm:h-[min(min(68vw,52vmin),42svh,360px)] sm:w-[min(min(68vw,52vmin),42svh,360px)] md:h-[min(48vmin,45svh,480px)] md:w-[min(48vmin,45svh,480px)] lg:h-[min(46vmin,560px)] lg:w-[min(46vmin,560px)]"
       >
         <svg viewBox="-10 -10 120 120" className="h-full w-full -rotate-90 transform drop-shadow-[0_0_30px_rgba(147,51,234,0.3)]">
           <defs>
@@ -50,8 +50,8 @@ export const Wheel: React.FC<WheelProps> = ({
             </filter>
             {CATEGORIES.map((cat) => (
               <radialGradient id={`grad-test-${cat.id}`} key={cat.id}>
-                <stop offset="30%" stopColor={cat.color} stopOpacity="1" />
-                <stop offset="100%" stopColor={cat.color} stopOpacity="0.3" />
+                <stop offset="28%" stopColor={cat.color} stopOpacity="0.88" />
+                <stop offset="100%" stopColor={cat.color} stopOpacity="0.42" />
               </radialGradient>
             ))}
             <filter id="glowTest">
@@ -108,7 +108,7 @@ export const Wheel: React.FC<WheelProps> = ({
                   if (canSpin && !isSpinning) onSectorClick?.();
                 }}
               >
-                <path d={bookPath} fill="rgba(0,0,0,0.5)" transform="translate(0.5, 0.5)" />
+                <path d={bookPath} fill="rgba(0,0,0,0.32)" transform="translate(0.5, 0.5)" />
                 <path
                   d={bookPath}
                   fill={`url(#grad-test-${category.id})`}

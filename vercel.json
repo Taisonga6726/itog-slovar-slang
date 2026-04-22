@@ -1,0 +1,7 @@
+{
+  "buildCommand": "cd magic-book-app && npm run build",
+  "installCommand": "cd magic-book-app && npm ci",
+  "outputDirectory": "magic-book-app/dist",
+  "framework": "vite",
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+}

@@ -2,6 +2,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { defineConfig } from "vite";
+import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import { componentTagger } from "lovable-tagger";
 
@@ -31,6 +32,25 @@ function slovarAssetSyncPlugin() {
   };
 }
 
+/** GitHub Pages: отдаёт 404.html при прямом заходе на /repo/luck — SPA читает путь из URL. */
+function githubPagesSpaFallback404(): Plugin {
+  return {
+    name: "github-pages-spa-404",
+    closeBundle() {
+      const outDir = path.resolve(__dirname, "dist");
+      const indexHtml = path.join(outDir, "index.html");
+      const notFound = path.join(outDir, "404.html");
+      try {
+        if (fs.existsSync(indexHtml)) {
+          fs.copyFileSync(indexHtml, notFound);
+        }
+      } catch {
+        /* не ломаем сборку */
+      }
+    },
+  };
+}
+
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   // Vercel ожидает корень "/", GitHub Pages - имя репозитория.
@@ -42,7 +62,7 @@ export default defineConfig(({ mode }) => ({
       overlay: false,
     },
   },
-  plugins: [slovarAssetSyncPlugin(), react(), mode === "development" && componentTagger()].filter(Boolean),
+  plugins: [slovarAssetSyncPlugin(), react(), githubPagesSpaFallback404(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

@@ -35,8 +35,8 @@ const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/зас�
 const SPLASH_AUDIO_SRC = "/videos/заставка перед игрой/заставка перед игрой.MP3";
 const FINAL_BANNER_SRC = `/images/${encodeURIComponent("финал аплодисменты игра.png")}`;
 const COVER_BOOK_SRC = "/images/cover-book.png";
-/** После видеозаставки — только статичный фон-книга (без циклического видео). */
-const OPEN_BOOK_BG_SRC = "/images/open-book.png";
+/** После заставки — сцена «руки + книга» как в референсе проекта (pole vxod.png). */
+const OPEN_BOOK_BG_SRC = `/images/${encodeURIComponent("pole vxod.png")}`;
 
 const toAudioSrc = (fileName: string) => `/audio/${encodeURIComponent(fileName)}`;
 
@@ -45,9 +45,11 @@ export interface PoleChudesTestGameProps {
   onClosePanel?: () => void;
   /** `panel` — встроено в оверлей (высота от родителя); `page` — отдельная страница /luck. */
   layout?: "page" | "panel";
+  /** Панель над книгой: жёстко глушить фоновый гимн при спине/результате (сброс позиции), чтобы не накладывался на SFX. */
+  onPauseBookHymn?: () => void;
 }
 
-export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: PoleChudesTestGameProps = {}) {
+export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPauseBookHymn }: PoleChudesTestGameProps = {}) {
   const navigate = useNavigate();
   const closeAndNavigate = useCallback(
     (to: string) => {
@@ -98,6 +100,12 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
     }
   }, [stage]);
 
+  useEffect(() => {
+    if (stage === "RESULT" || stage === "PLAYING") {
+      onPauseBookHymn?.();
+    }
+  }, [stage, onPauseBookHymn]);
+
   const stopActiveAudio = useCallback(() => {
     activeAudioRef.current.forEach(({ audio }) => {
       audio.pause();
@@ -135,6 +143,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
 
   const playAudioToEnd = useCallback(
     async (fileName: string, volume = 1): Promise<number> => {
+      stopActiveAudio();
       const audio = new Audio(toAudioSrc(fileName));
       audio.preload = "auto";
       audio.volume = muted ? 0 : volume;
@@ -161,11 +170,12 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
       await donePromise;
       return duration;
     },
-    [muted],
+    [muted, stopActiveAudio],
   );
 
   const startAudioAndGetMeta = useCallback(
     (fileName: string, volume = 1): { durationPromise: Promise<number>; donePromise: Promise<void> } => {
+      stopActiveAudio();
       const audio = new Audio(toAudioSrc(fileName));
       audio.preload = "auto";
       audio.volume = muted ? 0 : volume;
@@ -201,7 +211,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
       void audio.play().catch(() => {});
       return { durationPromise, donePromise };
     },
-    [muted],
+    [muted, stopActiveAudio],
   );
 
   const pickSpinResult = useCallback(
@@ -242,12 +252,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
       /* ignore */
     }
     stopActiveAudio();
+    onPauseBookHymn?.();
     void playAudioToEnd(AUDIO.START_WOW, 0.95);
     setBackgroundVariant("A");
     setStage("PLAYING");
     setPlayReady(true);
     setBusy(false);
-  }, [busy, playAudioToEnd, stopActiveAudio]);
+  }, [busy, playAudioToEnd, stopActiveAudio, onPauseBookHymn]);
 
   const handleSpinAnimationComplete = useCallback(() => {
     spinResolveRef.current?.();
@@ -268,6 +279,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
       spinResolveRef.current = resolve;
     });
 
+    onPauseBookHymn?.();
     stopActiveAudio();
     const spinAudio = startAudioAndGetMeta(AUDIO.SPIN, 1);
     const spinAudioDuration = await spinAudio.durationPromise;
@@ -306,14 +318,25 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
     setBackgroundVariant(BACKGROUND_FLOW[Math.min(results.length + 1, BACKGROUND_FLOW.length - 1)]);
     const reactionBank = AUDIO.REACTIONS;
     const reactionAudio = reactionBank[results.length % reactionBank.length];
-    await playAudioToEnd(AUDIO.SPIN_STOP, 1);
-    await playAudioToEnd(reactionAudio, 0.95);
+    /** Первая карточка: без доп. треков; со 2-й — барабан+реакция в фоне, кнопка «Продолжить» активна сразу (не ждём окончания звука). */
+    const isFirstReveal = results.length === 0;
     setResultReady(true);
     setBusy(false);
-  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, playAudioToEnd, startAudioAndGetMeta, results.length, stopActiveAudio]);
+    if (!isFirstReveal) {
+      void (async () => {
+        try {
+          await playAudioToEnd(AUDIO.SPIN_STOP, 1);
+          await playAudioToEnd(reactionAudio, 0.95);
+        } catch {
+          /* ignore */
+        }
+      })();
+    }
+  }, [busy, playReady, isSpinning, stage, usedPhrases, pickSpinResult, calcTargetRotation, rotation, playAudioToEnd, startAudioAndGetMeta, results.length, stopActiveAudio, onPauseBookHymn]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady || busy) return;
+    stopActiveAudio();
     if (results.length >= MAX_SPINS) {
       setBusy(true);
       setFinalReady(false);
@@ -331,7 +354,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
     setStage("PLAYING");
     setPlayReady(true);
     setBusy(false);
-  }, [resultReady, busy, results.length, playAudioToEnd]);
+  }, [resultReady, busy, results.length, playAudioToEnd, stopActiveAudio]);
 
   const resetGame = useCallback(() => {
     if (busy) return;
@@ -385,18 +408,24 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
     <div
       id="pole-chudes-test-root"
       className={cn(
-        "relative flex min-h-0 w-full flex-col overflow-hidden bg-black font-book text-white selection:bg-purple-500/30",
+        "pole-chudes-scene relative flex min-h-0 w-full flex-col overflow-hidden font-book text-[#faf6f0] selection:bg-purple-500/30",
         isPanelLayout ? "h-full max-h-full flex-1" : "h-[100dvh] max-h-[100dvh]",
       )}
     >
+      <div className="pole-chudes-scene__cosmos" aria-hidden />
+      <div className="pole-chudes-scene__nebula" aria-hidden />
+      <div className="pole-chudes-scene__sparkles" aria-hidden />
+
+      {!isFinalStage && <div className="pole-chudes-scene__dot-grid" aria-hidden />}
+
       {isFinalStage && (
-        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-black">
+        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#06020c]">
           <img src={FINAL_BANNER_SRC} alt="" className="h-full w-full object-cover object-top" draggable={false} />
         </div>
       )}
 
       {!isFinalStage && stage !== "SPLASH" && (
-        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-black">
+        <div className="pointer-events-none fixed inset-0 z-[1] overflow-hidden">
           <img
             src={OPEN_BOOK_BG_SRC}
             alt=""
@@ -413,21 +442,17 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
       )}
 
       {!isFinalStage && (
-        <div className={`pointer-events-none fixed inset-0 z-0 ${backgroundVariant === "B" ? "bg-black/42" : "bg-black/48"}`} />
-      )}
-      {!isFinalStage && (
-        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden">
-          <div className="absolute left-[10%] top-[5%] h-[760px] w-[760px] animate-pulse rounded-full bg-fuchsia-900/35 blur-[160px]" />
-          <div className="absolute right-[5%] top-[20%] h-[560px] w-[560px] animate-pulse rounded-full bg-sky-900/25 blur-[140px] [animation-delay:3s]" />
-        </div>
-      )}
-      {!isFinalStage && (
-        <div className="fixed inset-0 z-0 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:100px_100px] animate-[pulse_5s_infinite]" />
+        <div
+          className={cn(
+            "pointer-events-none fixed inset-0 z-[1]",
+            backgroundVariant === "B" ? "bg-[#1a0f28]/48" : "bg-[#12081c]/52",
+          )}
+        />
       )}
       {!isFinalStage && <MagicRingsGlobal className="magic-rings-fx--luck-page" containerId="mbPoleChudesTestRings" canvasId="mbPoleChudesTestRingsCanvas" />}
 
       {showLuckBrandLogo && (
-        <div className="pointer-events-none fixed inset-x-0 top-0 z-[50] flex justify-center pt-[max(0.25rem,env(safe-area-inset-top))]">
+        <div className="pointer-events-none fixed inset-x-0 top-0 z-[50] flex flex-col items-center pt-[max(0.25rem,env(safe-area-inset-top))]">
           <VibeAiBrand
             banner
             className={cn(
@@ -435,6 +460,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
               isPanelLayout ? "scale-[0.72] sm:scale-[0.8]" : "scale-[0.85] sm:scale-90 md:scale-95",
             )}
           />
+          <p className="pole-chudes-scene__tagline mt-1 px-4 text-center">Словарь сленга вайб кодера</p>
         </div>
       )}
 
@@ -443,7 +469,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
           <button
             type="button"
             onClick={() => setMuted((prev) => !prev)}
-            className="inline-flex items-center gap-2 rounded-full border border-sky-400/40 bg-black/45 px-3 py-1.5 text-xs text-white/90 backdrop-blur-md"
+            className="pole-chudes-mute-pill inline-flex items-center gap-2 px-3 py-1.5 text-xs text-white/90"
           >
             {muted ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
             {muted ? "Звук выкл" : "Звук вкл"}
@@ -463,7 +489,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
               </div>
               <div className="absolute inset-0 z-[3] bg-black/25" />
               <div className="relative z-10 flex w-full max-w-[min(1520px,98vw)] min-h-0 flex-1 items-center justify-center px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[clamp(3.25rem,11dvh,5rem)] sm:pt-[clamp(3.5rem,12dvh,5.5rem)]">
-                <div className="relative w-full max-h-full min-h-0 overflow-hidden">
+                <div className="pole-chudes-splash-frame relative w-full max-h-full min-h-0 overflow-hidden">
                   <video
                     ref={splashVideoRef}
                     src={SPLASH_VIDEO_SRC}
@@ -520,9 +546,9 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="grid min-h-0 w-full flex-1 grid-rows-[auto_minmax(0,1fr)_auto] items-stretch overflow-hidden px-1.5 pb-1 pt-[clamp(3rem,10dvh,4.5rem)] sm:px-2 sm:pb-2 sm:pt-[clamp(3.25rem,11dvh,5rem)]"
+              className="grid min-h-0 w-full flex-1 grid-rows-[auto_minmax(0,1fr)_auto] items-stretch overflow-hidden px-1.5 pb-1 pt-[clamp(2.75rem,9dvh,4.25rem)] sm:px-2 sm:pb-2 sm:pt-[clamp(3rem,10dvh,4.75rem)]"
             >
-              <div className="relative z-10 flex min-h-0 min-w-0 w-full max-w-[min(100vw,920px)] flex-col items-center justify-self-center [grid-row:2]">
+              <div className="relative z-10 flex w-full max-w-[min(100vw,920px)] shrink-0 flex-col items-center justify-self-center px-0.5">
                 <AnimatePresence mode="wait">
                   {attemptFlashKey > 0 && (
                     <motion.div
@@ -531,31 +557,34 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 1.14, y: -16 }}
                       transition={{ duration: 0.52, ease: "easeOut" }}
-                      className="mb-2 rounded-xl border border-fuchsia-200/70 bg-[radial-gradient(circle,_rgba(255,255,255,0.96)_0%,_rgba(236,72,153,0.83)_35%,_rgba(126,34,206,0.8)_68%,_rgba(0,0,0,0.25)_100%)] px-6 py-2 text-center shadow-[0_0_44px_rgba(236,72,153,0.9),0_0_86px_rgba(168,85,247,0.78)]"
+                      className="pole-chudes-attempt-chip mb-1 px-4 py-1.5 text-center sm:mb-1.5 sm:px-6 sm:py-2"
                     >
-                      <div className="text-sm font-black uppercase tracking-[0.22em] text-white sm:text-base">
+                      <div className="pole-chudes-attempt-chip__label text-xs font-semibold uppercase text-white/95 sm:text-sm md:text-base">
                         Попытка {results.length + 1} / {MAX_SPINS}
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
+              </div>
+
+              <div className="relative z-10 flex min-h-0 min-w-0 w-full max-w-[min(100vw,920px)] flex-col items-center justify-self-center overflow-hidden">
                 {(backgroundVariant === "A" || backgroundVariant === "D") && (
-                  <div className="pointer-events-none absolute left-1/2 top-[60%] z-0 h-[64vmin] w-[64vmin] max-h-[640px] max-w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/72 blur-[1px]" />
+                  <div className="pointer-events-none absolute left-1/2 top-[60%] z-0 h-[min(64vmin,50svh)] w-[min(64vmin,50svh)] max-h-[520px] max-w-[520px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-black/72 blur-[1px]" />
                 )}
                 {(backgroundVariant === "B" || backgroundVariant === "D") && (
-                  <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[80vmin] w-[80vmin] max-h-[760px] max-w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(252,246,186,0.18)_0%,rgba(217,70,239,0.16)_35%,rgba(56,189,248,0.12)_55%,rgba(0,0,0,0)_72%)] blur-2xl" />
+                  <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[min(80vmin,58svh)] w-[min(80vmin,58svh)] max-h-[620px] max-w-[620px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-[radial-gradient(circle,rgba(252,246,186,0.18)_0%,rgba(217,70,239,0.16)_35%,rgba(56,189,248,0.12)_55%,rgba(0,0,0,0)_72%)] blur-2xl" />
                 )}
                 {backgroundVariant === "D" && (
-                  <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[84vmin] w-[84vmin] max-h-[800px] max-w-[800px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#fcf6ba]/25 shadow-[0_0_60px_rgba(252,246,186,0.35),0_0_120px_rgba(236,72,153,0.25)]" />
+                  <div className="pointer-events-none absolute left-1/2 top-[48%] z-0 h-[min(84vmin,62svh)] w-[min(84vmin,62svh)] max-h-[660px] max-w-[660px] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#fcf6ba]/25 shadow-[0_0_60px_rgba(252,246,186,0.35),0_0_120px_rgba(236,72,153,0.25)]" />
                 )}
-                <div className="relative mt-0 flex min-h-0 w-full max-w-full min-w-0 flex-1 items-center justify-center sm:mt-0.5">
+                <div className="relative flex min-h-0 w-full max-w-full min-w-0 flex-1 items-center justify-center">
                   <img
                     src={COVER_BOOK_SRC}
                     alt=""
-                    className="pointer-events-none absolute left-1/2 top-1/2 z-0 max-h-[min(38svh,280px)] w-[min(88%,min(90vw,380px))] max-w-[100%] -translate-x-1/2 -translate-y-1/2 rounded-lg object-contain opacity-[0.92] shadow-[0_12px_48px_rgba(0,0,0,0.65)] sm:max-h-[min(44svh,340px)]"
+                    className="pointer-events-none absolute left-1/2 top-1/2 z-0 max-h-[min(36svh,260px)] w-[min(88%,min(90vw,380px))] max-w-[100%] -translate-x-1/2 -translate-y-1/2 rounded-lg object-contain opacity-[0.92] shadow-[0_12px_48px_rgba(0,0,0,0.65)] sm:max-h-[min(40svh,300px)]"
                     draggable={false}
                   />
-                  <div className="relative z-10 mx-auto flex max-h-full min-h-0 w-full min-w-0 justify-center overflow-hidden">
+                  <div className="pole-chudes-wheel-frame relative z-10 mx-auto flex max-h-full min-h-0 w-full min-w-0 justify-center overflow-hidden">
                     <Wheel
                       rotation={rotationFrames}
                       spinDuration={spinDuration}
@@ -568,20 +597,21 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
                     />
                   </div>
                 </div>
-                <div className="mt-1 flex max-w-full flex-wrap items-center justify-center gap-1 self-center [grid-row:3] sm:mt-1.5 sm:gap-1.5">
-                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/")}>
-                    Назад к книге
-                  </NeonGlassButton>
-                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=form")}>
-                    Внести слово
-                  </NeonGlassButton>
-                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=reading")}>
-                    Читать книгу
-                  </NeonGlassButton>
-                  <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=final")}>
-                    Выбрать гимн
-                  </NeonGlassButton>
-                </div>
+              </div>
+
+              <div className="mt-1 flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center sm:mt-1.5 sm:gap-1.5">
+                <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/")}>
+                  Назад к книге
+                </NeonGlassButton>
+                <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=form")}>
+                  Внести слово
+                </NeonGlassButton>
+                <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=reading")}>
+                  Читать книгу
+                </NeonGlassButton>
+                <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=final")}>
+                  Выбрать гимн
+                </NeonGlassButton>
               </div>
             </motion.div>
           )}
@@ -592,12 +622,12 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
-              className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden p-3 pt-12 text-center sm:p-5 sm:pt-14"
+              className={cn(
+                "flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden p-2 text-center sm:p-4",
+                isPanelLayout ? "pt-[clamp(3.25rem,10dvh,4.5rem)]" : "pt-12 sm:pt-14",
+              )}
             >
-              <div
-                className="relative w-full max-w-[min(100%,28rem)] space-y-4 overflow-hidden rounded-3xl border-[3px] bg-[#11041c] p-6 shadow-2xl sm:space-y-5 sm:rounded-[32px] sm:p-8"
-                style={{ borderColor: CATEGORIES.find((c) => c.id === currentResult.category)?.color }}
-              >
+              <div className="pole-chudes-result-panel relative w-full max-w-[min(100%,28rem)] space-y-4 overflow-hidden p-6 sm:space-y-5 sm:p-8">
                 <div
                   className="absolute inset-0 animate-pulse opacity-20 blur-[100px]"
                   style={{ backgroundColor: CATEGORIES.find((c) => c.id === currentResult.category)?.color }}
@@ -612,19 +642,24 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
                 >
                   {React.cloneElement(getCategoryIcon(currentResult.category) as React.ReactElement, { className: "h-8 w-8 sm:h-9 sm:w-9" })}
                 </div>
-                <h3 className="relative z-10 text-lg font-medium uppercase tracking-[0.28em] text-white/50 sm:text-xl">
+                <h3 className="pole-chudes-result-panel__category relative z-10 text-lg font-semibold uppercase sm:text-xl">
                   {CATEGORIES.find((c) => c.id === currentResult.category)?.label}
                 </h3>
                 <motion.h2
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="relative z-10 text-2xl font-black uppercase leading-tight text-white drop-shadow-lg sm:text-3xl md:text-4xl"
+                  className="pole-chudes-result-panel__phrase relative z-10 text-2xl font-bold uppercase leading-tight sm:text-3xl md:text-4xl"
                 >
                   {currentResult.phrase}
                 </motion.h2>
                 <div className="relative z-10 pt-4 sm:pt-6">
-                  <NeonGlassButton accent className="!w-full !py-3 !text-base sm:!py-3.5 sm:!text-lg" disabled={!resultReady || busy} onClick={() => void nextAction()}>
+                  <NeonGlassButton
+                    accent
+                    className="pole-chudes-result-cta !w-full !py-3 !text-base !font-semibold !text-white sm:!py-3.5 sm:!text-lg"
+                    disabled={busy}
+                    onClick={() => void nextAction()}
+                  >
                     {results.length >= MAX_SPINS ? "Узнать итог" : "Продолжить"}
                   </NeonGlassButton>
                 </div>
@@ -637,14 +672,19 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
               key="final"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="flex min-h-0 flex-1 flex-col overflow-hidden px-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] pt-10 sm:px-4 sm:pb-3 sm:pt-12"
+              className={cn(
+                "flex min-h-0 flex-1 flex-col overflow-hidden px-2 pb-[max(0.5rem,env(safe-area-inset-bottom,0px))] sm:px-4 sm:pb-3",
+                isPanelLayout ? "pt-[clamp(2.75rem,9dvh,4rem)]" : "pt-10 sm:pt-12",
+              )}
             >
               <div className="sr-only">Итоги Вайбкодера</div>
               {/* Ниже зоны «VIBE CODER» / «Итоги» на PNG — чтобы плашки не заезжали на подпись */}
               <div
                 className="pointer-events-none shrink-0 select-none"
                 aria-hidden
-                style={{ height: "clamp(12.5rem, 36vh, 22rem)" }}
+                style={{
+                  height: isPanelLayout ? "clamp(8rem, 26vh, 16rem)" : "clamp(12.5rem, 36vh, 22rem)",
+                }}
               />
               <div className="flex min-h-0 flex-1 flex-col items-center justify-center py-1 sm:py-2">
                 <div className="grid w-full max-w-[min(960px,96vw)] grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 md:gap-3.5">
@@ -654,7 +694,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
                       initial={{ opacity: 0, y: 16 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: idx * 0.12 }}
-                      className="group flex min-h-0 items-center gap-3 rounded-xl border border-[#fcf6ba]/35 bg-[#14061f]/88 p-3 shadow-[0_6px_24px_rgba(0,0,0,0.5)] backdrop-blur-md sm:gap-4 sm:rounded-2xl sm:p-4"
+                      className="pole-chudes-final-tile group flex min-h-0 items-center gap-3 rounded-xl border p-3 backdrop-blur-md sm:gap-4 sm:rounded-2xl sm:p-4"
                     >
                       <div
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-transform group-hover:scale-105 sm:h-11 sm:w-11 sm:rounded-xl md:h-12 md:w-12"
@@ -667,10 +707,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
                         {React.cloneElement(getCategoryIcon(res.category) as React.ReactElement, { className: "h-5 w-5 sm:h-6 sm:w-6" })}
                       </div>
                       <div className="min-w-0 flex-1 text-left">
-                        <h4 className="mb-0.5 text-[8px] font-black uppercase tracking-[0.38em] text-white/55 sm:text-[9px] sm:tracking-[0.42em]">
+                        <h4 className="pole-chudes-final-tile__label mb-0.5 text-[8px] font-bold uppercase tracking-[0.38em] text-white/65 sm:text-[9px] sm:tracking-[0.42em]">
                           {CATEGORIES.find((c) => c.id === res.category)?.label}
                         </h4>
-                        <p className="text-sm font-black leading-snug text-[#fff7dc] drop-shadow-[0_0_8px_rgba(252,246,186,0.3)] sm:text-base md:text-lg md:leading-tight">
+                        <p className="pole-chudes-final-tile__phrase text-sm font-bold leading-snug text-[#fff7dc] drop-shadow-[0_0_8px_rgba(252,246,186,0.3)] sm:text-base md:text-lg md:leading-tight">
                           {res.phrase}
                         </p>
                       </div>
@@ -702,6 +742,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page" }: Po
           containerId="mbPoleChudesFinalRings"
           canvasId="mbPoleChudesFinalRingsCanvas"
         />
+      )}
+
+      {(stage === "SPLASH" || stage === "PLAYING" || stage === "RESULT") && (
+        <p
+          className="pole-chudes-signature fixed bottom-0 left-0 right-0 z-[60] pb-[max(0.6rem,env(safe-area-inset-bottom,0px))] text-center"
+          aria-hidden
+        >
+          Tanya Gaiduk
+        </p>
       )}
     </div>
   );
