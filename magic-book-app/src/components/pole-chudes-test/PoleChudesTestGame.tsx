@@ -35,8 +35,9 @@ const AUDIO = {
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
 const SPLASH_AUDIO_SRC = "/videos/заставка перед игрой/заставка перед игрой.MP3";
 const FINAL_BANNER_SRC = `/images/${encodeURIComponent("финал аплодисменты игра.png")}`;
-const DRUM_BG_PLAY_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
-const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
+/** По ТЗ: крутить барабан на магическом круге; предсказание показывать на фоне книги. */
+const DRUM_BG_PLAY_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
+const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
 
 const toAudioSrc = (fileName: string) => `/audio/${encodeURIComponent(fileName)}`;
 
@@ -542,16 +543,18 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               <div className="relative z-10 flex min-h-0 min-w-0 w-full max-w-[min(100vw,920px)] flex-col items-center justify-self-center overflow-hidden">
                 <div className="relative flex min-h-0 w-full max-w-full min-w-0 flex-1 items-center justify-center">
                   <div className="pole-chudes-wheel-frame relative z-10 mx-auto flex max-h-full min-h-0 w-full min-w-0 justify-center overflow-hidden">
-                    <Wheel
-                      rotation={rotationFrames}
-                      spinDuration={spinDuration}
-                      isSpinning={isSpinning}
-                      spinTimes={spinTimes}
-                      spinEases={spinEases}
-                      canSpin={playReady && !busy}
-                      onSectorClick={() => void handleSpin()}
-                      onSpinAnimationComplete={handleSpinAnimationComplete}
-                    />
+                    <div className="rounded-full">
+                      <Wheel
+                        rotation={rotationFrames}
+                        spinDuration={spinDuration}
+                        isSpinning={isSpinning}
+                        spinTimes={spinTimes}
+                        spinEases={spinEases}
+                        canSpin={playReady && !busy}
+                        onSectorClick={() => void handleSpin()}
+                        onSpinAnimationComplete={handleSpinAnimationComplete}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
