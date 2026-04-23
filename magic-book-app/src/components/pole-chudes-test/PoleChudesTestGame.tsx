@@ -7,7 +7,8 @@ import NeonGlassButton from "@/components/NeonGlassButton";
 import { cn } from "@/lib/utils";
 import { CATEGORIES } from "./constants";
 import GlobalFXLayer from "./GlobalFXLayer";
-import MagicRingsGlobal from "@/components/MagicRingsGlobal";
+import FloatingWords from "@/components/FloatingWords";
+import GlobalVibeShell from "@/components/GlobalVibeShell";
 import { SoundManager } from "./SoundManager";
 import { Wheel } from "./Wheel";
 import { WORD_BASE_FROM_TXT } from "./wordBaseFromTxt";
@@ -82,6 +83,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [splashVideoFailed, setSplashVideoFailed] = useState(false);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
+  const splashAudioRef = useRef<HTMLAudioElement | null>(null);
   const soundManagerRef = useRef<SoundManager | null>(null);
 
   useEffect(() => {
@@ -96,9 +98,18 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   useEffect(() => {
     soundManagerRef.current = new SoundManager(SOUND_CONFIG);
+    splashAudioRef.current = new Audio("/videos/заставка вариант эффект.MP3");
+    splashAudioRef.current.preload = "auto";
+    splashAudioRef.current.volume = 1;
     return () => {
       soundManagerRef.current?.stopAll();
       soundManagerRef.current = null;
+      try {
+        splashAudioRef.current?.pause();
+      } catch {
+        /* ignore */
+      }
+      splashAudioRef.current = null;
     };
   }, []);
 
@@ -265,6 +276,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       video.currentTime = 0;
       void video.play().catch(() => {});
     }
+    const splashAudio = splashAudioRef.current;
+    if (splashAudio) {
+      splashAudio.currentTime = 0;
+      void splashAudio.play().catch(() => {});
+    }
     setBusy(true);
     onPauseBookHymn?.();
     void sound()?.play("wowStart", { stopBefore: false });
@@ -333,6 +349,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       )}
 
       {stage !== "SPLASH" && <GlobalFXLayer />}
+      {stage === "SPLASH" && <GlobalVibeShell banner={false} showLogo />}
 
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
         {(stage === "GAME" || stage === "RESULT") && (
@@ -371,9 +388,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   )}
                 </div>
                 <div className="pointer-events-none absolute inset-0 z-[12]" aria-hidden>
-                  <GlobalFXLayer />
+                  <FloatingWords />
                 </div>
-                <MagicRingsGlobal className="magic-rings-fx--luck-page" containerId="splashMagicRings" canvasId="splashMagicRingsCanvas" />
                 <NeonGlassButton
                   accent
                   className="splash-button relative z-[20] mt-8 !px-10 !py-3 !text-base sm:!text-lg"
