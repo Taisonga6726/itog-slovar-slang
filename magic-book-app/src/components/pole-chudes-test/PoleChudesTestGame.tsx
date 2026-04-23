@@ -5,7 +5,7 @@ import { AppWindow, Code2, GraduationCap, Sparkles, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import NeonGlassButton from "@/components/NeonGlassButton";
 import { cn } from "@/lib/utils";
-import { CATEGORIES, PHRASES } from "./constants";
+import { CATEGORIES } from "./constants";
 import GlobalFXLayer from "./GlobalFXLayer";
 import { SoundManager } from "./SoundManager";
 import { Wheel } from "./Wheel";
@@ -22,6 +22,68 @@ type GameWordBase = Record<string, string[]>;
 const BG_GAME: BackgroundVariant = "A";
 const BG_RESULT: BackgroundVariant = "B";
 const MAX_SPINS = 4;
+const DOCX_WORD_BASE: GameWordBase = {
+  CODE: [
+    "МАСТЕР КОСТЫЛЕЙ",
+    "ПОВЕЛИТЕЛЬ ПРОМПТОВ",
+    "ШАМАН ВЕРСТКИ",
+    "АРХИТЕКТОР ХАОСА",
+    "ОХОТНИК ЗА БАГАМИ",
+    "КОД НА ХАРИЗМЕ",
+    "СЕНЬОР ПО ВАЙБУ",
+    "ГУРУ ФИКСОВ",
+    "РЕФАКТОР ПО НАИТИЮ",
+    "ЛЕГЕНДА ДЕДЛАЙНА",
+  ],
+  WHO_AMI: [
+    "ВАЙБКОДЕР",
+    "ПОКОРИТЕЛЬ ДЕДЛАЙНОВ",
+    "ПОВЕЛИТЕЛЬ ВКЛАДОК",
+    "ПРОФЕССОР ПРОМПТОВ",
+    "ДРУГ НЕЙРОСЕТЕЙ",
+    "АРХЕОЛОГ ЧУЖОГО КОДА",
+    "УКРОТИТЕЛЬ БАГОВ",
+    "НОЧНОЙ ФИКСЕР",
+    "ГЕНЕРАТОР ИДЕЙ",
+    "ЧЕМПИОН СЛУЧАЙНОГО РЕШЕНИЯ",
+  ],
+  STUDY: [
+    "СДАШЬ ВСЕ В ПОСЛЕДНИЙ МОМЕНТ",
+    "НОЧЬ БУДЕТ ПРОДУКТИВНОЙ",
+    "НАЙДЕШЬ РЕШЕНИЕ В 3 НОЧИ",
+    "ПРОЕКТ ВНЕЗАПНО ЗАРАБОТАЕТ",
+    "ПРЕПОД СКАЖЕТ ИНТЕРЕСНО",
+    "ПОЯВИТСЯ ГЕНИАЛЬНАЯ ИДЕЯ",
+    "СЛУЧАЙНО ВСЕ ПОЛУЧИТСЯ",
+    "ВКЛАДКИ РАЗМНОЖАТСЯ",
+    "ПРОЕКТ СПАСЕТ ОДИН ФИКС",
+    "БУДЕТ МНОГО КОФЕ И КОДА",
+  ],
+  FATE: [
+    "БАГ ИСЧЕЗНЕТ САМ",
+    "ВСЕ НЕОЖИДАННО ЗАРАБОТАЕТ",
+    "КОСТЫЛЬ СПАСЕТ ПРОЕКТ",
+    "ЛОКАЛЬНО ВСЕ БУДЕТ ИДЕАЛЬНО",
+    "ОДИН ФИКС СЛОМАЕТ ДВА МЕСТА",
+    "СЛУЧАЙНО ПОЛУЧИТСЯ КРАСИВО",
+    "КОД ВЫЖИВЕТ",
+    "ПРИДЕТСЯ ПЕРЕЗАПУСТИТЬ ВСЕ",
+    "ПРОБЛЕМА БУДЕТ В ОДНОЙ БУКВЕ",
+    "БАГ ИСПАРИТСЯ ПРИ ПРОВЕРКЕ",
+  ],
+  SERVICE: [
+    "КУРСОРЧИК",
+    "ЛОВАБЛИК",
+    "ГИТХАБЧИК",
+    "КОПИЛОЧЕК",
+    "ВС КОД",
+    "ГУГЛ AI СТУДИЯ",
+    "БОТ-ПОМОГАТОР",
+    "СЕРВИС ПОСЛЕДНЕЙ НАДЕЖДЫ",
+    "ДОМЕН УДАЧИ",
+    "ОПИКЛЮЧ СУДЬБЫ",
+  ],
+};
 const EMPTY_WORD_BASE: GameWordBase = CATEGORIES.reduce<GameWordBase>((acc, cat) => {
   acc[cat.id] = [];
   return acc;
@@ -42,10 +104,11 @@ const SOUND_CONFIG = {
 } as const;
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
+const SPLASH_VIDEO_WEBM_SRC = "/videos/заставка перед игрой/заставка перед игрой.webm";
 /** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
 const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
-const DEFAULT_RESULT: SpinResult = { category: CATEGORIES[0].id, phrase: CATEGORIES[0].label };
+const DEFAULT_RESULT: SpinResult = { category: "CODE", phrase: DOCX_WORD_BASE.CODE[0] };
 
 export interface PoleChudesTestGameProps {
   /** Если игра открыта панелью поверх книги — закрыть панель при переходе в другой раздел. */
@@ -77,7 +140,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [spinEases, setSpinEases] = useState<("easeIn" | "easeOut" | "linear")[] | undefined>(undefined);
   const [resultReady, setResultReady] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [gameWordBase, setGameWordBase] = useState<GameWordBase>(() => EMPTY_WORD_BASE);
+  const [gameWordBase] = useState<GameWordBase>(() => DOCX_WORD_BASE);
+  const [splashVideoFailed, setSplashVideoFailed] = useState(false);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const soundManagerRef = useRef<SoundManager | null>(null);
@@ -106,113 +170,39 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     if (stage !== "SPLASH") return;
     const video = splashVideoRef.current;
     if (!video) return;
-    video.muted = false;
+    video.muted = true;
     video.volume = 1;
     void video.play().catch(() => {});
   }, [stage]);
 
-  useEffect(() => {
-    const categories = CATEGORIES.map((c) => c.id);
-    const pickCategory = (text: string) => {
-      const sum = Array.from(text).reduce((acc, ch) => acc + ch.charCodeAt(0), 0);
-      return categories[sum % categories.length];
-    };
-
-    const hydrateFromBookEntries = () => {
-      try {
-        const raw = localStorage.getItem("magic-book-entries");
-        if (!raw) return;
-        const entries = JSON.parse(raw) as unknown;
-        if (!Array.isArray(entries)) return;
-        const incoming = entries
-          .map((e) => {
-            const item = e as { word?: unknown; description?: unknown };
-            const text = String(item?.description || item?.word || "").trim();
-            return text;
-          })
-          .filter((v) => v.length > 0);
-        if (!incoming.length) return;
-        const seen = new Set<string>();
-        const uniqueIncoming = incoming.filter((phrase) => {
-          const key = phrase.toLowerCase();
-          if (seen.has(key)) return false;
-          seen.add(key);
-          return true;
-        });
-        const next: GameWordBase = {};
-        CATEGORIES.forEach((cat) => {
-          next[cat.id] = [];
-        });
-        uniqueIncoming.forEach((phrase) => {
-          const catId = pickCategory(phrase);
-          next[catId].push(phrase);
-        });
-        setGameWordBase(next);
-      } catch {
-        /* ignore invalid storage payload and keep previous state */
+  const getCategoryByRotation = useCallback((rotationValue: number): string => {
+    const sectorSize = 360 / CATEGORIES.length;
+    const wheelPos = ((rotationValue % 360) + 360) % 360;
+    let bestId = CATEGORIES[0].id;
+    let bestDistance = Number.POSITIVE_INFINITY;
+    CATEGORIES.forEach((cat, idx) => {
+      const sectorCenter = (360 - (idx + 0.5) * sectorSize + 360) % 360;
+      const delta = Math.abs(((wheelPos - sectorCenter + 540) % 360) - 180);
+      if (delta < bestDistance) {
+        bestDistance = delta;
+        bestId = cat.id;
       }
-    };
-    hydrateFromBookEntries();
-    const onStorage = (event: StorageEvent) => {
-      if (event.key === "magic-book-entries") hydrateFromBookEntries();
-    };
-    window.addEventListener("storage", onStorage);
-    window.addEventListener("focus", hydrateFromBookEntries);
-    return () => {
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener("focus", hydrateFromBookEntries);
-    };
+    });
+    return bestId;
   }, []);
 
-  const pickSpinResult = useCallback(
-    (snapshot: Record<string, Set<string>>, attempt: number) => {
-      const basePool = CATEGORIES.flatMap((cat) =>
-        (gameWordBase[cat.id] ?? []).map((phrase) => ({ category: cat.id, phrase })),
-      );
-      const fallbackPool = CATEGORIES.flatMap((cat) =>
-        (PHRASES[cat.id] ?? []).map((phrase) => ({ category: cat.id, phrase })),
-      );
-      const fullPool = basePool.length > 0 ? basePool : fallbackPool;
-      if (!fullPool.length) return null;
-      const availablePool = fullPool.filter((item) => !(snapshot[item.category]?.has(item.phrase) ?? false));
-      const sourcePool = availablePool.length > 0 ? availablePool : fullPool;
-      const index = (Math.max(attempt, 1) - 1) % sourcePool.length;
-      return sourcePool[index] ?? null;
+  const getResultForCategory = useCallback(
+    (categoryId: string, snapshot: Record<string, Set<string>>, attempt: number): SpinResult => {
+      const categoryWords = gameWordBase[categoryId] ?? [];
+      if (!categoryWords.length) return DEFAULT_RESULT;
+      const categoryUsed = snapshot[categoryId] || new Set();
+      const available = categoryWords.filter((word) => !categoryUsed.has(word));
+      const source = available.length > 0 ? available : categoryWords;
+      const index = Math.floor(Math.random() * source.length);
+      return { category: categoryId, phrase: source[index] ?? source[(attempt - 1) % source.length] };
     },
     [gameWordBase],
   );
-
-  const mapResultToCategory = useCallback((resultPhrase: string): string => {
-    const fromBase = CATEGORIES.find((cat) => (gameWordBase[cat.id] ?? []).includes(resultPhrase));
-    if (fromBase) return fromBase.id;
-    const fromFallback = CATEGORIES.find((cat) => (PHRASES[cat.id] ?? []).includes(resultPhrase));
-    if (fromFallback) return fromFallback.id;
-    return CATEGORIES[0].id;
-  }, [gameWordBase]);
-
-  const getResultForAttempt = useCallback(
-    (snapshot: Record<string, Set<string>>, attempt: number): SpinResult => {
-      const computed = pickSpinResult(snapshot, attempt);
-      if (computed) return { category: computed.category, phrase: computed.phrase };
-      const fallbackByAttempt = CATEGORIES[(Math.max(attempt, 1) - 1) % CATEGORIES.length];
-      return {
-        category: fallbackByAttempt.id,
-        phrase: fallbackByAttempt.label,
-      };
-    },
-    [pickSpinResult],
-  );
-
-  const calcTargetRotation = useCallback((currentRotation: number, categoryId: string) => {
-    const sectorSize = 360 / CATEGORIES.length;
-    const targetIndex = CATEGORIES.findIndex((c) => c.id === categoryId);
-    const finalRotation = (360 - (targetIndex + 0.5) * sectorSize + 360) % 360;
-    const wheelPos = ((currentRotation % 360) + 360) % 360;
-    let delta = (finalRotation - wheelPos + 360) % 360;
-    if (delta < 20) delta += 360;
-    const fullSpins = 360 * (4 + Math.floor(Math.random() * 2));
-    return currentRotation + fullSpins + delta;
-  }, []);
 
   const handleSpinAnimationComplete = useCallback(() => {
     spinResolveRef.current?.();
@@ -282,8 +272,9 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
     const usedSnapshot = usedPhrases;
     const attempt = results.length + 1;
-    const spinResult = getResultForAttempt(usedSnapshot, attempt);
-    const nextRotation = calcTargetRotation(rotation, spinResult.category);
+    const fullSpins = 360 * (4 + Math.floor(Math.random() * 2));
+    const randomStop = Math.random() * 360;
+    const nextRotation = rotation + fullSpins + randomStop;
     const animationDone = new Promise<void>((resolve) => {
       spinResolveRef.current = resolve;
     });
@@ -304,13 +295,14 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setSpinTimes(undefined);
     setSpinEases(undefined);
 
-    const newResult = { category: spinResult.category, phrase: spinResult.phrase };
+    const landedCategory = getCategoryByRotation(nextRotation);
+    const newResult = getResultForCategory(landedCategory, usedSnapshot, attempt);
     await onSpinComplete(newResult, attempt, usedSnapshot);
     /**
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
      * иначе на статичном экране слышны повторяющиеся эффекты.
      */
-  }, [busy, stage, usedPhrases, results.length, getResultForAttempt, calcTargetRotation, rotation, onPauseBookHymn, onSpinComplete, sound]);
+  }, [busy, stage, usedPhrases, results.length, rotation, onPauseBookHymn, onSpinComplete, sound, getCategoryByRotation, getResultForCategory]);
 
   const startSpin = useCallback(() => {
     if (isSpinning) return;
@@ -394,6 +386,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       <GlobalFXLayer />
 
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
+        {stage !== "SPLASH" && (
+          <div className="pointer-events-none absolute left-1/2 top-[clamp(1rem,4dvh,2.2rem)] z-20 -translate-x-1/2">
+            <div className="rounded-full border border-cyan-300/35 bg-[#06020c]/65 px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-[#e9f4ff] sm:text-xs">
+              {`ПОПЫТКА ${Math.min(stage === "GAME" ? results.length + 1 : Math.max(results.length, 1), MAX_SPINS)} / ${MAX_SPINS}`}
+            </div>
+          </div>
+        )}
         <AnimatePresence mode="wait">
           {stage === "SPLASH" && (
             <motion.div
@@ -403,20 +402,25 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               exit={{ opacity: 0 }}
               className="relative flex min-h-0 flex-1 flex-col items-center justify-center p-0"
             >
-              <div className="absolute inset-0 z-[3] bg-black/25" />
-              <div className="relative z-10 flex w-full max-w-[min(1100px,96vw)] min-h-0 flex-1 flex-col items-center justify-center px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[clamp(2rem,8dvh,4rem)]">
-                <div className="pole-chudes-splash-frame relative flex w-full max-h-full min-h-0 items-center justify-center overflow-hidden">
-                  <video
-                    ref={splashVideoRef}
-                    src={SPLASH_VIDEO_SRC}
-                    autoPlay
-                    loop
-                    muted={false}
-                    playsInline
-                    preload="metadata"
-                    className="h-[min(86svh,760px)] w-auto max-w-full object-contain object-center"
-                  />
-                </div>
+              <div className="absolute inset-0 z-[2] bg-black/25" />
+              {!splashVideoFailed ? (
+                <video
+                  ref={splashVideoRef}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                  preload="metadata"
+                  onError={() => setSplashVideoFailed(true)}
+                  className="absolute inset-0 z-[1] h-full w-full object-cover object-center"
+                >
+                  <source src={SPLASH_VIDEO_WEBM_SRC} type="video/webm" />
+                  <source src={SPLASH_VIDEO_SRC} type="video/mp4" />
+                </video>
+              ) : (
+                <img src={DRUM_BG_GAME_SRC} alt="" className="absolute inset-0 z-[1] h-full w-full object-cover object-center" />
+              )}
+              <div className="relative z-10 flex w-full max-w-[min(1100px,96vw)] min-h-0 flex-1 flex-col items-center justify-end px-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[clamp(2rem,8dvh,4rem)]">
                 <div className="mt-8 flex justify-center">
                   <NeonGlassButton
                     accent
@@ -439,16 +443,12 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               exit={{ opacity: 0 }}
               className="grid min-h-0 w-full flex-1 grid-rows-[auto_minmax(0,1fr)_auto] items-stretch overflow-hidden px-1.5 pb-1 pt-[clamp(2.75rem,9dvh,4.25rem)] sm:px-2 sm:pb-2 sm:pt-[clamp(3rem,10dvh,4.75rem)]"
             >
-              <div className="relative z-10 flex w-full max-w-[min(100vw,920px)] shrink-0 flex-col items-center justify-self-center gap-1 px-0.5">
-                <div className="rounded-full border border-cyan-300/35 bg-[#06020c]/65 px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-[#e9f4ff] sm:text-xs">
-                  {`ПОПЫТКА ${Math.min(results.length + 1, MAX_SPINS)} / ${MAX_SPINS}`}
-                </div>
-              </div>
+              <div className="relative z-10 flex w-full max-w-[min(100vw,980px)] shrink-0 flex-col items-center justify-self-center gap-1 px-0.5" />
 
-              <div className="relative z-10 flex min-h-0 min-w-0 w-full max-w-[min(100vw,920px)] flex-col items-center justify-self-center overflow-hidden">
+              <div className="relative z-10 flex min-h-0 min-w-0 w-full max-w-[min(100vw,980px)] flex-col items-center justify-self-center overflow-hidden">
                 <div className="relative flex min-h-0 w-full max-w-full min-w-0 flex-1 items-center justify-center">
                   <div className="pole-chudes-wheel-frame relative z-10 mx-auto flex max-h-full min-h-0 w-full min-w-0 justify-center overflow-hidden">
-                    <div className="rounded-full border border-cyan-200/45 bg-black/35 p-2 shadow-[0_0_40px_rgba(34,211,238,0.35)] sm:p-3">
+                    <div className="rounded-full border border-cyan-200/45 bg-black/35 p-2.5 shadow-[0_0_40px_rgba(34,211,238,0.35)] sm:p-3.5">
                       <Wheel
                         rotation={rotationFrames}
                         spinDuration={spinDuration}
@@ -535,28 +535,24 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.02 }}
               className={cn(
-                "flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden p-3 text-center sm:p-5",
-                isPanelLayout ? "pt-[clamp(3.25rem,10dvh,4.5rem)]" : "pt-12 sm:pt-14",
+                "flex min-h-0 flex-1 flex-col items-center overflow-hidden p-3 text-center sm:p-5",
+                isPanelLayout ? "pt-[clamp(5.5rem,14dvh,7rem)]" : "pt-[clamp(5.2rem,13dvh,7rem)]",
               )}
             >
-              <div className="pole-chudes-result-panel relative w-full max-w-[min(100%,42rem)] space-y-4 overflow-hidden p-6 sm:space-y-5 sm:p-8">
-                <h3 className="relative z-10 text-2xl font-bold uppercase tracking-wide sm:text-3xl">Итоги игры</h3>
-                <div className="relative z-10 max-h-[45vh] space-y-2 overflow-auto pr-1 text-left">
+              <div className="relative z-10 flex w-full max-w-[min(100%,52rem)] flex-1 flex-col">
+                <h3 className="text-center text-3xl font-bold uppercase tracking-[0.2em] text-[#f7edff] sm:text-4xl">ИТОГИ</h3>
+                <div className="mt-4 flex-1 space-y-2 overflow-auto pr-1 text-left sm:mt-5">
                   {results.map((item, idx) => {
-                    const safeCategory = mapResultToCategory(item.phrase);
-                    const cat = CATEGORIES.find((c) => c.id === safeCategory);
+                    const cat = CATEGORIES.find((c) => c.id === item.category);
                     return (
-                      <div key={`${item.phrase}-${idx}`} className="rounded-xl border border-cyan-200/35 bg-black/25 px-3 py-2">
-                        <div className="text-xs uppercase tracking-[0.14em] text-cyan-100/80">{`Попытка ${idx + 1}: ${cat?.label ?? item.category}`}</div>
+                      <div key={`${item.phrase}-${idx}`} className="rounded-2xl border border-cyan-200/35 bg-black/35 px-4 py-3">
+                        <div className="text-xs uppercase tracking-[0.16em] text-cyan-100/80">{cat?.label ?? item.category}</div>
                         <div className="mt-1 text-base font-semibold text-white sm:text-lg">{item.phrase}</div>
                       </div>
                     );
                   })}
                 </div>
-                <div className="relative z-10 flex flex-wrap items-center justify-center gap-2 pt-3">
-                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/")}>
-                    Назад к книге
-                  </NeonGlassButton>
+                <div className="mt-4 grid grid-cols-1 gap-2 pb-1 sm:mt-5 sm:grid-cols-2">
                   <NeonGlassButton
                     accent
                     className="!px-4 !py-2 !text-sm sm:!text-base"
@@ -576,6 +572,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                     }}
                   >
                     Играть снова
+                  </NeonGlassButton>
+                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/")}>
+                    Выбрать гимн
+                  </NeonGlassButton>
+                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=form")}>
+                    Внести слово
+                  </NeonGlassButton>
+                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=reading")}>
+                    Читать книгу
                   </NeonGlassButton>
                 </div>
               </div>

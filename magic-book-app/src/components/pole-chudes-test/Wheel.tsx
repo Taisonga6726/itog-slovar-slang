@@ -34,7 +34,7 @@ export const Wheel: React.FC<WheelProps> = ({
         onAnimationComplete={() => {
           if (isSpinning) onSpinAnimationComplete();
         }}
-        className="relative z-10 h-[min(min(56vw,44vmin),30svh,230px)] w-[min(min(56vw,44vmin),30svh,230px)] sm:h-[min(min(54vw,42vmin),34svh,290px)] sm:w-[min(min(54vw,42vmin),34svh,290px)] md:h-[min(36vmin,34svh,360px)] md:w-[min(36vmin,34svh,360px)] lg:h-[min(34vmin,420px)] lg:w-[min(34vmin,420px)]"
+        className="relative z-10 h-[min(min(72vw,56vmin),42svh,320px)] w-[min(min(72vw,56vmin),42svh,320px)] sm:h-[min(min(66vw,52vmin),46svh,380px)] sm:w-[min(min(66vw,52vmin),46svh,380px)] md:h-[min(46vmin,44svh,460px)] md:w-[min(46vmin,44svh,460px)] lg:h-[min(44vmin,520px)] lg:w-[min(44vmin,520px)]"
       >
         <svg viewBox="-10 -10 120 120" className="h-full w-full -rotate-90 transform drop-shadow-[0_0_30px_rgba(147,51,234,0.3)]">
           <defs>
@@ -133,7 +133,7 @@ export const Wheel: React.FC<WheelProps> = ({
                   y="50"
                   transform={`rotate(${midAngle}, 50, 50) rotate(90, 82, 50)`}
                   fill="url(#goldGradientTest)"
-                  className="pointer-events-none text-[6.5px] font-black uppercase tracking-tighter"
+                  className="pointer-events-none text-[7.8px] font-black uppercase tracking-tight sm:text-[8.6px]"
                   textAnchor="middle"
                   filter="url(#textShadow3DTest)"
                   style={{ stroke: "#4a3710", strokeWidth: "0.08px", paintOrder: "stroke fill" }}
