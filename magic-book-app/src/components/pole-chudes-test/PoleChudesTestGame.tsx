@@ -47,7 +47,6 @@ const SPLASH_VIDEO_WEBM_SRC = "/videos/заставка перед игрой/з
 /** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
 const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
-const DEFAULT_RESULT: SpinResult = { category: "CODE", phrase: WORD_BASE_FROM_TXT.CODE[0] };
 
 export interface PoleChudesTestGameProps {
   /** Если игра открыта панелью поверх книги — закрыть панель при переходе в другой раздел. */
@@ -131,9 +130,9 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   }, []);
 
   const getResultForCategory = useCallback(
-    (categoryId: string, snapshot: Record<string, Set<string>>, attempt: number): SpinResult => {
+    (categoryId: string, snapshot: Record<string, Set<string>>, attempt: number): SpinResult | null => {
       const categoryWords = gameWordBase[categoryId] ?? [];
-      if (!categoryWords.length) return DEFAULT_RESULT;
+      if (!categoryWords.length) return null;
       const categoryUsed = snapshot[categoryId] || new Set();
       const available = categoryWords.filter((word) => !categoryUsed.has(word));
       const source = available.length > 0 ? available : categoryWords;
@@ -236,6 +235,12 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
     const landedCategory = getCategoryByRotation(nextRotation);
     const newResult = getResultForCategory(landedCategory, usedSnapshot, attempt);
+    if (!newResult) {
+      console.error("SPIN ERROR: missing category words in TXT base", { category: landedCategory });
+      setIsSpinning(false);
+      setBusy(false);
+      return;
+    }
     await onSpinComplete(newResult, attempt, usedSnapshot);
     /**
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
