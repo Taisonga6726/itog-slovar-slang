@@ -7,6 +7,7 @@ import NeonGlassButton from "@/components/NeonGlassButton";
 import { cn } from "@/lib/utils";
 import { CATEGORIES } from "./constants";
 import GlobalFXLayer from "./GlobalFXLayer";
+import MagicRingsGlobal from "@/components/MagicRingsGlobal";
 import { SoundManager } from "./SoundManager";
 import { Wheel } from "./Wheel";
 import { WORD_BASE_FROM_TXT } from "./wordBaseFromTxt";
@@ -320,7 +321,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         isPanelLayout ? "h-full max-h-full flex-1" : "h-[100dvh] max-h-[100dvh]",
       )}
     >
-      {stage !== "SPLASH" && (
+      {(stage === "GAME" || stage === "RESULT") && (
         <div className="pointer-events-none fixed inset-0 z-[1] overflow-hidden">
           <img
             src={backgroundVariant === BG_RESULT ? DRUM_BG_RESULT_SRC : DRUM_BG_GAME_SRC}
@@ -331,7 +332,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         </div>
       )}
 
-      <GlobalFXLayer />
+      {stage !== "SPLASH" && <GlobalFXLayer />}
 
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
         {(stage === "GAME" || stage === "RESULT") && (
@@ -352,7 +353,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
             >
               <div className="absolute inset-0 z-[2] bg-black/25" />
               <div className="splash-wrapper relative z-10 flex w-full flex-col items-center">
-                <div className="splash-video w-full max-w-[600px] overflow-hidden rounded-[24px]">
+                <div className="splash-video relative z-[10] w-full max-w-[600px] overflow-hidden rounded-[24px]">
                   {!splashVideoFailed ? (
                     <video
                       ref={splashVideoRef}
@@ -369,9 +370,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                     <img src={DRUM_BG_GAME_SRC} alt="" className="block w-full h-auto" />
                   )}
                 </div>
+                <div className="pointer-events-none absolute inset-0 z-[12]" aria-hidden>
+                  <GlobalFXLayer />
+                </div>
+                <MagicRingsGlobal className="magic-rings-fx--luck-page" containerId="splashMagicRings" canvasId="splashMagicRingsCanvas" />
                 <NeonGlassButton
                   accent
-                  className="splash-button mt-8 !px-10 !py-3 !text-base sm:!text-lg"
+                  className="splash-button relative z-[20] mt-8 !px-10 !py-3 !text-base sm:!text-lg"
                   disabled={busy}
                   onClick={() => void handleStartFromSplash()}
                 >
@@ -482,24 +487,36 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.02 }}
               className={cn(
-                "flex min-h-0 flex-1 flex-col items-center overflow-hidden p-3 text-center sm:p-5",
+                "relative flex min-h-0 flex-1 flex-col items-center overflow-hidden p-3 text-center sm:p-5",
                 isPanelLayout ? "pt-[clamp(6.2rem,16dvh,8rem)]" : "pt-[clamp(6rem,15dvh,8rem)]",
               )}
             >
-              <div className="relative z-10 flex w-full max-w-[min(100%,52rem)] flex-1 flex-col">
-                <h3 className="text-center text-3xl font-bold uppercase tracking-[0.2em] text-[#f7edff] sm:text-4xl">ИТОГИ</h3>
-                <div className="mx-auto mt-[clamp(1.25rem,3.5dvh,2.25rem)] w-full max-w-[48rem] flex-1 space-y-2 overflow-auto pr-1 text-left">
+              <img
+                src="/images/финал аплодисменты игра.png"
+                alt=""
+                className="pointer-events-none absolute inset-0 z-[1] h-full w-full select-none object-cover object-center"
+                draggable={false}
+              />
+              <div className="pointer-events-none absolute inset-0 z-[2] bg-black/35" />
+              <div className="relative z-10 flex w-full max-w-[min(100%,58rem)] flex-1 flex-col">
+                <h3 className="text-center text-3xl font-bold uppercase tracking-[0.2em] text-[#f7edff] drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] sm:text-4xl">
+                  ИТОГИ
+                </h3>
+                <div className="mx-auto mt-[clamp(1.5rem,4.5dvh,3rem)] grid w-full max-w-[54rem] grid-cols-1 gap-3 overflow-auto pr-1 text-left md:grid-cols-2">
                   {results.map((item, idx) => {
                     const cat = CATEGORIES.find((c) => c.id === item.category);
                     return (
-                      <div key={`${item.phrase}-${idx}`} className="rounded-2xl border border-cyan-200/35 bg-black/35 px-4 py-3">
-                        <div className="text-xs uppercase tracking-[0.16em] text-cyan-100/80">{cat?.label ?? item.category}</div>
-                        <div className="mt-1 text-base font-semibold text-white sm:text-lg">{item.phrase}</div>
+                      <div
+                        key={`${item.phrase}-${idx}`}
+                        className="rounded-2xl border border-fuchsia-300/30 bg-[#170d2fcc]/95 px-4 py-3 shadow-[0_6px_24px_rgba(20,0,35,0.45)]"
+                      >
+                        <div className="text-[10px] uppercase tracking-[0.16em] text-fuchsia-100/85">{cat?.label ?? item.category}</div>
+                        <div className="mt-1 text-sm font-semibold leading-snug text-white sm:text-base">{item.phrase}</div>
                       </div>
                     );
                   })}
                 </div>
-                <div className="mt-4 grid grid-cols-1 gap-2 pb-1 sm:mt-5 sm:grid-cols-2">
+                <div className="mt-auto grid grid-cols-1 gap-2 pb-1 pt-4 sm:mt-6 sm:grid-cols-2">
                   <NeonGlassButton
                     accent
                     className="!px-4 !py-2 !text-sm sm:!text-base"
