@@ -46,6 +46,7 @@ const SOUND_CONFIG = {
 } as const;
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
+const SPLASH_AUDIO_SRC = `/videos/${encodeURIComponent("заставка перед игрой")}/${encodeURIComponent("заставка перед игрой.MP3")}`;
 /** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
 const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
@@ -99,7 +100,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   useEffect(() => {
     soundManagerRef.current = new SoundManager(SOUND_CONFIG);
-    splashAudioRef.current = new Audio("/videos/заставка перед игрой/заставка перед игрой.MP3");
+    splashAudioRef.current = new Audio(SPLASH_AUDIO_SRC);
     splashAudioRef.current.preload = "auto";
     splashAudioRef.current.muted = false;
     splashAudioRef.current.volume = 1;
@@ -283,7 +284,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       splashAudio.currentTime = 0;
       void splashAudio.play().catch(() => {
         // Fallback: some browsers reject first play() on reused element.
-        const fresh = new Audio("/videos/заставка перед игрой/заставка перед игрой.MP3");
+        const fresh = new Audio(SPLASH_AUDIO_SRC);
         fresh.volume = 1;
         fresh.muted = false;
         void fresh.play().catch(() => {});
@@ -291,7 +292,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     }
     setBusy(true);
     onPauseBookHymn?.();
-    void sound()?.play("wowStart", { stopBefore: false });
+    // Keep intro audio clean: no extra SFX over splash track.
     setStage("GAME");
     setBusy(false);
     startSpin();
@@ -385,12 +386,12 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 className="pointer-events-none absolute inset-0 z-[2] h-full w-full select-none object-cover blur-2xl opacity-40 scale-110"
                 draggable={false}
               />
-              <div className="absolute inset-0 z-[3] bg-black/40 backdrop-blur-sm" />
+              <div className="absolute inset-0 z-[3] bg-black/55 backdrop-blur-sm" />
               <div className="pointer-events-none absolute inset-0 z-[12]" aria-hidden>
                 <FloatingWords />
               </div>
               <div className="splash-wrapper relative z-10 flex w-full flex-col items-center">
-                <div className="splash-video relative z-[10] mt-[72px] aspect-[16/7.5] w-[min(74vw,980px)] max-w-[980px] overflow-hidden rounded-[22px] border border-fuchsia-300/25 bg-black/35 shadow-[0_30px_90px_rgba(0,0,0,0.6)] sm:mt-[84px]">
+                <div className="splash-video relative z-[10] mt-[94px] aspect-[16/7.5] w-[min(74vw,980px)] max-w-[980px] overflow-hidden rounded-[22px] bg-black/25 shadow-[0_36px_100px_rgba(0,0,0,0.65)] sm:mt-[106px]">
                   {!splashVideoFailed ? (
                     <video
                       ref={splashVideoRef}
