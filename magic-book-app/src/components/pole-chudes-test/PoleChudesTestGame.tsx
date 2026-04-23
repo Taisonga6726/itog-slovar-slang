@@ -5,7 +5,7 @@ import { AppWindow, Code2, GraduationCap, RotateCcw, Sparkles, Zap } from "lucid
 import { useNavigate } from "react-router-dom";
 import NeonGlassButton from "@/components/NeonGlassButton";
 import { cn } from "@/lib/utils";
-import { CATEGORIES, PHRASES } from "./constants";
+import { CATEGORIES } from "./constants";
 import GlobalFXLayer from "./GlobalFXLayer";
 import { SoundManager } from "./SoundManager";
 import { Wheel } from "./Wheel";
@@ -22,6 +22,10 @@ type GameWordBase = Record<string, string[]>;
 const BG_PLAYING: BackgroundVariant = "A";
 const BG_RESULT: BackgroundVariant = "B";
 const MAX_SPINS = 4;
+const EMPTY_WORD_BASE: GameWordBase = CATEGORIES.reduce<GameWordBase>((acc, cat) => {
+  acc[cat.id] = [];
+  return acc;
+}, {});
 
 function toAudioSrc(fileName: string) {
   return `/audio/${encodeURIComponent(fileName)}`;
@@ -79,13 +83,18 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [resultReady, setResultReady] = useState(false);
   const [finalReady, setFinalReady] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [gameWordBase, setGameWordBase] = useState<GameWordBase>(() => PHRASES);
+  const [gameWordBase, setGameWordBase] = useState<GameWordBase>(() => EMPTY_WORD_BASE);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const soundManagerRef = useRef<SoundManager | null>(null);
 
   useEffect(() => {
-    // Внутри игры фоновый гимн запрещен на всех этапах, включая заставку.
+    // Внутри Game гимн всегда должен быть принудительно выключен.
+    onPauseBookHymn?.();
+  }, [onPauseBookHymn]);
+
+  useEffect(() => {
+    // Дублируем на смене этапа, чтобы гимн не возвращался при переходах.
     onPauseBookHymn?.();
   }, [stage, onPauseBookHymn]);
 
@@ -118,15 +127,9 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     const hydrateFromBookEntries = () => {
       try {
         const raw = localStorage.getItem("magic-book-entries");
-        if (!raw) {
-          setGameWordBase(PHRASES);
-          return;
-        }
+        if (!raw) return;
         const entries = JSON.parse(raw) as unknown;
-        if (!Array.isArray(entries)) {
-          setGameWordBase(PHRASES);
-          return;
-        }
+        if (!Array.isArray(entries)) return;
         const incoming = entries
           .map((e) => {
             const item = e as { word?: unknown; description?: unknown };
@@ -134,10 +137,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
             return text;
           })
           .filter((v) => v.length > 0);
-        if (!incoming.length) {
-          setGameWordBase(PHRASES);
-          return;
-        }
+        if (!incoming.length) return;
         const seen = new Set<string>();
         const uniqueIncoming = incoming.filter((phrase) => {
           const key = phrase.toLowerCase();
@@ -155,7 +155,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         });
         setGameWordBase(next);
       } catch {
-        setGameWordBase(PHRASES);
+        /* ignore invalid storage payload and keep previous state */
       }
     };
     hydrateFromBookEntries();
@@ -173,16 +173,14 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const pickSpinResult = useCallback(
     (snapshot: Record<string, Set<string>>) => {
       const nonEmptyCategories = CATEGORIES.filter((c) => (gameWordBase[c.id] ?? []).length > 0);
-      const sectorPool = nonEmptyCategories.length > 0 ? nonEmptyCategories : CATEGORIES;
+      if (!nonEmptyCategories.length) return null;
+      const sectorPool = nonEmptyCategories;
       const sector = sectorPool[Math.floor(Math.random() * sectorPool.length)];
-      const categoryPhrases = gameWordBase[sector.id] ?? PHRASES[sector.id];
-      const safePhrases = categoryPhrases.length > 0 ? categoryPhrases : PHRASES[sector.id];
+      const safePhrases = gameWordBase[sector.id] ?? [];
+      if (!safePhrases.length) return null;
       const categoryUsed = snapshot[sector.id] || new Set();
       const availablePhrases = safePhrases.filter((p) => !categoryUsed.has(p));
-      const phrase =
-        availablePhrases.length > 0
-          ? availablePhrases[Math.floor(Math.random() * availablePhrases.length)]
-          : safePhrases[Math.floor(Math.random() * safePhrases.length)];
+      const phrase = availablePhrases.length > 0 ? availablePhrases[Math.floor(Math.random() * availablePhrases.length)] : safePhrases[Math.floor(Math.random() * safePhrases.length)];
       return { categoryId: sector.id, phrase };
     },
     [gameWordBase],
@@ -225,6 +223,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     const usedSnapshot = usedPhrases;
     const attempt = results.length + 1;
     const spinResult = pickSpinResult(usedSnapshot);
+    if (!spinResult) {
+      setBusy(false);
+      setPlayReady(true);
+      return;
+    }
     const nextRotation = calcTargetRotation(rotation, spinResult.categoryId);
     const animationDone = new Promise<void>((resolve) => {
       spinResolveRef.current = resolve;
@@ -271,6 +274,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
     setBackgroundVariant(BG_RESULT);
     await drumHitDone;
+    // По ТЗ: плашка предсказания и эффект запускаются в один момент после тарелки.
     setStage("RESULT");
     confetti({
       particleCount: 50,
@@ -295,6 +299,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const nextAction = useCallback(async () => {
     if (!resultReady) return;
     sound()?.stopAll();
+    void sound()?.play("wowStart", { stopBefore: false });
+    onPauseBookHymn?.();
     if (results.length >= MAX_SPINS) {
       setBusy(true);
       setFinalReady(false);
@@ -312,7 +318,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setStage("PLAYING");
     setPlayReady(true);
     setBusy(false);
-  }, [resultReady, results.length, sound]);
+  }, [resultReady, results.length, sound, onPauseBookHymn]);
 
   const resetGame = useCallback(() => {
     if (busy) return;
@@ -451,7 +457,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 </div>
               </div>
 
-              <div className="mt-1 flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center sm:mt-1.5 sm:gap-1.5">
+              <div className="-mt-2 flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center sm:-mt-1 sm:gap-1.5">
                 <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/")}>
                   Назад к книге
                 </NeonGlassButton>
