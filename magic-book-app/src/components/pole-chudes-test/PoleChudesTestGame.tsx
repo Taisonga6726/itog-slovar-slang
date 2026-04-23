@@ -355,10 +355,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   playsInline
                   preload="metadata"
                   onError={() => setSplashVideoFailed(true)}
-                  className="absolute inset-0 z-[1] h-full w-full object-cover object-center"
+                  className="fixed left-0 top-0 z-[1] h-[100vh] w-[100vw] object-cover"
                 />
               ) : (
-                <img src={DRUM_BG_GAME_SRC} alt="" className="absolute inset-0 z-[1] h-full w-full object-cover object-center" />
+                <img src={DRUM_BG_GAME_SRC} alt="" className="fixed left-0 top-0 z-[1] h-[100vh] w-[100vw] object-cover" />
               )}
               <div className="relative z-10 flex w-full max-w-[min(1100px,96vw)] min-h-0 flex-1 flex-col items-center justify-end px-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[clamp(2rem,8dvh,4rem)]">
                 <div className="mt-8 flex justify-center">
@@ -480,9 +480,9 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 isPanelLayout ? "pt-[clamp(6.2rem,16dvh,8rem)]" : "pt-[clamp(6rem,15dvh,8rem)]",
               )}
             >
-              <div className="relative z-10 flex w-full max-w-[min(100%,52rem)] flex-1 flex-col justify-between">
+              <div className="relative z-10 flex w-full max-w-[min(100%,52rem)] flex-1 flex-col">
                 <h3 className="text-center text-3xl font-bold uppercase tracking-[0.2em] text-[#f7edff] sm:text-4xl">ИТОГИ</h3>
-                <div className="mx-auto mt-4 w-full max-w-[48rem] flex-1 space-y-2 overflow-auto pr-1 text-left sm:mt-6">
+                <div className="mx-auto mt-[clamp(1.25rem,3.5dvh,2.25rem)] w-full max-w-[48rem] flex-1 space-y-2 overflow-auto pr-1 text-left">
                   {results.map((item, idx) => {
                     const cat = CATEGORIES.find((c) => c.id === item.category);
                     return (
@@ -514,7 +514,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   >
                     Играть снова
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=final")}>
+                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=hymn")}>
                     Выбрать гимн
                   </NeonGlassButton>
                   <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=form")}>

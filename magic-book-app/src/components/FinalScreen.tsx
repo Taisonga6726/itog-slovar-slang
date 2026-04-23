@@ -23,6 +23,8 @@ export interface FinalScreenProps {
   onHymnPlayGame?: () => void;
   /** Панель гимна: «внести слово» — обычно переход к форме */
   onHymnEnterWord?: () => void;
+  /** Открыть панель гимна сразу после входа на экран */
+  openHymnOnMount?: boolean;
 }
 
 /**
@@ -39,6 +41,7 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
   onHymnPanelOpenChange,
   onHymnPlayGame,
   onHymnEnterWord,
+  openHymnOnMount = false,
 }) => {
   const [audioTestOpen, setAudioTestOpen] = useState(false);
 
@@ -51,6 +54,12 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
       onHymnPanelOpenChange?.(false);
     };
   }, [onHymnPanelOpenChange]);
+
+  useEffect(() => {
+    if (!openHymnOnMount) return;
+    onPauseBackgroundHymn?.();
+    setAudioTestOpen(true);
+  }, [openHymnOnMount, onPauseBackgroundHymn]);
 
   const totalFire = entries.reduce((sum, w) => sum + (w.reactions?.fire || 0), 0);
   const totalLove = entries.reduce((sum, w) => sum + (w.reactions?.love || 0), 0);

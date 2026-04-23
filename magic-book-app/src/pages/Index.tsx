@@ -393,6 +393,10 @@ const Index = () => {
       setMode("reading");
       return;
     }
+    if (entry === "slovar" && screen === "hymn") {
+      setMode("final");
+      return;
+    }
     if (entry === "slovar" && screen === "final") {
       setMode("final");
     }
@@ -571,6 +575,7 @@ const Index = () => {
           onHymnPanelOpenChange={setHymnPanelOpen}
           onHymnPlayGame={openLuckyWheel}
           onHymnEnterWord={handleAddWord}
+          openHymnOnMount={searchParams.get("entry") === "slovar" && searchParams.get("screen") === "hymn"}
         />
       )}
       </div>}
