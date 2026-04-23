@@ -101,6 +101,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     soundManagerRef.current = new SoundManager(SOUND_CONFIG);
     splashAudioRef.current = new Audio("/videos/заставка перед игрой/заставка перед игрой.MP3");
     splashAudioRef.current.preload = "auto";
+    splashAudioRef.current.muted = false;
     splashAudioRef.current.volume = 1;
     return () => {
       soundManagerRef.current?.stopAll();
@@ -280,7 +281,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     const splashAudio = splashAudioRef.current;
     if (splashAudio) {
       splashAudio.currentTime = 0;
-      void splashAudio.play().catch(() => {});
+      void splashAudio.play().catch(() => {
+        // Fallback: some browsers reject first play() on reused element.
+        const fresh = new Audio("/videos/заставка перед игрой/заставка перед игрой.MP3");
+        fresh.volume = 1;
+        fresh.muted = false;
+        void fresh.play().catch(() => {});
+      });
     }
     setBusy(true);
     onPauseBookHymn?.();
@@ -367,7 +374,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="relative flex min-h-0 flex-1 flex-col items-center justify-start px-3 pt-[62px] sm:pt-[58px]"
+              className="relative flex min-h-0 flex-1 flex-col items-center justify-start px-3 pt-[56px] sm:pt-[52px]"
             >
               <div className="absolute inset-0 z-[1]">
                 <HeroWave />
@@ -383,7 +390,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 <FloatingWords />
               </div>
               <div className="splash-wrapper relative z-10 flex w-full flex-col items-center">
-                <div className="splash-video relative z-[10] mt-2 h-[min(40vw,360px)] w-[min(80vw,1100px)] max-w-[1100px] overflow-hidden rounded-[22px] border border-fuchsia-300/25 bg-black/35 shadow-[0_30px_90px_rgba(0,0,0,0.6)]">
+                <div className="splash-video relative z-[10] mt-[72px] aspect-[16/7.5] w-[min(74vw,980px)] max-w-[980px] overflow-hidden rounded-[22px] border border-fuchsia-300/25 bg-black/35 shadow-[0_30px_90px_rgba(0,0,0,0.6)] sm:mt-[84px]">
                   {!splashVideoFailed ? (
                     <video
                       ref={splashVideoRef}
@@ -394,10 +401,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                       playsInline
                       preload="metadata"
                       onError={() => setSplashVideoFailed(true)}
-                      className="block h-full w-full object-cover"
+                      className="block h-full w-full object-contain"
                     />
                   ) : (
-                    <img src={DRUM_BG_GAME_SRC} alt="" className="block h-full w-full object-cover" />
+                    <img src={DRUM_BG_GAME_SRC} alt="" className="block h-full w-full object-contain" />
                   )}
                 </div>
                 <NeonGlassButton
