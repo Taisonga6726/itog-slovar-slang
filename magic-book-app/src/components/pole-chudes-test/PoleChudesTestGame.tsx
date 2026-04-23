@@ -91,11 +91,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [gameWordBase] = useState<GameWordBase>(() => WORD_BASE_FROM_TXT);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
-  const stageRef = useRef<GameStage>("SPLASH");
-  const prevStageForSplashResetRef = useRef<GameStage | null>(null);
-  const splashPlayStartedRef = useRef(false);
   const soundManagerRef = useRef<SoundManager | null>(null);
-  stageRef.current = stage;
 
   useEffect(() => {
     // Внутри Game гимн всегда должен быть принудительно выключен.
@@ -108,44 +104,12 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   }, [stage, onPauseBookHymn]);
 
   useEffect(() => {
-    if (stage === "SPLASH" && prevStageForSplashResetRef.current != null && prevStageForSplashResetRef.current !== "SPLASH") {
-      splashPlayStartedRef.current = false;
-    }
-    prevStageForSplashResetRef.current = stage;
-  }, [stage]);
-
-  useEffect(() => {
     soundManagerRef.current = new SoundManager(SOUND_CONFIG);
     return () => {
       soundManagerRef.current?.stopAll();
       soundManagerRef.current = null;
     };
   }, []);
-
-  const startSplashVideoLoop = useCallback((v: HTMLVideoElement) => {
-    if (stageRef.current !== "SPLASH" || splashPlayStartedRef.current) return;
-    splashPlayStartedRef.current = true;
-    v.setAttribute("playsinline", "true");
-    v.setAttribute("webkit-playsinline", "true");
-    v.loop = true;
-    v.volume = 1;
-    v.muted = false;
-    v.defaultMuted = false;
-    void v.play().catch(() => {
-      v.muted = true;
-      void v.play().catch(() => {
-        splashPlayStartedRef.current = false;
-      });
-    });
-  }, []);
-
-  const setSplashVideoEl = useCallback(
-    (el: HTMLVideoElement | null) => {
-      splashVideoRef.current = el;
-      if (el && stageRef.current === "SPLASH") startSplashVideoLoop(el);
-    },
-    [startSplashVideoLoop],
-  );
 
   const sound = useCallback(() => soundManagerRef.current, []);
 
@@ -402,14 +366,12 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               </div>
               <div className="fixed inset-0 w-full h-full" style={{ zIndex: 50 }}>
                 <video
-                  ref={setSplashVideoEl}
+                  ref={splashVideoRef}
                   src={SPLASH_VIDEO_SRC}
                   autoPlay
                   loop
                   playsInline
-                  preload="auto"
-                  onLoadedData={(e) => startSplashVideoLoop(e.currentTarget)}
-                  className="absolute left-1/2 top-1/2 h-[96%] w-[96%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2 object-contain select-none"
+                  className="absolute left-1/2 top-1/2 h-[92%] w-[92%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2 object-contain select-none"
                 />
                 <NeonGlassButton
                   accent
