@@ -44,8 +44,8 @@ const SOUND_CONFIG = {
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
 /** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
-const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
-const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
+const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
+const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
 const DEFAULT_RESULT: SpinResult = { category: CATEGORIES[0].id, phrase: CATEGORIES[0].label };
 
 export interface PoleChudesTestGameProps {
