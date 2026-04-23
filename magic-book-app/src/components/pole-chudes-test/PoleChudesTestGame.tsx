@@ -76,7 +76,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [spinDuration, setSpinDuration] = useState(2.6);
   const [spinTimes, setSpinTimes] = useState<number[] | undefined>(undefined);
   const [spinEases, setSpinEases] = useState<("easeIn" | "easeOut" | "linear")[] | undefined>(undefined);
-  const [backgroundVariant, setBackgroundVariant] = useState<BackgroundVariant>(BG_GAME);
   const [playReady, setPlayReady] = useState(false);
   const [resultReady, setResultReady] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -208,8 +207,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     spinResolveRef.current = null;
   }, []);
 
-  const handleSpin = useCallback(async () => {
-    if (busy || !playReady || isSpinning || stage !== "GAME") return;
+  const handleSpin = useCallback(async (forceStart = false) => {
+    if (busy || (!forceStart && (!playReady || stage !== "GAME"))) {
+      setIsSpinning(false);
+      return;
+    }
     setBusy(true);
     setPlayReady(false);
     setResultReady(false);
@@ -231,11 +233,9 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setSpinTimes([0, 0.2, 0.75, 1]);
     setSpinEases(["easeIn", "linear", "easeOut"]);
     setRotationFrames([rotation, preRotation, fastRotation, nextRotation]);
-    setIsSpinning(true);
     setRotation(nextRotation);
 
     await Promise.all([animationDone, spinAudioDone]);
-    setIsSpinning(false);
     setRotationFrames(nextRotation);
     setSpinTimes(undefined);
     setSpinEases(undefined);
@@ -254,7 +254,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       3: "laughBoy",
     };
     const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
-    setBackgroundVariant(BG_RESULT);
     await drumHitDone;
     const categoryUsed = usedSnapshot[spinResult.category] || new Set();
     setUsedPhrases((prev) => ({
@@ -266,6 +265,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => {
         setStage("RESULT");
+        setIsSpinning(false);
         resolve();
       });
     });
@@ -287,7 +287,19 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
      * иначе на статичном экране слышны повторяющиеся эффекты.
      */
-  }, [busy, playReady, isSpinning, stage, usedPhrases, results.length, getResultForAttempt, calcTargetRotation, rotation, onPauseBookHymn, sound]);
+  }, [busy, playReady, stage, usedPhrases, results.length, getResultForAttempt, calcTargetRotation, rotation, onPauseBookHymn, sound]);
+
+  const startSpin = useCallback(
+    (forceStart = false) => {
+      if (isSpinning) return;
+      if (!forceStart && (busy || !playReady || stage !== "GAME")) return;
+      setIsSpinning(true);
+      requestAnimationFrame(() => {
+        void handleSpin(forceStart);
+      });
+    },
+    [isSpinning, busy, playReady, stage, handleSpin],
+  );
 
   const handleStartFromSplash = useCallback(async () => {
     if (busy) return;
@@ -299,14 +311,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     } catch {
       /* ignore autoplay/start sound errors */
     }
-    setBackgroundVariant(BG_GAME);
     setStage("GAME");
     setPlayReady(true);
     setBusy(false);
-    requestAnimationFrame(() => {
-      void handleSpin();
-    });
-  }, [busy, onPauseBookHymn, sound, handleSpin]);
+    startSpin(true);
+  }, [busy, onPauseBookHymn, sound, startSpin]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady) return;
@@ -319,7 +328,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       setResults([]);
       setCurrentResult(null);
       setUsedPhrases({});
-      setBackgroundVariant(BG_GAME);
       setPlayReady(false);
       setResultReady(false);
       setBusy(false);
@@ -355,6 +363,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   };
 
   const isPanelLayout = layout === "panel";
+  const backgroundVariant: BackgroundVariant = stage === "RESULT" ? BG_RESULT : BG_GAME;
   return (
     <div
       id="pole-chudes-test-root"
@@ -439,7 +448,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                         spinTimes={spinTimes}
                         spinEases={spinEases}
                         canSpin={playReady && !busy}
-                        onSectorClick={() => void handleSpin()}
+                        onSectorClick={() => startSpin()}
                         onSpinAnimationComplete={handleSpinAnimationComplete}
                       />
                     </div>
