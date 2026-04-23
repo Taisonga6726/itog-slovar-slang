@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import confetti from "canvas-confetti";
-import { AppWindow, Code2, GraduationCap, RotateCcw, Sparkles, Zap } from "lucide-react";
+import { AppWindow, Code2, GraduationCap, Sparkles, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import NeonGlassButton from "@/components/NeonGlassButton";
 import { cn } from "@/lib/utils";
@@ -10,7 +10,7 @@ import GlobalFXLayer from "./GlobalFXLayer";
 import { SoundManager } from "./SoundManager";
 import { Wheel } from "./Wheel";
 
-type GameStage = "SPLASH" | "GAME" | "RESULT" | "FINAL";
+type GameStage = "SPLASH" | "GAME" | "RESULT";
 
 interface SpinResult {
   category: string;
@@ -40,12 +40,9 @@ const SOUND_CONFIG = {
   laughGirl: { src: toAudioSrc("смех девочка1.MP3"), volume: 0.95 },
   laughMan: { src: toAudioSrc("смех мужчина 1.MP3"), volume: 0.95 },
   laughBoy: { src: toAudioSrc("смех мальчик 1 .MP3"), volume: 0.95 },
-  finalApl: { src: toAudioSrc("фанфары аплодисменты .MP3"), volume: 1 },
-  finalFire: { src: toAudioSrc("фейерверк фанфары аплодисменты.MP3"), volume: 1 },
 } as const;
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
-const FINAL_BANNER_SRC = `/images/${encodeURIComponent("финал аплодисменты игра.png")}`;
 /** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
 const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
@@ -81,9 +78,9 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [backgroundVariant, setBackgroundVariant] = useState<BackgroundVariant>(BG_GAME);
   const [playReady, setPlayReady] = useState(false);
   const [resultReady, setResultReady] = useState(false);
-  const [finalReady, setFinalReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [gameWordBase, setGameWordBase] = useState<GameWordBase>(() => EMPTY_WORD_BASE);
+  const autoSpinFromSplashRef = useRef(false);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const soundManagerRef = useRef<SoundManager | null>(null);
@@ -206,6 +203,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setBackgroundVariant(BG_GAME);
     setStage("GAME");
     setPlayReady(true);
+    autoSpinFromSplashRef.current = true;
     setBusy(false);
   }, [busy, onPauseBookHymn, sound]);
 
@@ -296,6 +294,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
      */
   }, [busy, playReady, isSpinning, stage, usedPhrases, results.length, pickSpinResult, calcTargetRotation, rotation, onPauseBookHymn, sound]);
 
+  useEffect(() => {
+    if (!autoSpinFromSplashRef.current) return;
+    if (stage !== "GAME" || !playReady || busy || isSpinning) return;
+    autoSpinFromSplashRef.current = false;
+    void handleSpin();
+  }, [stage, playReady, busy, isSpinning, handleSpin]);
+
   const nextAction = useCallback(async () => {
     if (!resultReady) return;
     sound()?.stopAll();
@@ -303,14 +308,19 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     onPauseBookHymn?.();
     if (results.length >= MAX_SPINS) {
       setBusy(true);
-      setFinalReady(false);
-      setStage("FINAL");
-      confetti({ particleCount: 220, spread: 130, origin: { y: 0.55 }, scalar: 1.2 });
-      await sound()?.play("finalApl", { waitForEnd: true });
-      confetti({ particleCount: 300, spread: 160, origin: { y: 0.48 }, scalar: 1.35, ticks: 420 });
-      await sound()?.play("finalFire", { waitForEnd: true });
-      setFinalReady(true);
+      setStage("SPLASH");
+      setResults([]);
+      setCurrentResult(null);
+      setUsedPhrases({});
+      setBackgroundVariant(BG_GAME);
+      setPlayReady(false);
+      setResultReady(false);
       setBusy(false);
+      setIsSpinning(false);
+      setRotation(0);
+      setRotationFrames(0);
+      setSpinTimes(undefined);
+      setSpinEases(undefined);
       return;
     }
     setBusy(true);
@@ -319,25 +329,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setPlayReady(true);
     setBusy(false);
   }, [resultReady, results.length, sound, onPauseBookHymn]);
-
-  const resetGame = useCallback(() => {
-    if (busy) return;
-    sound()?.stopAll();
-    setStage("SPLASH");
-    setResults([]);
-    setCurrentResult(null);
-    setUsedPhrases({});
-    setBackgroundVariant(BG_GAME);
-    setPlayReady(false);
-    setResultReady(false);
-    setFinalReady(false);
-    setBusy(false);
-    setIsSpinning(false);
-    setRotation(0);
-    setRotationFrames(0);
-    setSpinTimes(undefined);
-    setSpinEases(undefined);
-  }, [busy, sound]);
 
   const getCategoryIcon = (id: string) => {
     switch (id) {
@@ -356,8 +347,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     }
   };
 
-  const isFinalStage = stage === "FINAL";
-
   const isPanelLayout = layout === "panel";
   return (
     <div
@@ -367,13 +356,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         isPanelLayout ? "h-full max-h-full flex-1" : "h-[100dvh] max-h-[100dvh]",
       )}
     >
-      {isFinalStage && (
-        <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#06020c]">
-          <img src={FINAL_BANNER_SRC} alt="" className="h-full w-full object-contain object-top" draggable={false} />
-        </div>
-      )}
-
-      {!isFinalStage && stage !== "SPLASH" && (
+      {stage !== "SPLASH" && (
         <div className="pointer-events-none fixed inset-0 z-[1] overflow-hidden">
           <img
             src={backgroundVariant === BG_RESULT ? DRUM_BG_RESULT_SRC : DRUM_BG_GAME_SRC}
@@ -514,77 +497,9 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                     className="pole-chudes-result-cta !w-full !py-3 !text-base !font-semibold !text-white sm:!py-3.5 sm:!text-lg"
                     onClick={() => void nextAction()}
                   >
-                    {results.length >= MAX_SPINS ? "Узнать итог" : "Продолжить"}
+                    {results.length >= MAX_SPINS ? "Еще раз крутить" : "Продолжить"}
                   </NeonGlassButton>
                 </div>
-              </div>
-            </motion.div>
-          )}
-
-          {stage === "FINAL" && (
-            <motion.div
-              key="final"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className={cn(
-                "flex min-h-0 flex-1 flex-col overflow-hidden px-2 pb-[max(2rem,env(safe-area-inset-bottom,0px))] sm:px-4 sm:pb-4",
-                isPanelLayout ? "pt-[clamp(2.75rem,9dvh,4rem)]" : "pt-10 sm:pt-12",
-              )}
-            >
-              <div className="sr-only">Итоги Вайбкодера</div>
-              {/* Ниже зоны «VIBE CODER» / «Итоги» на PNG — чтобы плашки не заезжали на подпись */}
-              <div
-                className="pointer-events-none shrink-0 select-none"
-                aria-hidden
-                style={{
-                  height: isPanelLayout ? "clamp(10.5rem, 32vh, 18rem)" : "clamp(18rem, 50vh, 31rem)",
-                }}
-              />
-              <div className="flex min-h-0 flex-1 flex-col items-center justify-start py-1 sm:py-2">
-                <div className="grid w-full max-w-[min(900px,94vw)] grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-2.5 md:gap-3">
-                  {results.map((res, idx) => (
-                    <motion.div
-                      key={`${res.category}-${idx}`}
-                      initial={{ opacity: 0, y: 16 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: idx * 0.12 }}
-                      className="pole-chudes-final-tile group flex min-h-0 items-center gap-3 rounded-xl border p-3 backdrop-blur-md sm:gap-4 sm:rounded-2xl sm:p-4"
-                    >
-                      <div
-                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border transition-transform group-hover:scale-105 sm:h-11 sm:w-11 sm:rounded-xl md:h-12 md:w-12"
-                        style={{
-                          backgroundColor: `${CATEGORIES.find((c) => c.id === res.category)?.color}18`,
-                          color: CATEGORIES.find((c) => c.id === res.category)?.color,
-                          borderColor: `${CATEGORIES.find((c) => c.id === res.category)?.color}44`,
-                        }}
-                      >
-                        {React.cloneElement(getCategoryIcon(res.category) as React.ReactElement, { className: "h-5 w-5 sm:h-6 sm:w-6" })}
-                      </div>
-                      <div className="min-w-0 flex-1 text-left">
-                        <h4 className="pole-chudes-final-tile__label mb-0.5 text-[8px] font-bold uppercase tracking-[0.38em] text-white/65 sm:text-[9px] sm:tracking-[0.42em]">
-                          {CATEGORIES.find((c) => c.id === res.category)?.label}
-                        </h4>
-                        <p className="pole-chudes-final-tile__phrase text-sm font-bold leading-snug text-[#fff7dc] drop-shadow-[0_0_8px_rgba(252,246,186,0.3)] sm:text-base md:text-lg md:leading-tight">
-                          {res.phrase}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-              <div className="flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:gap-3 sm:pt-3">
-                <NeonGlassButton className="!px-4 !py-2 !text-[11px] sm:!px-5 sm:!text-xs" onClick={() => closeAndNavigate("/")}>
-                  Назад к книге
-                </NeonGlassButton>
-                <NeonGlassButton className="!px-4 !py-2 !text-[11px] sm:!px-5 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=form")}>
-                  Внести слово
-                </NeonGlassButton>
-                <NeonGlassButton accent className="!px-5 !py-2 !text-[11px] sm:!px-8 sm:!py-3 sm:!text-sm" disabled={!finalReady || busy} onClick={resetGame}>
-                  <span className="inline-flex items-center gap-2">
-                    <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    Еще раз крутить
-                  </span>
-                </NeonGlassButton>
               </div>
             </motion.div>
           )}
