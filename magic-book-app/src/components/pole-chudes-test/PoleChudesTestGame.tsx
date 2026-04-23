@@ -34,7 +34,6 @@ function toAudioSrc(fileName: string) {
 const SOUND_CONFIG = {
   wowStart: { src: toAudioSrc("КЛИК вау начало.MP3"), volume: 0.95 },
   spin: { src: toAudioSrc("прокрутка колеса 02.MP3"), volume: 1 },
-  drumHit: { src: toAudioSrc("ROCK_ ART BARABAN WOW.mp3"), volume: 0.95 },
   truba: { src: toAudioSrc("вау_труба.MP3"), volume: 0.95 },
   happyBoy: { src: toAudioSrc("довольный мальчик.MP3"), volume: 0.95 },
   laughGirl: { src: toAudioSrc("смех девочка1.MP3"), volume: 0.95 },
@@ -210,7 +209,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     async (spinResult: SpinResult, attempt: number, usedSnapshot: Record<string, Set<string>>) => {
       setCurrentResult(spinResult);
 
-      const drumHitDone = sound()?.play("drumHit", { waitForEnd: true }) ?? Promise.resolve();
       const openSoundByAttempt: Record<number, "truba" | "wowStart" | "happyBoy"> = {
         1: "truba",
         2: "wowStart",
@@ -223,7 +221,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         3: "laughBoy",
       };
 
-      await drumHitDone;
       const categoryUsed = usedSnapshot[spinResult.category] || new Set();
       setUsedPhrases((prev) => ({
         ...prev,
