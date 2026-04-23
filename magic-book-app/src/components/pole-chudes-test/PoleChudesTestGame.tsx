@@ -375,31 +375,36 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 <FloatingWords />
               </div>
               <div className="splash-wrapper relative z-10 flex w-full flex-1 flex-col items-center justify-center">
-                <div className="splash-video absolute inset-0 z-[10] overflow-hidden bg-transparent">
+                <div
+                  className="splash-video relative z-[10] mt-[clamp(2.6rem,7.8vh,5.1rem)] w-[min(92vw,1120px)] max-w-[1120px] overflow-hidden"
+                  style={{
+                    WebkitMaskImage: "radial-gradient(ellipse 78% 72% at 50% 50%, #000 62%, rgba(0,0,0,0.86) 74%, transparent 100%)",
+                    maskImage: "radial-gradient(ellipse 78% 72% at 50% 50%, #000 62%, rgba(0,0,0,0.86) 74%, transparent 100%)",
+                  }}
+                >
                   {!splashVideoFailed ? (
                     <video
                       ref={splashVideoRef}
                       src={SPLASH_VIDEO_SRC}
-                      autoPlay
                       loop
                       muted
                       playsInline
                       preload="metadata"
                       onError={() => setSplashVideoFailed(true)}
-                      className="block h-full w-full object-cover object-center"
+                      className="block aspect-[16/7.5] h-auto w-full object-contain object-center"
                     />
                   ) : (
-                    <img src={DRUM_BG_GAME_SRC} alt="" className="block h-full w-full object-cover object-center" />
+                    <img src={DRUM_BG_GAME_SRC} alt="" className="block aspect-[16/7.5] h-auto w-full object-contain object-center" />
                   )}
-                  <NeonGlassButton
-                    accent
-                    className="splash-button absolute left-1/2 top-[clamp(0.85rem,2.7vh,1.5rem)] z-[20] -translate-x-1/2 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
-                    disabled={busy}
-                    onClick={() => void handleStartFromSplash()}
-                  >
-                    Крутим удачу?
-                  </NeonGlassButton>
                 </div>
+                <NeonGlassButton
+                  accent
+                  className="splash-button relative z-[20] mt-[clamp(0.55rem,1.5vh,1rem)] !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
+                  disabled={busy}
+                  onClick={() => void handleStartFromSplash()}
+                >
+                  Крутим удачу?
+                </NeonGlassButton>
               </div>
             </motion.div>
           )}
