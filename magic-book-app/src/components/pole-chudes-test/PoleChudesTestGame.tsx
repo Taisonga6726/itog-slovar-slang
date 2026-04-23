@@ -5,12 +5,12 @@ import { AppWindow, Code2, GraduationCap, Sparkles, Zap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import NeonGlassButton from "@/components/NeonGlassButton";
 import { cn } from "@/lib/utils";
-import { CATEGORIES } from "./constants";
+import { CATEGORIES, PHRASES } from "./constants";
 import GlobalFXLayer from "./GlobalFXLayer";
 import { SoundManager } from "./SoundManager";
 import { Wheel } from "./Wheel";
 
-type GameStage = "SPLASH" | "GAME" | "RESULT";
+type GameStage = "SPLASH" | "GAME" | "RESULT" | "SUMMARY";
 
 interface SpinResult {
   category: string;
@@ -165,26 +165,40 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   }, []);
 
   const pickSpinResult = useCallback(
-    (snapshot: Record<string, Set<string>>) => {
-      const nonEmptyCategories = CATEGORIES.filter((c) => (gameWordBase[c.id] ?? []).length > 0);
-      if (!nonEmptyCategories.length) return null;
-      const sectorPool = nonEmptyCategories;
-      const sector = sectorPool[Math.floor(Math.random() * sectorPool.length)];
-      const safePhrases = gameWordBase[sector.id] ?? [];
-      if (!safePhrases.length) return null;
-      const categoryUsed = snapshot[sector.id] || new Set();
-      const availablePhrases = safePhrases.filter((p) => !categoryUsed.has(p));
-      const phrase = availablePhrases.length > 0 ? availablePhrases[Math.floor(Math.random() * availablePhrases.length)] : safePhrases[Math.floor(Math.random() * safePhrases.length)];
-      return { categoryId: sector.id, phrase };
+    (snapshot: Record<string, Set<string>>, attempt: number) => {
+      const basePool = CATEGORIES.flatMap((cat) =>
+        (gameWordBase[cat.id] ?? []).map((phrase) => ({ category: cat.id, phrase })),
+      );
+      const fallbackPool = CATEGORIES.flatMap((cat) =>
+        (PHRASES[cat.id] ?? []).map((phrase) => ({ category: cat.id, phrase })),
+      );
+      const fullPool = basePool.length > 0 ? basePool : fallbackPool;
+      if (!fullPool.length) return null;
+      const availablePool = fullPool.filter((item) => !(snapshot[item.category]?.has(item.phrase) ?? false));
+      const sourcePool = availablePool.length > 0 ? availablePool : fullPool;
+      const index = (Math.max(attempt, 1) - 1) % sourcePool.length;
+      return sourcePool[index] ?? null;
     },
     [gameWordBase],
   );
 
+  const mapResultToCategory = useCallback((resultPhrase: string): string => {
+    const fromBase = CATEGORIES.find((cat) => (gameWordBase[cat.id] ?? []).includes(resultPhrase));
+    if (fromBase) return fromBase.id;
+    const fromFallback = CATEGORIES.find((cat) => (PHRASES[cat.id] ?? []).includes(resultPhrase));
+    if (fromFallback) return fromFallback.id;
+    return CATEGORIES[0].id;
+  }, [gameWordBase]);
+
   const getResultForAttempt = useCallback(
-    (snapshot: Record<string, Set<string>>): SpinResult => {
-      const computed = pickSpinResult(snapshot);
-      if (computed) return { category: computed.categoryId, phrase: computed.phrase };
-      return DEFAULT_RESULT;
+    (snapshot: Record<string, Set<string>>, attempt: number): SpinResult => {
+      const computed = pickSpinResult(snapshot, attempt);
+      if (computed) return { category: computed.category, phrase: computed.phrase };
+      const fallbackByAttempt = CATEGORIES[(Math.max(attempt, 1) - 1) % CATEGORIES.length];
+      return {
+        category: fallbackByAttempt.id,
+        phrase: fallbackByAttempt.label,
+      };
     },
     [pickSpinResult],
   );
@@ -268,7 +282,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
     const usedSnapshot = usedPhrases;
     const attempt = results.length + 1;
-    const spinResult = getResultForAttempt(usedSnapshot);
+    const spinResult = getResultForAttempt(usedSnapshot, attempt);
     const nextRotation = calcTargetRotation(rotation, spinResult.category);
     const animationDone = new Promise<void>((resolve) => {
       spinResolveRef.current = resolve;
@@ -276,7 +290,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
     onPauseBookHymn?.();
     const spinAudioDone = sound()?.play("spin", { waitForEnd: true }) ?? Promise.resolve();
-    const totalSpinDuration = 2.8;
+    const totalSpinDuration = sound()?.getDuration("spin") ?? 2.8;
     const preRotation = rotation + 180;
     const fastRotation = rotation + 1080;
     setSpinDuration(totalSpinDuration);
@@ -296,7 +310,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
      * иначе на статичном экране слышны повторяющиеся эффекты.
      */
-  }, [busy, stage, usedPhrases, results.length, getResultForAttempt, calcTargetRotation, rotation, onPauseBookHymn, onSpinComplete]);
+  }, [busy, stage, usedPhrases, results.length, getResultForAttempt, calcTargetRotation, rotation, onPauseBookHymn, onSpinComplete, sound]);
 
   const startSpin = useCallback(() => {
     if (isSpinning) return;
@@ -324,18 +338,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     void sound()?.play("wowStart", { stopBefore: false });
     onPauseBookHymn?.();
     if (results.length >= MAX_SPINS) {
-      setBusy(true);
-      setStage("SPLASH");
-      setResults([]);
-      setCurrentResult(null);
-      setUsedPhrases({});
-      setResultReady(false);
-      setBusy(false);
-      setIsSpinning(false);
-      setRotation(0);
-      setRotationFrames(0);
-      setSpinTimes(undefined);
-      setSpinEases(undefined);
+      setStage("SUMMARY");
       return;
     }
     setBusy(true);
@@ -365,6 +368,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   let backgroundVariant: BackgroundVariant = BG_GAME;
   if (stage === "GAME") backgroundVariant = BG_GAME;
   if (stage === "RESULT") backgroundVariant = BG_RESULT;
+  if (stage === "SUMMARY") backgroundVariant = BG_RESULT;
   if (stage === "RESULT" && !currentResult) {
     return null;
   }
@@ -517,7 +521,61 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                     className="pole-chudes-result-cta !w-full !py-3 !text-base !font-semibold !text-white sm:!py-3.5 sm:!text-lg"
                     onClick={() => void nextAction()}
                   >
-                    {results.length >= MAX_SPINS ? "Еще раз крутить" : "Продолжить"}
+                    {results.length >= MAX_SPINS ? "Посмотреть итоги" : "Продолжить"}
+                  </NeonGlassButton>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {stage === "SUMMARY" && (
+            <motion.div
+              key="summary"
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.02 }}
+              className={cn(
+                "flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden p-3 text-center sm:p-5",
+                isPanelLayout ? "pt-[clamp(3.25rem,10dvh,4.5rem)]" : "pt-12 sm:pt-14",
+              )}
+            >
+              <div className="pole-chudes-result-panel relative w-full max-w-[min(100%,42rem)] space-y-4 overflow-hidden p-6 sm:space-y-5 sm:p-8">
+                <h3 className="relative z-10 text-2xl font-bold uppercase tracking-wide sm:text-3xl">Итоги игры</h3>
+                <div className="relative z-10 max-h-[45vh] space-y-2 overflow-auto pr-1 text-left">
+                  {results.map((item, idx) => {
+                    const safeCategory = mapResultToCategory(item.phrase);
+                    const cat = CATEGORIES.find((c) => c.id === safeCategory);
+                    return (
+                      <div key={`${item.phrase}-${idx}`} className="rounded-xl border border-cyan-200/35 bg-black/25 px-3 py-2">
+                        <div className="text-xs uppercase tracking-[0.14em] text-cyan-100/80">{`Попытка ${idx + 1}: ${cat?.label ?? item.category}`}</div>
+                        <div className="mt-1 text-base font-semibold text-white sm:text-lg">{item.phrase}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="relative z-10 flex flex-wrap items-center justify-center gap-2 pt-3">
+                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/")}>
+                    Назад к книге
+                  </NeonGlassButton>
+                  <NeonGlassButton
+                    accent
+                    className="!px-4 !py-2 !text-sm sm:!text-base"
+                    onClick={() => {
+                      setBusy(true);
+                      setStage("SPLASH");
+                      setResults([]);
+                      setCurrentResult(null);
+                      setUsedPhrases({});
+                      setResultReady(false);
+                      setBusy(false);
+                      setIsSpinning(false);
+                      setRotation(0);
+                      setRotationFrames(0);
+                      setSpinTimes(undefined);
+                      setSpinEases(undefined);
+                    }}
+                  >
+                    Играть снова
                   </NeonGlassButton>
                 </div>
               </div>

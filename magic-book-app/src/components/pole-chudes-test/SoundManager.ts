@@ -39,6 +39,14 @@ export class SoundManager {
     });
   }
 
+  getDuration(name: string): number | null {
+    const audio = this.sounds[name];
+    if (!audio) return null;
+    const duration = audio.duration;
+    if (!Number.isFinite(duration) || duration <= 0) return null;
+    return duration;
+  }
+
   stopAll() {
     Object.values(this.sounds).forEach((audio) => {
       try {
