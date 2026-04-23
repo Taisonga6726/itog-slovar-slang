@@ -398,7 +398,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   )}
                   <NeonGlassButton
                     accent
-                    className="splash-button absolute left-1/2 top-[70%] z-[20] -translate-x-1/2 -translate-y-1/2 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
+                    className="splash-button absolute bottom-[10%] left-1/2 z-[20] -translate-x-1/2 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
                     disabled={busy}
                     onClick={() => void handleStartFromSplash()}
                   >
