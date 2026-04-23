@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import { AnimatePresence, motion } from "motion/react";
 import confetti from "canvas-confetti";
 import { AppWindow, Code2, GraduationCap, Sparkles, Zap } from "lucide-react";
@@ -249,33 +250,39 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     });
   }, [isSpinning, handleSpin]);
 
+  const startSpinRef = useRef(startSpin);
+  startSpinRef.current = startSpin;
+
   const handleSplashVideoEnded = useCallback(() => {
     if (!busy || stage !== "SPLASH") return;
-    setStage("GAME");
-    setBusy(false);
-    startSpin();
-  }, [busy, stage, startSpin]);
+    flushSync(() => {
+      setStage("GAME");
+      setBusy(false);
+    });
+    startSpinRef.current();
+  }, [busy, stage]);
 
   const handleStartFromSplash = useCallback(async () => {
     if (busy) return;
     const video = splashVideoRef.current;
-    setBusy(true);
     onPauseBookHymn?.();
+    setBusy(true);
     if (video) {
-      video.currentTime = 0;
-      video.muted = false;
       try {
+        video.currentTime = 0;
+        video.muted = false;
         await video.play();
       } catch {
-        // Если браузер не дал старт видео, не зависаем в busy.
         setBusy(false);
       }
       return;
     }
-    setStage("GAME");
-    setBusy(false);
-    startSpin();
-  }, [busy, onPauseBookHymn, startSpin]);
+    flushSync(() => {
+      setStage("GAME");
+      setBusy(false);
+    });
+    startSpinRef.current();
+  }, [busy, onPauseBookHymn]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady) return;

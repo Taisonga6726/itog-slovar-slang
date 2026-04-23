@@ -68,7 +68,6 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
   const totalLike = entries.reduce((sum, w) => sum + (w.reactions?.like || 0), 0);
 
   const totalWords = entries.length;
-  const splashAudioSrc = `/videos/${encodeURIComponent("заставка перед игрой")}/${encodeURIComponent("заставка перед игрой.MP3")}`;
 
   return (
     <div className="scene-fade-in fixed inset-0 z-[45] flex h-screen w-full flex-col overflow-hidden bg-black">
@@ -133,11 +132,7 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
             accent
             className="pointer-events-auto !block w-full text-center !px-6 !py-3 !text-base sm:!text-lg"
             onClick={() => {
-              // Мгновенный старт интро-звука уже на кнопке перед открытием заставки.
-              const fx = new Audio(splashAudioSrc);
-              fx.volume = 1;
-              fx.muted = false;
-              void fx.play().catch(() => {});
+              /** Звук заставки только из <video> в игре — без второго источника (MP3). */
               onLuck?.();
             }}
           >
