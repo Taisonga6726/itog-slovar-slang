@@ -258,6 +258,12 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   const handleStartFromSplash = useCallback(() => {
     if (busy) return;
+    const video = splashVideoRef.current;
+    if (video) {
+      video.muted = false;
+      video.currentTime = 0;
+      void video.play().catch(() => {});
+    }
     setBusy(true);
     onPauseBookHymn?.();
     void sound()?.play("wowStart", { stopBefore: false });
@@ -342,35 +348,35 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="relative flex min-h-0 flex-1 flex-col items-center justify-center p-0"
+              className="relative flex min-h-0 flex-1 flex-col items-center justify-start px-3 pt-[80px]"
             >
               <div className="absolute inset-0 z-[2] bg-black/25" />
-              {!splashVideoFailed ? (
-                <video
-                  ref={splashVideoRef}
-                  src={SPLASH_VIDEO_SRC}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  preload="metadata"
-                  onError={() => setSplashVideoFailed(true)}
-                  className="fixed left-0 top-0 z-[1] h-[100vh] w-[100vw] object-cover"
-                />
-              ) : (
-                <img src={DRUM_BG_GAME_SRC} alt="" className="fixed left-0 top-0 z-[1] h-[100vh] w-[100vw] object-cover" />
-              )}
-              <div className="relative z-10 flex w-full max-w-[min(1100px,96vw)] min-h-0 flex-1 flex-col items-center justify-end px-2 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[clamp(2rem,8dvh,4rem)]">
-                <div className="mt-8 flex justify-center">
-                  <NeonGlassButton
-                    accent
-                    className="!px-10 !py-3 !text-base sm:!text-lg"
-                    disabled={busy}
-                    onClick={() => void handleStartFromSplash()}
-                  >
-                    Крутим удачу?
-                  </NeonGlassButton>
+              <div className="splash-wrapper relative z-10 flex w-full flex-col items-center">
+                <div className="splash-video w-full max-w-[600px] overflow-hidden rounded-[24px]">
+                  {!splashVideoFailed ? (
+                    <video
+                      ref={splashVideoRef}
+                      src={SPLASH_VIDEO_SRC}
+                      autoPlay
+                      loop
+                      muted
+                      playsInline
+                      preload="metadata"
+                      onError={() => setSplashVideoFailed(true)}
+                      className="block w-full h-auto"
+                    />
+                  ) : (
+                    <img src={DRUM_BG_GAME_SRC} alt="" className="block w-full h-auto" />
+                  )}
                 </div>
+                <NeonGlassButton
+                  accent
+                  className="splash-button mt-8 !px-10 !py-3 !text-base sm:!text-lg"
+                  disabled={busy}
+                  onClick={() => void handleStartFromSplash()}
+                >
+                  Крутим удачу?
+                </NeonGlassButton>
               </div>
             </motion.div>
           )}
