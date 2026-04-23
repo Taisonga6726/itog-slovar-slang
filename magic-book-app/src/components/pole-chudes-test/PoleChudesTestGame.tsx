@@ -79,7 +79,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [resultReady, setResultReady] = useState(false);
   const [finalReady, setFinalReady] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [splashVideoMuted, setSplashVideoMuted] = useState(true);
   const [gameWordBase, setGameWordBase] = useState<GameWordBase>(() => PHRASES);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
@@ -99,6 +98,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   }, []);
 
   const sound = useCallback(() => soundManagerRef.current, []);
+
+  useEffect(() => {
+    if (stage !== "SPLASH") return;
+    const video = splashVideoRef.current;
+    if (!video) return;
+    video.muted = false;
+    video.volume = 1;
+    void video.play().catch(() => {});
+  }, [stage]);
 
   useEffect(() => {
     const categories = CATEGORIES.map((c) => c.id);
@@ -196,13 +204,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setBusy(true);
     setPlayReady(false);
     onPauseBookHymn?.();
-    setSplashVideoMuted(false);
     void sound()?.play("wowStart");
-    const video = splashVideoRef.current;
-    if (video) {
-      video.muted = false;
-      void video.play().catch(() => {});
-    }
     setBackgroundVariant(BG_PLAYING);
     setStage("PLAYING");
     setPlayReady(true);
@@ -267,23 +269,23 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       3: "laughBoy",
     };
     const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
+    setBackgroundVariant(BG_RESULT);
+    await drumHitDone;
     setStage("RESULT");
-    setResultReady(true);
-    setBusy(false);
-    const openSoundDone = sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve();
     confetti({
       particleCount: 50,
       spread: 70,
       origin: { y: 0.6 },
       colors: [CATEGORIES.find((c) => c.id === spinResult.categoryId)?.color || "#ffffff"],
     });
-
-    setBackgroundVariant(BG_RESULT);
-    await Promise.all([drumHitDone, openSoundDone]);
+    const openSoundDone = sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve();
+    await openSoundDone;
     const laughSound = laughByAttempt[attempt];
     if (laughSound) {
       await sound()?.play(laughSound, { waitForEnd: true });
     }
+    setResultReady(true);
+    setBusy(false);
     /**
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
      * иначе на статичном экране слышны повторяющиеся эффекты.
@@ -390,16 +392,16 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
             >
               <div className="absolute inset-0 z-[3] bg-black/25" />
               <div className="relative z-10 flex w-full max-w-[min(1100px,96vw)] min-h-0 flex-1 flex-col items-center justify-center px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[clamp(2rem,8dvh,4rem)]">
-                <div className="pole-chudes-splash-frame relative w-full max-h-full min-h-0 overflow-hidden">
+                <div className="pole-chudes-splash-frame relative flex w-full max-h-full min-h-0 items-center justify-center overflow-hidden">
                   <video
                     ref={splashVideoRef}
                     src={SPLASH_VIDEO_SRC}
                     autoPlay
                     loop
-                    muted={splashVideoMuted}
+                    muted={false}
                     playsInline
                     preload="metadata"
-                    className="max-h-[min(56svh,620px)] w-full object-contain object-center"
+                    className="h-[min(86svh,760px)] w-auto max-w-full object-contain object-center"
                   />
                 </div>
                 <div className="mt-8 flex justify-center">
@@ -426,14 +428,14 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
             >
               <div className="relative z-10 flex w-full max-w-[min(100vw,920px)] shrink-0 flex-col items-center justify-self-center gap-1 px-0.5">
                 <div className="rounded-full border border-cyan-300/35 bg-[#06020c]/65 px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-[#e9f4ff] sm:text-xs">
-                  {`ПОПЫТКА ${Math.min(results.length + 1, MAX_SPINS)}`}
+                  {`ПОПЫТКА ${Math.min(results.length + 1, MAX_SPINS)} / ${MAX_SPINS}`}
                 </div>
               </div>
 
               <div className="relative z-10 flex min-h-0 min-w-0 w-full max-w-[min(100vw,920px)] flex-col items-center justify-self-center overflow-hidden">
                 <div className="relative flex min-h-0 w-full max-w-full min-w-0 flex-1 items-center justify-center">
                   <div className="pole-chudes-wheel-frame relative z-10 mx-auto flex max-h-full min-h-0 w-full min-w-0 justify-center overflow-hidden">
-                    <div className="rounded-full">
+                    <div className="rounded-full border border-cyan-200/45 bg-black/35 p-2 shadow-[0_0_40px_rgba(34,211,238,0.35)] sm:p-3">
                       <Wheel
                         rotation={rotationFrames}
                         spinDuration={spinDuration}
@@ -458,9 +460,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 </NeonGlassButton>
                 <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=reading")}>
                   Читать книгу
-                </NeonGlassButton>
-                <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/?entry=slovar&screen=final")}>
-                  Выбрать гимн
                 </NeonGlassButton>
               </div>
             </motion.div>
