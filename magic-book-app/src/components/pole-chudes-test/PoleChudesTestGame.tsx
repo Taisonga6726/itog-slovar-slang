@@ -10,7 +10,7 @@ import GlobalFXLayer from "./GlobalFXLayer";
 import { SoundManager } from "./SoundManager";
 import { Wheel } from "./Wheel";
 
-type GameStage = "SPLASH" | "PLAYING" | "RESULT" | "FINAL";
+type GameStage = "SPLASH" | "GAME" | "RESULT" | "FINAL";
 
 interface SpinResult {
   category: string;
@@ -19,7 +19,7 @@ interface SpinResult {
 
 type BackgroundVariant = "A" | "B" | "C" | "D";
 type GameWordBase = Record<string, string[]>;
-const BG_PLAYING: BackgroundVariant = "A";
+const BG_GAME: BackgroundVariant = "A";
 const BG_RESULT: BackgroundVariant = "B";
 const MAX_SPINS = 4;
 const EMPTY_WORD_BASE: GameWordBase = CATEGORIES.reduce<GameWordBase>((acc, cat) => {
@@ -46,9 +46,9 @@ const SOUND_CONFIG = {
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
 const FINAL_BANNER_SRC = `/images/${encodeURIComponent("финал аплодисменты игра.png")}`;
-/** По ТЗ: крутить барабан на магическом круге; предсказание показывать на фоне книги. */
-const DRUM_BG_PLAY_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
-const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
+/** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
+const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
+const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 
 export interface PoleChudesTestGameProps {
   /** Если игра открыта панелью поверх книги — закрыть панель при переходе в другой раздел. */
@@ -78,7 +78,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [spinDuration, setSpinDuration] = useState(2.6);
   const [spinTimes, setSpinTimes] = useState<number[] | undefined>(undefined);
   const [spinEases, setSpinEases] = useState<("easeIn" | "easeOut" | "linear")[] | undefined>(undefined);
-  const [backgroundVariant, setBackgroundVariant] = useState<BackgroundVariant>(BG_PLAYING);
+  const [backgroundVariant, setBackgroundVariant] = useState<BackgroundVariant>(BG_GAME);
   const [playReady, setPlayReady] = useState(false);
   const [resultReady, setResultReady] = useState(false);
   const [finalReady, setFinalReady] = useState(false);
@@ -203,8 +203,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setPlayReady(false);
     onPauseBookHymn?.();
     void sound()?.play("wowStart");
-    setBackgroundVariant(BG_PLAYING);
-    setStage("PLAYING");
+    setBackgroundVariant(BG_GAME);
+    setStage("GAME");
     setPlayReady(true);
     setBusy(false);
   }, [busy, onPauseBookHymn, sound]);
@@ -215,7 +215,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   }, []);
 
   const handleSpin = useCallback(async () => {
-    if (busy || !playReady || isSpinning || stage !== "PLAYING") return;
+    if (busy || !playReady || isSpinning || stage !== "GAME") return;
     setBusy(true);
     setPlayReady(false);
     setResultReady(false);
@@ -315,7 +315,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     }
     setBusy(true);
     setCurrentResult(null);
-    setStage("PLAYING");
+    setStage("GAME");
     setPlayReady(true);
     setBusy(false);
   }, [resultReady, results.length, sound, onPauseBookHymn]);
@@ -327,7 +327,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setResults([]);
     setCurrentResult(null);
     setUsedPhrases({});
-    setBackgroundVariant(BG_PLAYING);
+    setBackgroundVariant(BG_GAME);
     setPlayReady(false);
     setResultReady(false);
     setFinalReady(false);
@@ -376,7 +376,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       {!isFinalStage && stage !== "SPLASH" && (
         <div className="pointer-events-none fixed inset-0 z-[1] overflow-hidden">
           <img
-            src={backgroundVariant === BG_RESULT ? DRUM_BG_RESULT_SRC : DRUM_BG_PLAY_SRC}
+            src={backgroundVariant === BG_RESULT ? DRUM_BG_RESULT_SRC : DRUM_BG_GAME_SRC}
             alt=""
             className="h-full w-full select-none object-contain object-center"
             draggable={false}
@@ -424,9 +424,9 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
             </motion.div>
           )}
 
-          {stage === "PLAYING" && (
+          {stage === "GAME" && (
             <motion.div
-              key="playing"
+              key="game"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
