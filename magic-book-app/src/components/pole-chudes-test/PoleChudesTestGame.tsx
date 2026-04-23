@@ -82,7 +82,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [resultReady, setResultReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [gameWordBase] = useState<GameWordBase>(() => WORD_BASE_FROM_TXT);
-  const [splashVideoFailed, setSplashVideoFailed] = useState(false);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const splashAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -382,20 +381,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                     maskImage: "radial-gradient(ellipse 92% 92% at 50% 52%, #000 72%, rgba(0,0,0,0.9) 83%, transparent 100%)",
                   }}
                 >
-                  {!splashVideoFailed ? (
-                    <video
-                      ref={splashVideoRef}
-                      src={SPLASH_VIDEO_SRC}
-                      loop
-                      muted
-                      playsInline
-                      preload="metadata"
-                      onError={() => setSplashVideoFailed(true)}
-                      className="block aspect-[16/7.5] h-auto w-full object-contain object-center"
-                    />
-                  ) : (
-                    <img src={DRUM_BG_GAME_SRC} alt="" className="block aspect-[16/7.5] h-auto w-full object-contain object-center" />
-                  )}
+                  <video
+                    ref={splashVideoRef}
+                    src={SPLASH_VIDEO_SRC}
+                    loop
+                    muted
+                    playsInline
+                    preload="auto"
+                    className="w-full h-auto object-contain"
+                  />
                   <NeonGlassButton
                     accent
                     className="splash-button absolute bottom-[10%] left-1/2 z-[20] -translate-x-1/2 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
