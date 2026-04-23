@@ -81,7 +81,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [resultReady, setResultReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [gameWordBase, setGameWordBase] = useState<GameWordBase>(() => EMPTY_WORD_BASE);
-  const autoSpinFromSplashRef = useRef(false);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const soundManagerRef = useRef<SoundManager | null>(null);
@@ -204,19 +203,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     return currentRotation + fullSpins + delta;
   }, []);
 
-  const handleStartFromSplash = useCallback(async () => {
-    if (busy) return;
-    setBusy(true);
-    setPlayReady(false);
-    onPauseBookHymn?.();
-    void sound()?.play("wowStart");
-    setBackgroundVariant(BG_GAME);
-    setStage("GAME");
-    setPlayReady(true);
-    autoSpinFromSplashRef.current = true;
-    setBusy(false);
-  }, [busy, onPauseBookHymn, sound]);
-
   const handleSpinAnimationComplete = useCallback(() => {
     spinResolveRef.current?.();
     spinResolveRef.current = null;
@@ -255,13 +241,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setSpinEases(undefined);
 
     const newResult = { category: spinResult.category, phrase: spinResult.phrase };
-    const categoryUsed = usedSnapshot[spinResult.category] || new Set();
-    setUsedPhrases((prev) => ({
-      ...prev,
-      [spinResult.category]: new Set([...categoryUsed, spinResult.phrase]),
-    }));
-    setCurrentResult(newResult);
-    setResults((prev) => [...prev, newResult]);
     const drumHitDone = sound()?.play("drumHit", { waitForEnd: true }) ?? Promise.resolve();
     const openSoundByAttempt: Record<number, "truba" | "wowStart" | "happyBoy"> = {
       1: "truba",
@@ -277,7 +256,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
     setBackgroundVariant(BG_RESULT);
     await drumHitDone;
-    // По ТЗ: сначала записываем result, затем переводим stage в RESULT.
+    const categoryUsed = usedSnapshot[spinResult.category] || new Set();
+    setUsedPhrases((prev) => ({
+      ...prev,
+      [spinResult.category]: new Set([...categoryUsed, spinResult.phrase]),
+    }));
+    setCurrentResult(newResult);
+    setResults((prev) => [...prev, newResult]);
     await new Promise<void>((resolve) => {
       requestAnimationFrame(() => {
         setStage("RESULT");
@@ -304,12 +289,24 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
      */
   }, [busy, playReady, isSpinning, stage, usedPhrases, results.length, getResultForAttempt, calcTargetRotation, rotation, onPauseBookHymn, sound]);
 
-  useEffect(() => {
-    if (!autoSpinFromSplashRef.current) return;
-    if (stage !== "GAME" || !playReady || busy || isSpinning) return;
-    autoSpinFromSplashRef.current = false;
-    void handleSpin();
-  }, [stage, playReady, busy, isSpinning, handleSpin]);
+  const handleStartFromSplash = useCallback(async () => {
+    if (busy) return;
+    setBusy(true);
+    setPlayReady(false);
+    onPauseBookHymn?.();
+    try {
+      await (sound()?.play("wowStart") ?? Promise.resolve());
+    } catch {
+      /* ignore autoplay/start sound errors */
+    }
+    setBackgroundVariant(BG_GAME);
+    setStage("GAME");
+    setPlayReady(true);
+    setBusy(false);
+    requestAnimationFrame(() => {
+      void handleSpin();
+    });
+  }, [busy, onPauseBookHymn, sound, handleSpin]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady) return;
