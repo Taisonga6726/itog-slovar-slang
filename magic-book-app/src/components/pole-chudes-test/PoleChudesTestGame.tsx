@@ -367,7 +367,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="relative flex min-h-0 flex-1 flex-col items-center justify-start px-3 pt-[80px]"
+              className="relative flex min-h-0 flex-1 flex-col items-center justify-start px-3 pt-[72px] sm:pt-[68px]"
             >
               <div className="absolute inset-0 z-[1]">
                 <HeroWave />
@@ -383,7 +383,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 <FloatingWords />
               </div>
               <div className="splash-wrapper relative z-10 flex w-full flex-col items-center">
-                <div className="splash-video relative z-[10] w-full max-w-[600px] overflow-hidden rounded-[24px]">
+                <div className="splash-video relative z-[10] w-[min(82vw,980px)] max-w-[980px] overflow-hidden rounded-[24px] shadow-[0_25px_90px_rgba(0,0,0,0.55)]">
                   {!splashVideoFailed ? (
                     <video
                       ref={splashVideoRef}
@@ -402,7 +402,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 </div>
                 <NeonGlassButton
                   accent
-                  className="splash-button relative z-[20] mt-8 !px-10 !py-3 !text-base sm:!text-lg"
+                  className="splash-button relative z-[20] mt-6 !px-10 !py-3 !text-base sm:mt-7 sm:!text-lg"
                   disabled={busy}
                   onClick={() => void handleStartFromSplash()}
                 >
