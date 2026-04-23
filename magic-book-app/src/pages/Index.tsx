@@ -476,7 +476,7 @@ const Index = () => {
   }, [luckyWheelOpen, pauseBookHymnForGame]);
 
   return (
-    <div className="fixed inset-0 w-screen h-[100dvh] max-h-[100dvh] min-h-0 overflow-hidden bg-black">
+    <div className="fixed inset-0 w-full h-[100dvh] max-h-[100dvh] min-h-0 overflow-hidden bg-black">
       {mode === "intro" && (
         <IntroSlovarEmbed
           onOpenForm={handleOpenFormFromIntro}
@@ -517,7 +517,7 @@ const Index = () => {
         />
       )}
       {mode === "awakening" && (
-        <div className="fixed inset-0 w-screen h-screen scene-fade-in" style={{ zIndex: 50 }}>
+        <div className="fixed inset-0 w-full h-full scene-fade-in" style={{ zIndex: 50 }}>
           <video
             src="/videos/grok-read-book-03.mp4"
             autoPlay
@@ -535,7 +535,7 @@ const Index = () => {
         </div>
       )}
       {mode === "hands" && (
-        <div className="fixed inset-0 w-screen h-screen scene-fade-in" style={{ zIndex: 50 }}>
+        <div className="fixed inset-0 w-full h-full scene-fade-in" style={{ zIndex: 50 }}>
           <img
             src="/images/cover-book.png"
             alt="РЎС†РµРЅР° СЃ СЂСѓРєР°РјРё Рё РєРЅРёРіРѕР№"
