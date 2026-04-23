@@ -9,6 +9,7 @@ import { CATEGORIES } from "./constants";
 import GlobalFXLayer from "./GlobalFXLayer";
 import { SoundManager } from "./SoundManager";
 import { Wheel } from "./Wheel";
+import { WORD_BASE_FROM_TXT } from "./wordBaseFromTxt";
 
 type GameStage = "SPLASH" | "GAME" | "RESULT" | "SUMMARY";
 
@@ -22,68 +23,6 @@ type GameWordBase = Record<string, string[]>;
 const BG_GAME: BackgroundVariant = "A";
 const BG_RESULT: BackgroundVariant = "B";
 const MAX_SPINS = 4;
-const DOCX_WORD_BASE: GameWordBase = {
-  CODE: [
-    "МАСТЕР КОСТЫЛЕЙ",
-    "ПОВЕЛИТЕЛЬ ПРОМПТОВ",
-    "ШАМАН ВЕРСТКИ",
-    "АРХИТЕКТОР ХАОСА",
-    "ОХОТНИК ЗА БАГАМИ",
-    "КОД НА ХАРИЗМЕ",
-    "СЕНЬОР ПО ВАЙБУ",
-    "ГУРУ ФИКСОВ",
-    "РЕФАКТОР ПО НАИТИЮ",
-    "ЛЕГЕНДА ДЕДЛАЙНА",
-  ],
-  WHO_AMI: [
-    "ВАЙБКОДЕР",
-    "ПОКОРИТЕЛЬ ДЕДЛАЙНОВ",
-    "ПОВЕЛИТЕЛЬ ВКЛАДОК",
-    "ПРОФЕССОР ПРОМПТОВ",
-    "ДРУГ НЕЙРОСЕТЕЙ",
-    "АРХЕОЛОГ ЧУЖОГО КОДА",
-    "УКРОТИТЕЛЬ БАГОВ",
-    "НОЧНОЙ ФИКСЕР",
-    "ГЕНЕРАТОР ИДЕЙ",
-    "ЧЕМПИОН СЛУЧАЙНОГО РЕШЕНИЯ",
-  ],
-  STUDY: [
-    "СДАШЬ ВСЕ В ПОСЛЕДНИЙ МОМЕНТ",
-    "НОЧЬ БУДЕТ ПРОДУКТИВНОЙ",
-    "НАЙДЕШЬ РЕШЕНИЕ В 3 НОЧИ",
-    "ПРОЕКТ ВНЕЗАПНО ЗАРАБОТАЕТ",
-    "ПРЕПОД СКАЖЕТ ИНТЕРЕСНО",
-    "ПОЯВИТСЯ ГЕНИАЛЬНАЯ ИДЕЯ",
-    "СЛУЧАЙНО ВСЕ ПОЛУЧИТСЯ",
-    "ВКЛАДКИ РАЗМНОЖАТСЯ",
-    "ПРОЕКТ СПАСЕТ ОДИН ФИКС",
-    "БУДЕТ МНОГО КОФЕ И КОДА",
-  ],
-  FATE: [
-    "БАГ ИСЧЕЗНЕТ САМ",
-    "ВСЕ НЕОЖИДАННО ЗАРАБОТАЕТ",
-    "КОСТЫЛЬ СПАСЕТ ПРОЕКТ",
-    "ЛОКАЛЬНО ВСЕ БУДЕТ ИДЕАЛЬНО",
-    "ОДИН ФИКС СЛОМАЕТ ДВА МЕСТА",
-    "СЛУЧАЙНО ПОЛУЧИТСЯ КРАСИВО",
-    "КОД ВЫЖИВЕТ",
-    "ПРИДЕТСЯ ПЕРЕЗАПУСТИТЬ ВСЕ",
-    "ПРОБЛЕМА БУДЕТ В ОДНОЙ БУКВЕ",
-    "БАГ ИСПАРИТСЯ ПРИ ПРОВЕРКЕ",
-  ],
-  SERVICE: [
-    "КУРСОРЧИК",
-    "ЛОВАБЛИК",
-    "ГИТХАБЧИК",
-    "КОПИЛОЧЕК",
-    "ВС КОД",
-    "ГУГЛ AI СТУДИЯ",
-    "БОТ-ПОМОГАТОР",
-    "СЕРВИС ПОСЛЕДНЕЙ НАДЕЖДЫ",
-    "ДОМЕН УДАЧИ",
-    "ОПИКЛЮЧ СУДЬБЫ",
-  ],
-};
 const EMPTY_WORD_BASE: GameWordBase = CATEGORIES.reduce<GameWordBase>((acc, cat) => {
   acc[cat.id] = [];
   return acc;
@@ -108,7 +47,7 @@ const SPLASH_VIDEO_WEBM_SRC = "/videos/заставка перед игрой/з
 /** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
 const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
-const DEFAULT_RESULT: SpinResult = { category: "CODE", phrase: DOCX_WORD_BASE.CODE[0] };
+const DEFAULT_RESULT: SpinResult = { category: "CODE", phrase: WORD_BASE_FROM_TXT.CODE[0] };
 
 export interface PoleChudesTestGameProps {
   /** Если игра открыта панелью поверх книги — закрыть панель при переходе в другой раздел. */
@@ -140,7 +79,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [spinEases, setSpinEases] = useState<("easeIn" | "easeOut" | "linear")[] | undefined>(undefined);
   const [resultReady, setResultReady] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [gameWordBase] = useState<GameWordBase>(() => DOCX_WORD_BASE);
+  const [gameWordBase] = useState<GameWordBase>(() => WORD_BASE_FROM_TXT);
   const [splashVideoFailed, setSplashVideoFailed] = useState(false);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
