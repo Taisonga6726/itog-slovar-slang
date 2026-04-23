@@ -43,7 +43,6 @@ const SOUND_CONFIG = {
 } as const;
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
-const SPLASH_VIDEO_WEBM_SRC = "/videos/заставка перед игрой/заставка перед игрой.webm";
 /** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
 const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
@@ -186,12 +185,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       });
 
       const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
-      const openSoundDone = sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve();
-      await openSoundDone;
-
       const laughSound = laughByAttempt[attempt];
       if (laughSound) {
         await sound()?.play(laughSound, { waitForEnd: true });
+      } else {
+        await (sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve());
       }
 
       setResultReady(true);
@@ -330,7 +328,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       <GlobalFXLayer />
 
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
-        {stage !== "SPLASH" && (
+        {(stage === "GAME" || stage === "RESULT") && (
           <div className="pointer-events-none absolute left-1/2 top-[clamp(1rem,4dvh,2.2rem)] z-20 -translate-x-1/2">
             <div className="rounded-full border border-cyan-300/35 bg-[#06020c]/65 px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-[#e9f4ff] sm:text-xs">
               {`ПОПЫТКА ${Math.min(stage === "GAME" ? results.length + 1 : Math.max(results.length, 1), MAX_SPINS)} / ${MAX_SPINS}`}
@@ -350,6 +348,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               {!splashVideoFailed ? (
                 <video
                   ref={splashVideoRef}
+                  src={SPLASH_VIDEO_SRC}
                   autoPlay
                   loop
                   muted
@@ -357,10 +356,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   preload="metadata"
                   onError={() => setSplashVideoFailed(true)}
                   className="absolute inset-0 z-[1] h-full w-full object-cover object-center"
-                >
-                  <source src={SPLASH_VIDEO_WEBM_SRC} type="video/webm" />
-                  <source src={SPLASH_VIDEO_SRC} type="video/mp4" />
-                </video>
+                />
               ) : (
                 <img src={DRUM_BG_GAME_SRC} alt="" className="absolute inset-0 z-[1] h-full w-full object-cover object-center" />
               )}
@@ -463,6 +459,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   <NeonGlassButton
                     accent
                     className="pole-chudes-result-cta !w-full !py-3 !text-base !font-semibold !text-white sm:!py-3.5 sm:!text-lg"
+                    disabled={!resultReady}
                     onClick={() => void nextAction()}
                   >
                     {results.length >= MAX_SPINS ? "Посмотреть итоги" : "Продолжить"}
@@ -480,12 +477,12 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               exit={{ opacity: 0, scale: 1.02 }}
               className={cn(
                 "flex min-h-0 flex-1 flex-col items-center overflow-hidden p-3 text-center sm:p-5",
-                isPanelLayout ? "pt-[clamp(5.5rem,14dvh,7rem)]" : "pt-[clamp(5.2rem,13dvh,7rem)]",
+                isPanelLayout ? "pt-[clamp(6.2rem,16dvh,8rem)]" : "pt-[clamp(6rem,15dvh,8rem)]",
               )}
             >
-              <div className="relative z-10 flex w-full max-w-[min(100%,52rem)] flex-1 flex-col">
+              <div className="relative z-10 flex w-full max-w-[min(100%,52rem)] flex-1 flex-col justify-between">
                 <h3 className="text-center text-3xl font-bold uppercase tracking-[0.2em] text-[#f7edff] sm:text-4xl">ИТОГИ</h3>
-                <div className="mt-4 flex-1 space-y-2 overflow-auto pr-1 text-left sm:mt-5">
+                <div className="mx-auto mt-4 w-full max-w-[48rem] flex-1 space-y-2 overflow-auto pr-1 text-left sm:mt-6">
                   {results.map((item, idx) => {
                     const cat = CATEGORIES.find((c) => c.id === item.category);
                     return (
@@ -517,7 +514,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   >
                     Играть снова
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/")}>
+                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=final")}>
                     Выбрать гимн
                   </NeonGlassButton>
                   <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=form")}>
