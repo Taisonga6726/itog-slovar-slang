@@ -376,7 +376,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               </div>
               <div className="splash-wrapper relative z-10 flex w-full flex-1 flex-col items-center justify-center">
                 <div
-                  className="splash-video relative z-[10] mt-[clamp(1.2rem,3.2vh,2.4rem)] h-[min(82dvh,940px)] w-[min(96vw,1600px)] overflow-hidden"
+                  className="splash-video relative z-[10] mt-[clamp(1.2rem,3.2vh,2.4rem)] h-auto w-[min(90vw,1100px)] overflow-hidden"
                   style={{
                     WebkitMaskImage: "radial-gradient(ellipse 92% 92% at 50% 52%, #000 72%, rgba(0,0,0,0.9) 83%, transparent 100%)",
                     maskImage: "radial-gradient(ellipse 92% 92% at 50% 52%, #000 72%, rgba(0,0,0,0.9) 83%, transparent 100%)",
@@ -391,14 +391,14 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                       playsInline
                       preload="metadata"
                       onError={() => setSplashVideoFailed(true)}
-                      className="block h-full w-full object-cover object-center"
+                      className="block aspect-[16/7.5] h-auto w-full object-contain object-center"
                     />
                   ) : (
-                    <img src={DRUM_BG_GAME_SRC} alt="" className="block h-full w-full object-cover object-center" />
+                    <img src={DRUM_BG_GAME_SRC} alt="" className="block aspect-[16/7.5] h-auto w-full object-contain object-center" />
                   )}
                   <NeonGlassButton
                     accent
-                    className="splash-button absolute bottom-[clamp(1.1rem,3.2vh,2.2rem)] left-1/2 z-[20] -translate-x-1/2 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
+                    className="splash-button absolute left-1/2 top-[70%] z-[20] -translate-x-1/2 -translate-y-1/2 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
                     disabled={busy}
                     onClick={() => void handleStartFromSplash()}
                   >
