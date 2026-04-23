@@ -118,19 +118,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   const sound = useCallback(() => soundManagerRef.current, []);
 
-  useEffect(() => {
-    if (stage !== "SPLASH") return;
-    const video = splashVideoRef.current;
-    if (!video) return;
-    video.muted = true;
-    video.volume = 1;
-    void video.play().catch(() => {});
-  }, [stage]);
-
   const getCategoryByRotation = useCallback((rotationValue: number): string => {
     const sectorSize = 360 / CATEGORIES.length;
     const wheelPos = ((rotationValue % 360) + 360) % 360;
-    let bestId = CATEGORIES[0].id;
+    let bestId: string = CATEGORIES[0].id;
     let bestDistance = Number.POSITIVE_INFINITY;
     CATEGORIES.forEach((cat, idx) => {
       const sectorCenter = (360 - (idx + 0.5) * sectorSize + 360) % 360;
@@ -282,21 +273,14 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     const splashAudio = splashAudioRef.current;
     if (splashAudio) {
       splashAudio.currentTime = 0;
-      void splashAudio.play().catch(() => {
-        // Fallback: some browsers reject first play() on reused element.
-        const fresh = new Audio(SPLASH_AUDIO_SRC);
-        fresh.volume = 1;
-        fresh.muted = false;
-        void fresh.play().catch(() => {});
-      });
+      void splashAudio.play().catch(() => {});
     }
     setBusy(true);
     onPauseBookHymn?.();
-    // Keep intro audio clean: no extra SFX over splash track.
     setStage("GAME");
     setBusy(false);
     startSpin();
-  }, [busy, onPauseBookHymn, sound, startSpin]);
+  }, [busy, onPauseBookHymn, startSpin]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady) return;
@@ -375,7 +359,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="relative flex min-h-0 flex-1 flex-col items-center justify-start px-3 pt-[56px] sm:pt-[52px]"
+              className="relative flex min-h-0 flex-1 flex-col items-center justify-start px-2 pt-[34px] sm:px-3 sm:pt-[28px]"
             >
               <div className="absolute inset-0 z-[1]">
                 <HeroWave />
@@ -390,8 +374,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               <div className="pointer-events-none absolute inset-0 z-[12]" aria-hidden>
                 <FloatingWords />
               </div>
-              <div className="splash-wrapper relative z-10 flex w-full flex-col items-center">
-                <div className="splash-video relative z-[10] mt-[94px] aspect-[16/7.5] w-[min(74vw,980px)] max-w-[980px] overflow-hidden rounded-[22px] bg-black/25 shadow-[0_36px_100px_rgba(0,0,0,0.65)] sm:mt-[106px]">
+              <div className="splash-wrapper relative z-10 flex w-full flex-1 flex-col items-center justify-center">
+                <div className="splash-video absolute inset-0 z-[10] overflow-hidden bg-transparent">
                   {!splashVideoFailed ? (
                     <video
                       ref={splashVideoRef}
@@ -402,20 +386,20 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                       playsInline
                       preload="metadata"
                       onError={() => setSplashVideoFailed(true)}
-                      className="block h-full w-full object-contain"
+                      className="block h-full w-full object-cover object-center"
                     />
                   ) : (
-                    <img src={DRUM_BG_GAME_SRC} alt="" className="block h-full w-full object-contain" />
+                    <img src={DRUM_BG_GAME_SRC} alt="" className="block h-full w-full object-cover object-center" />
                   )}
+                  <NeonGlassButton
+                    accent
+                    className="splash-button absolute left-1/2 top-[clamp(0.85rem,2.7vh,1.5rem)] z-[20] -translate-x-1/2 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
+                    disabled={busy}
+                    onClick={() => void handleStartFromSplash()}
+                  >
+                    Крутим удачу?
+                  </NeonGlassButton>
                 </div>
-                <NeonGlassButton
-                  accent
-                  className="splash-button relative z-[20] mt-6 !px-10 !py-3 !text-base sm:mt-7 sm:!text-lg"
-                  disabled={busy}
-                  onClick={() => void handleStartFromSplash()}
-                >
-                  Крутим удачу?
-                </NeonGlassButton>
               </div>
             </motion.div>
           )}
