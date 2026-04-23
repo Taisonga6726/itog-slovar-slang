@@ -46,7 +46,14 @@ const SOUND_CONFIG = {
   laughBoy: { src: toAudioSrc("смех мальчик 1 .MP3"), volume: 0.95 },
 } as const;
 
-const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
+function publicFile(path: string): string {
+  const b = import.meta.env.BASE_URL || "/";
+  const p = b.endsWith("/") ? b : `${b}/`;
+  return `${p}${path.replace(/^\//, "")}`;
+}
+
+const SPLASH_VIDEO_PATH = "videos/заставка перед игрой/заставка перед игрой.mp4";
+const SPLASH_VIDEO_SRC = publicFile(SPLASH_VIDEO_PATH);
 /** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
 const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
@@ -84,7 +91,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [gameWordBase] = useState<GameWordBase>(() => WORD_BASE_FROM_TXT);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
+  const stageRef = useRef<GameStage>("SPLASH");
+  const prevStageForSplashResetRef = useRef<GameStage | null>(null);
+  const splashPlayStartedRef = useRef(false);
   const soundManagerRef = useRef<SoundManager | null>(null);
+  stageRef.current = stage;
 
   useEffect(() => {
     // Внутри Game гимн всегда должен быть принудительно выключен.
@@ -97,12 +108,44 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   }, [stage, onPauseBookHymn]);
 
   useEffect(() => {
+    if (stage === "SPLASH" && prevStageForSplashResetRef.current != null && prevStageForSplashResetRef.current !== "SPLASH") {
+      splashPlayStartedRef.current = false;
+    }
+    prevStageForSplashResetRef.current = stage;
+  }, [stage]);
+
+  useEffect(() => {
     soundManagerRef.current = new SoundManager(SOUND_CONFIG);
     return () => {
       soundManagerRef.current?.stopAll();
       soundManagerRef.current = null;
     };
   }, []);
+
+  const startSplashVideoLoop = useCallback((v: HTMLVideoElement) => {
+    if (stageRef.current !== "SPLASH" || splashPlayStartedRef.current) return;
+    splashPlayStartedRef.current = true;
+    v.setAttribute("playsinline", "true");
+    v.setAttribute("webkit-playsinline", "true");
+    v.loop = true;
+    v.volume = 1;
+    v.muted = false;
+    v.defaultMuted = false;
+    void v.play().catch(() => {
+      v.muted = true;
+      void v.play().catch(() => {
+        splashPlayStartedRef.current = false;
+      });
+    });
+  }, []);
+
+  const setSplashVideoEl = useCallback(
+    (el: HTMLVideoElement | null) => {
+      splashVideoRef.current = el;
+      if (el && stageRef.current === "SPLASH") startSplashVideoLoop(el);
+    },
+    [startSplashVideoLoop],
+  );
 
   const sound = useCallback(() => soundManagerRef.current, []);
 
@@ -253,30 +296,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const startSpinRef = useRef(startSpin);
   startSpinRef.current = startSpin;
 
-  const handleSplashVideoEnded = useCallback(() => {
-    if (!busy || stage !== "SPLASH") return;
-    flushSync(() => {
-      setStage("GAME");
-      setBusy(false);
-    });
-    startSpinRef.current();
-  }, [busy, stage]);
-
-  const handleStartFromSplash = useCallback(async () => {
+  const handleStartFromSplash = useCallback(() => {
     if (busy) return;
-    const video = splashVideoRef.current;
+    splashVideoRef.current?.pause();
     onPauseBookHymn?.();
-    setBusy(true);
-    if (video) {
-      try {
-        video.currentTime = 0;
-        video.muted = false;
-        await video.play();
-      } catch {
-        setBusy(false);
-      }
-      return;
-    }
     flushSync(() => {
       setStage("GAME");
       setBusy(false);
@@ -373,35 +396,29 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 draggable={false}
               />
               <div className="absolute inset-0 z-[3] bg-black/55 backdrop-blur-sm" />
-              <div className="pointer-events-none absolute inset-0 z-[12]" aria-hidden>
+              {/** z ниже, чем блок с видео, иначе плавающий текст перекрывает <video> — кажется, что картинка замирала. */}
+              <div className="pointer-events-none absolute inset-0 z-[5]" aria-hidden>
                 <FloatingWords />
               </div>
-              <div className="splash-wrapper relative z-10 flex w-full flex-1 flex-col items-center justify-center">
-                <div
-                  className="splash-video relative z-[10] mt-[clamp(1.2rem,3.2vh,2.4rem)] h-auto w-[min(90vw,1100px)] overflow-hidden"
-                  style={{
-                    WebkitMaskImage: "radial-gradient(ellipse 92% 92% at 50% 52%, #000 72%, rgba(0,0,0,0.9) 83%, transparent 100%)",
-                    maskImage: "radial-gradient(ellipse 92% 92% at 50% 52%, #000 72%, rgba(0,0,0,0.9) 83%, transparent 100%)",
-                  }}
+              <div className="fixed inset-0 w-full h-full" style={{ zIndex: 50 }}>
+                <video
+                  ref={setSplashVideoEl}
+                  src={SPLASH_VIDEO_SRC}
+                  autoPlay
+                  loop
+                  playsInline
+                  preload="auto"
+                  onLoadedData={(e) => startSplashVideoLoop(e.currentTarget)}
+                  className="w-full h-full object-contain select-none"
+                />
+                <NeonGlassButton
+                  accent
+                  className="splash-button absolute bottom-[10%] left-1/2 z-[20] -translate-x-1/2 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
+                  disabled={busy}
+                  onClick={handleStartFromSplash}
                 >
-                  <video
-                    ref={splashVideoRef}
-                    src={SPLASH_VIDEO_SRC}
-                    muted
-                    playsInline
-                    preload="auto"
-                    onEnded={handleSplashVideoEnded}
-                    className="w-full h-auto object-contain"
-                  />
-                  <NeonGlassButton
-                    accent
-                    className="splash-button absolute bottom-[10%] left-1/2 z-[20] -translate-x-1/2 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
-                    disabled={busy}
-                    onClick={() => void handleStartFromSplash()}
-                  >
-                    Крутим удачу?
-                  </NeonGlassButton>
-                </div>
+                  Крутим удачу?
+                </NeonGlassButton>
               </div>
             </motion.div>
           )}
