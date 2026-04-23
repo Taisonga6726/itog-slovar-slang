@@ -47,8 +47,8 @@ const SOUND_CONFIG = {
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
 const FINAL_BANNER_SRC = `/images/${encodeURIComponent("финал аплодисменты игра.png")}`;
 /** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
-const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
-const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
+const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
+const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
 
 export interface PoleChudesTestGameProps {
   /** Если игра открыта панелью поверх книги — закрыть панель при переходе в другой раздел. */
