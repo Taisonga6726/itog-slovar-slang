@@ -46,6 +46,7 @@ const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/зас�
 /** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
 const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
+const DEFAULT_RESULT: SpinResult = { category: CATEGORIES[0].id, phrase: CATEGORIES[0].label };
 
 export interface PoleChudesTestGameProps {
   /** Если игра открыта панелью поверх книги — закрыть панель при переходе в другой раздел. */
@@ -183,6 +184,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     [gameWordBase],
   );
 
+  const getResultForAttempt = useCallback(
+    (snapshot: Record<string, Set<string>>): SpinResult => {
+      const computed = pickSpinResult(snapshot);
+      if (computed) return { category: computed.categoryId, phrase: computed.phrase };
+      return DEFAULT_RESULT;
+    },
+    [pickSpinResult],
+  );
+
   const calcTargetRotation = useCallback((currentRotation: number, categoryId: string) => {
     const sectorSize = 360 / CATEGORIES.length;
     const targetIndex = CATEGORIES.findIndex((c) => c.id === categoryId);
@@ -220,13 +230,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
     const usedSnapshot = usedPhrases;
     const attempt = results.length + 1;
-    const spinResult = pickSpinResult(usedSnapshot);
-    if (!spinResult) {
-      setBusy(false);
-      setPlayReady(true);
-      return;
-    }
-    const nextRotation = calcTargetRotation(rotation, spinResult.categoryId);
+    const spinResult = getResultForAttempt(usedSnapshot);
+    const nextRotation = calcTargetRotation(rotation, spinResult.category);
     const animationDone = new Promise<void>((resolve) => {
       spinResolveRef.current = resolve;
     });
@@ -249,11 +254,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setSpinTimes(undefined);
     setSpinEases(undefined);
 
-    const newResult = { category: spinResult.categoryId, phrase: spinResult.phrase };
-    const categoryUsed = usedSnapshot[spinResult.categoryId] || new Set();
+    const newResult = { category: spinResult.category, phrase: spinResult.phrase };
+    const categoryUsed = usedSnapshot[spinResult.category] || new Set();
     setUsedPhrases((prev) => ({
       ...prev,
-      [spinResult.categoryId]: new Set([...categoryUsed, spinResult.phrase]),
+      [spinResult.category]: new Set([...categoryUsed, spinResult.phrase]),
     }));
     setCurrentResult(newResult);
     setResults((prev) => [...prev, newResult]);
@@ -272,13 +277,18 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
     setBackgroundVariant(BG_RESULT);
     await drumHitDone;
-    // По ТЗ: плашка предсказания и эффект запускаются в один момент после тарелки.
-    setStage("RESULT");
+    // По ТЗ: сначала записываем result, затем переводим stage в RESULT.
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        setStage("RESULT");
+        resolve();
+      });
+    });
     confetti({
       particleCount: 50,
       spread: 70,
       origin: { y: 0.6 },
-      colors: [CATEGORIES.find((c) => c.id === spinResult.categoryId)?.color || "#ffffff"],
+      colors: [CATEGORIES.find((c) => c.id === spinResult.category)?.color || "#ffffff"],
     });
     const openSoundDone = sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve();
     await openSoundDone;
@@ -292,7 +302,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
      * иначе на статичном экране слышны повторяющиеся эффекты.
      */
-  }, [busy, playReady, isSpinning, stage, usedPhrases, results.length, pickSpinResult, calcTargetRotation, rotation, onPauseBookHymn, sound]);
+  }, [busy, playReady, isSpinning, stage, usedPhrases, results.length, getResultForAttempt, calcTargetRotation, rotation, onPauseBookHymn, sound]);
 
   useEffect(() => {
     if (!autoSpinFromSplashRef.current) return;
