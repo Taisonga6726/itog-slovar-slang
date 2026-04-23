@@ -403,10 +403,12 @@ const Index = () => {
   }, [searchParams]);
 
   const handleOpenFormFromIntro = useCallback(() => {
+    pauseHymn();
     setMode("form");
-  }, []);
+  }, [pauseHymn]);
 
   const handleAddWord = () => {
+    pauseHymn();
     setMode("form");
   };
 
@@ -475,6 +477,17 @@ const Index = () => {
     if (luckyWheelOpen) pauseBookHymnForGame();
   }, [luckyWheelOpen, pauseBookHymnForGame]);
 
+  useEffect(() => {
+    if (mode !== "form") return;
+    // Экран «Ввести слово» всегда отдельной сценой: без скролла и фоновых аудио.
+    document.body.style.overflow = "hidden";
+    pauseHymn();
+    pauseBackgroundHymnSoft();
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mode, pauseBackgroundHymnSoft, pauseHymn]);
+
   return (
     <div className="fixed inset-0 w-full h-[100dvh] max-h-[100dvh] min-h-0 overflow-hidden bg-black">
       {mode === "intro" && (
@@ -508,13 +521,15 @@ const Index = () => {
 
       {mode !== "intro" && <div className="relative z-20 w-full h-full">
       {mode === "form" && (
-        <MagicBook
-          entries={entries}
-          setEntries={setEntries}
-          onOpenCatalog={handleStartReadFlow}
-          onFinish={() => setMode("final")}
-          onPageNav={handlePageNav}
-        />
+        <div className="fixed inset-0 overflow-hidden">
+          <MagicBook
+            entries={entries}
+            setEntries={setEntries}
+            onOpenCatalog={handleStartReadFlow}
+            onFinish={() => setMode("final")}
+            onPageNav={handlePageNav}
+          />
+        </div>
       )}
       {mode === "awakening" && (
         <div className="fixed inset-0 w-full h-full scene-fade-in" style={{ zIndex: 50 }}>

@@ -46,7 +46,6 @@ const SOUND_CONFIG = {
 } as const;
 
 const SPLASH_VIDEO_SRC = "/videos/заставка перед игрой/заставка перед игрой.mp4";
-const SPLASH_AUDIO_SRC = `/videos/${encodeURIComponent("заставка перед игрой")}/${encodeURIComponent("заставка перед игрой.MP3")}`;
 /** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
 const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
@@ -84,7 +83,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [gameWordBase] = useState<GameWordBase>(() => WORD_BASE_FROM_TXT);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
-  const splashAudioRef = useRef<HTMLAudioElement | null>(null);
   const soundManagerRef = useRef<SoundManager | null>(null);
 
   useEffect(() => {
@@ -99,19 +97,9 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   useEffect(() => {
     soundManagerRef.current = new SoundManager(SOUND_CONFIG);
-    splashAudioRef.current = new Audio(SPLASH_AUDIO_SRC);
-    splashAudioRef.current.preload = "auto";
-    splashAudioRef.current.muted = false;
-    splashAudioRef.current.volume = 1;
     return () => {
       soundManagerRef.current?.stopAll();
       soundManagerRef.current = null;
-      try {
-        splashAudioRef.current?.pause();
-      } catch {
-        /* ignore */
-      }
-      splashAudioRef.current = null;
     };
   }, []);
 
@@ -261,21 +249,29 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     });
   }, [isSpinning, handleSpin]);
 
-  const handleStartFromSplash = useCallback(() => {
+  const handleSplashVideoEnded = useCallback(() => {
+    if (!busy || stage !== "SPLASH") return;
+    setStage("GAME");
+    setBusy(false);
+    startSpin();
+  }, [busy, stage, startSpin]);
+
+  const handleStartFromSplash = useCallback(async () => {
     if (busy) return;
     const video = splashVideoRef.current;
-    if (video) {
-      video.muted = false;
-      video.currentTime = 0;
-      void video.play().catch(() => {});
-    }
-    const splashAudio = splashAudioRef.current;
-    if (splashAudio) {
-      splashAudio.currentTime = 0;
-      void splashAudio.play().catch(() => {});
-    }
     setBusy(true);
     onPauseBookHymn?.();
+    if (video) {
+      video.currentTime = 0;
+      video.muted = false;
+      try {
+        await video.play();
+      } catch {
+        // Если браузер не дал старт видео, не зависаем в busy.
+        setBusy(false);
+      }
+      return;
+    }
     setStage("GAME");
     setBusy(false);
     startSpin();
@@ -384,10 +380,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   <video
                     ref={splashVideoRef}
                     src={SPLASH_VIDEO_SRC}
-                    loop
                     muted
                     playsInline
                     preload="auto"
+                    onEnded={handleSplashVideoEnded}
                     className="w-full h-auto object-contain"
                   />
                   <NeonGlassButton

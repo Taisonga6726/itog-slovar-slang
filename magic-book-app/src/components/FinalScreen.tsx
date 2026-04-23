@@ -164,7 +164,6 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
         }}
         onEnterWord={() => {
           setAudioTestOpen(false);
-          onResumeBackgroundHymn?.();
           onHymnEnterWord?.();
         }}
       />
