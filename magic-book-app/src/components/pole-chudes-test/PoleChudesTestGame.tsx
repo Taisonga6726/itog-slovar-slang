@@ -409,7 +409,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   playsInline
                   preload="auto"
                   onLoadedData={(e) => startSplashVideoLoop(e.currentTarget)}
-                  className="w-full h-full object-contain select-none"
+                  className="absolute left-1/2 top-1/2 h-[96%] w-[96%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2 object-contain select-none"
                 />
                 <NeonGlassButton
                   accent
