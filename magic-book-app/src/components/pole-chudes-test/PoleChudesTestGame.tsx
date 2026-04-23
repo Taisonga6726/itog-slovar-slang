@@ -76,7 +76,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [spinDuration, setSpinDuration] = useState(2.6);
   const [spinTimes, setSpinTimes] = useState<number[] | undefined>(undefined);
   const [spinEases, setSpinEases] = useState<("easeIn" | "easeOut" | "linear")[] | undefined>(undefined);
-  const [playReady, setPlayReady] = useState(false);
   const [resultReady, setResultReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const [gameWordBase, setGameWordBase] = useState<GameWordBase>(() => EMPTY_WORD_BASE);
@@ -207,13 +206,67 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     spinResolveRef.current = null;
   }, []);
 
-  const handleSpin = useCallback(async (forceStart = false) => {
-    if (busy || (!forceStart && (!playReady || stage !== "GAME"))) {
+  const onSpinComplete = useCallback(
+    async (spinResult: SpinResult, attempt: number, usedSnapshot: Record<string, Set<string>>) => {
+      setCurrentResult(spinResult);
+
+      const drumHitDone = sound()?.play("drumHit", { waitForEnd: true }) ?? Promise.resolve();
+      const openSoundByAttempt: Record<number, "truba" | "wowStart" | "happyBoy"> = {
+        1: "truba",
+        2: "wowStart",
+        3: "truba",
+        4: "happyBoy",
+      };
+      const laughByAttempt: Partial<Record<number, "laughGirl" | "laughMan" | "laughBoy">> = {
+        1: "laughGirl",
+        2: "laughMan",
+        3: "laughBoy",
+      };
+
+      await drumHitDone;
+      const categoryUsed = usedSnapshot[spinResult.category] || new Set();
+      setUsedPhrases((prev) => ({
+        ...prev,
+        [spinResult.category]: new Set([...categoryUsed, spinResult.phrase]),
+      }));
+      setResults((prev) => [...prev, spinResult]);
+
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          setStage("RESULT");
+          setIsSpinning(false);
+          resolve();
+        });
+      });
+
+      confetti({
+        particleCount: 50,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: [CATEGORIES.find((c) => c.id === spinResult.category)?.color || "#ffffff"],
+      });
+
+      const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
+      const openSoundDone = sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve();
+      await openSoundDone;
+
+      const laughSound = laughByAttempt[attempt];
+      if (laughSound) {
+        await sound()?.play(laughSound, { waitForEnd: true });
+      }
+
+      setResultReady(true);
+      setBusy(false);
+    },
+    [sound],
+  );
+
+  const handleSpin = useCallback(async () => {
+    if (busy || stage !== "GAME") {
       setIsSpinning(false);
       return;
     }
     setBusy(true);
-    setPlayReady(false);
     setResultReady(false);
 
     const usedSnapshot = usedPhrases;
@@ -241,80 +294,31 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setSpinEases(undefined);
 
     const newResult = { category: spinResult.category, phrase: spinResult.phrase };
-    const drumHitDone = sound()?.play("drumHit", { waitForEnd: true }) ?? Promise.resolve();
-    const openSoundByAttempt: Record<number, "truba" | "wowStart" | "happyBoy"> = {
-      1: "truba",
-      2: "wowStart",
-      3: "truba",
-      4: "happyBoy",
-    };
-    const laughByAttempt: Partial<Record<number, "laughGirl" | "laughMan" | "laughBoy">> = {
-      1: "laughGirl",
-      2: "laughMan",
-      3: "laughBoy",
-    };
-    const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
-    await drumHitDone;
-    const categoryUsed = usedSnapshot[spinResult.category] || new Set();
-    setUsedPhrases((prev) => ({
-      ...prev,
-      [spinResult.category]: new Set([...categoryUsed, spinResult.phrase]),
-    }));
-    setCurrentResult(newResult);
-    setResults((prev) => [...prev, newResult]);
-    await new Promise<void>((resolve) => {
-      requestAnimationFrame(() => {
-        setStage("RESULT");
-        setIsSpinning(false);
-        resolve();
-      });
-    });
-    confetti({
-      particleCount: 50,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: [CATEGORIES.find((c) => c.id === spinResult.category)?.color || "#ffffff"],
-    });
-    const openSoundDone = sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve();
-    await openSoundDone;
-    const laughSound = laughByAttempt[attempt];
-    if (laughSound) {
-      await sound()?.play(laughSound, { waitForEnd: true });
-    }
-    setResultReady(true);
-    setBusy(false);
+    await onSpinComplete(newResult, attempt, usedSnapshot);
     /**
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
      * иначе на статичном экране слышны повторяющиеся эффекты.
      */
-  }, [busy, playReady, stage, usedPhrases, results.length, getResultForAttempt, calcTargetRotation, rotation, onPauseBookHymn, sound]);
+  }, [busy, stage, usedPhrases, results.length, getResultForAttempt, calcTargetRotation, rotation, onPauseBookHymn, onSpinComplete]);
 
-  const startSpin = useCallback(
-    (forceStart = false) => {
-      if (isSpinning) return;
-      if (!forceStart && (busy || !playReady || stage !== "GAME")) return;
-      setIsSpinning(true);
-      requestAnimationFrame(() => {
-        void handleSpin(forceStart);
-      });
-    },
-    [isSpinning, busy, playReady, stage, handleSpin],
-  );
+  const startSpin = useCallback(() => {
+    if (isSpinning) return;
 
-  const handleStartFromSplash = useCallback(async () => {
+    setIsSpinning(true);
+
+    requestAnimationFrame(() => {
+      void handleSpin();
+    });
+  }, [isSpinning, handleSpin]);
+
+  const handleStartFromSplash = useCallback(() => {
     if (busy) return;
     setBusy(true);
-    setPlayReady(false);
     onPauseBookHymn?.();
-    try {
-      await (sound()?.play("wowStart") ?? Promise.resolve());
-    } catch {
-      /* ignore autoplay/start sound errors */
-    }
+    void sound()?.play("wowStart", { stopBefore: false });
     setStage("GAME");
-    setPlayReady(true);
     setBusy(false);
-    startSpin(true);
+    startSpin();
   }, [busy, onPauseBookHymn, sound, startSpin]);
 
   const nextAction = useCallback(async () => {
@@ -328,7 +332,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       setResults([]);
       setCurrentResult(null);
       setUsedPhrases({});
-      setPlayReady(false);
       setResultReady(false);
       setBusy(false);
       setIsSpinning(false);
@@ -341,7 +344,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setBusy(true);
     setCurrentResult(null);
     setStage("GAME");
-    setPlayReady(true);
     setBusy(false);
   }, [resultReady, results.length, sound, onPauseBookHymn]);
 
@@ -363,7 +365,12 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   };
 
   const isPanelLayout = layout === "panel";
-  const backgroundVariant: BackgroundVariant = stage === "RESULT" ? BG_RESULT : BG_GAME;
+  let backgroundVariant: BackgroundVariant = BG_GAME;
+  if (stage === "GAME") backgroundVariant = BG_GAME;
+  if (stage === "RESULT") backgroundVariant = BG_RESULT;
+  if (stage === "RESULT" && !currentResult) {
+    return null;
+  }
   return (
     <div
       id="pole-chudes-test-root"
@@ -447,7 +454,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                         isSpinning={isSpinning}
                         spinTimes={spinTimes}
                         spinEases={spinEases}
-                        canSpin={playReady && !busy}
+                        canSpin={!busy}
                         onSectorClick={() => startSpin()}
                         onSpinAnimationComplete={handleSpinAnimationComplete}
                       />
