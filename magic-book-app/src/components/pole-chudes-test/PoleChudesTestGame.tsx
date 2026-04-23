@@ -9,6 +9,7 @@ import { CATEGORIES } from "./constants";
 import GlobalFXLayer from "./GlobalFXLayer";
 import FloatingWords from "@/components/FloatingWords";
 import GlobalVibeShell from "@/components/GlobalVibeShell";
+import HeroWave from "@/components/ui/dynamic-wave-canvas-background";
 import { SoundManager } from "./SoundManager";
 import { Wheel } from "./Wheel";
 import { WORD_BASE_FROM_TXT } from "./wordBaseFromTxt";
@@ -368,7 +369,19 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               exit={{ opacity: 0 }}
               className="relative flex min-h-0 flex-1 flex-col items-center justify-start px-3 pt-[80px]"
             >
-              <div className="absolute inset-0 z-[2] bg-black/25" />
+              <div className="absolute inset-0 z-[1]">
+                <HeroWave />
+              </div>
+              <img
+                src="/images/open-book.png"
+                alt=""
+                className="pointer-events-none absolute inset-0 z-[2] h-full w-full select-none object-cover blur-2xl opacity-40 scale-110"
+                draggable={false}
+              />
+              <div className="absolute inset-0 z-[3] bg-black/40 backdrop-blur-sm" />
+              <div className="pointer-events-none absolute inset-0 z-[12]" aria-hidden>
+                <FloatingWords />
+              </div>
               <div className="splash-wrapper relative z-10 flex w-full flex-col items-center">
                 <div className="splash-video relative z-[10] w-full max-w-[600px] overflow-hidden rounded-[24px]">
                   {!splashVideoFailed ? (
@@ -386,9 +399,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   ) : (
                     <img src={DRUM_BG_GAME_SRC} alt="" className="block w-full h-auto" />
                   )}
-                </div>
-                <div className="pointer-events-none absolute inset-0 z-[12]" aria-hidden>
-                  <FloatingWords />
                 </div>
                 <NeonGlassButton
                   accent
