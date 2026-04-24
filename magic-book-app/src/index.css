@@ -757,6 +757,77 @@
   mask-image: radial-gradient(130% 90% at 50% 50%, #000 72%, transparent 100%);
 }
 
+/* /luck-test SPLASH: цифровой «туман» и кромка видео — только для глубины и сглаживания, без затемнения центра */
+.pole-chudes-splash-digital {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 60% 42% at 14% 86%, rgba(56, 189, 248, 0.1), transparent 55%),
+    radial-gradient(ellipse 52% 50% at 88% 14%, rgba(110, 55, 180, 0.1), transparent 50%),
+    repeating-linear-gradient(
+      0deg,
+      #0000 0,
+      #0000 15px,
+      rgba(34, 100, 140, 0.1) 15px,
+      rgba(34, 100, 140, 0.1) 16px,
+      #0000 16px,
+      #0000 22px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      #0000 0,
+      #0000 24px,
+      rgba(70, 45, 120, 0.09) 24px,
+      rgba(70, 45, 120, 0.09) 25px,
+      #0000 25px,
+      #0000 36px
+    );
+  opacity: 0.22;
+}
+
+.pole-chudes-splash-code-stream {
+  position: absolute;
+  top: 0;
+  left: 5%;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: clamp(5px, 0.55vw, 8px);
+  line-height: 1.2;
+  letter-spacing: 0.08em;
+  color: rgba(34, 211, 238, 0.14);
+  white-space: pre;
+  opacity: 0.4;
+  animation: tzCodeDrift 4.2s linear infinite;
+}
+
+.pole-chudes-splash-code-stream--2 {
+  left: auto;
+  right: 7%;
+  top: 12%;
+  color: rgba(167, 139, 250, 0.14);
+  animation-delay: 1.4s;
+  animation-duration: 5.1s;
+}
+
+.pole-chudes-splash-video-feather {
+  -webkit-backdrop-filter: blur(2.5px) saturate(1.04);
+  backdrop-filter: blur(2.5px) saturate(1.04);
+  -webkit-mask-image: radial-gradient(ellipse 64% 62% at 50% 50%, #0000 0%, #0000 40%, #000a 100%);
+  mask-image: radial-gradient(ellipse 64% 62% at 50% 50%, #0000 0%, #0000 40%, #000a 100%);
+}
+
+.pole-chudes-splash-words-clip {
+  -webkit-mask-image: radial-gradient(ellipse 50% 52% at 50% 50%, #0000 0%, #0000 50%, #000c 100%);
+  mask-image: radial-gradient(ellipse 50% 52% at 50% 50%, #0000 0%, #0000 50%, #000c 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pole-chudes-splash-code-stream,
+  .pole-chudes-splash-code-stream--2 {
+    animation: none;
+  }
+}
+
 .global-fx-layer {
   overflow: hidden;
 }

@@ -345,6 +345,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               exit={{ opacity: 0 }}
               className="relative flex min-h-0 flex-1 flex-col items-center justify-start px-2 pt-[34px] sm:px-3 sm:pt-[28px]"
             >
+              <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
+                <div className="pole-chudes-splash-digital" />
+                <pre className="pole-chudes-splash-code-stream" aria-hidden>
+                  {`01001\n11010\n0x0f\n#ai\n$run\n&flow\n%code\n!vibe\n=>OK\n0..1\n|||\n/\\\\/`}
+                </pre>
+                <pre className="pole-chudes-splash-code-stream pole-chudes-splash-code-stream--2" aria-hidden>
+                  {`1010\n$PATH\n+bit\n#cf\n..+\n$env\n!run\n#now\n%cpu\n$OK\n#go\n!OK`}
+                </pre>
+              </div>
               <div className="absolute inset-0 z-[1]">
                 <HeroWave />
               </div>
@@ -355,11 +364,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 draggable={false}
               />
               <div className="absolute inset-0 z-[3] bg-black/55 backdrop-blur-sm" />
-              {/** z ниже, чем блок с видео, иначе плавающий текст перекрывает <video> — кажется, что картинка замирала. */}
-              <div className="pointer-events-none absolute inset-0 z-[5]" aria-hidden>
-                <FloatingWords />
-              </div>
-              <div className="fixed inset-0 w-full h-full" style={{ zIndex: 50 }}>
+              <div className="fixed inset-0" style={{ zIndex: 100 }}>
                 <video
                   ref={splashVideoRef}
                   src={SPLASH_VIDEO_SRC}
@@ -368,15 +373,26 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   playsInline
                   className="absolute left-1/2 top-1/2 h-[92%] w-[92%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2 object-contain select-none"
                 />
-                <NeonGlassButton
-                  accent
-                  className="splash-button absolute bottom-[10%] left-1/2 z-[20] -translate-x-1/2 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
-                  disabled={busy}
-                  onClick={handleStartFromSplash}
-                >
-                  Крутим удачу?
-                </NeonGlassButton>
+                <div
+                  className="pole-chudes-splash-video-feather pointer-events-none absolute left-1/2 top-1/2 z-[1] h-[92%] w-[92%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2"
+                  aria-hidden
+                />
               </div>
+              <div
+                className="pole-chudes-splash-words-clip pointer-events-none fixed inset-0 overflow-hidden"
+                style={{ zIndex: 160 }}
+                aria-hidden
+              >
+                <FloatingWords />
+              </div>
+              <NeonGlassButton
+                accent
+                className="splash-button pointer-events-auto fixed bottom-[10%] left-1/2 z-[320] -translate-x-1/2 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
+                disabled={busy}
+                onClick={handleStartFromSplash}
+              >
+                Крутим удачу?
+              </NeonGlassButton>
             </motion.div>
           )}
 
