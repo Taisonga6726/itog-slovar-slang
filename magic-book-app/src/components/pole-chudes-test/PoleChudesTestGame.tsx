@@ -257,23 +257,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   const handleStartFromSplash = useCallback(() => {
     if (busy) return;
-    setBusy(true);
-    void (async () => {
-      try {
-        const wow = sound()?.play("wowStart", { waitForEnd: true, stopBefore: true });
-        /* Длинный файл не должен вечно держать экран: не более ~2,5 c ожидания. */
-        await Promise.race([wow ?? Promise.resolve(), new Promise<void>((r) => setTimeout(r, 2500))]);
-      } catch {
-        /* ignore */
-      }
-      splashVideoRef.current?.pause();
-      onPauseBookHymn?.();
-      flushSync(() => {
-        setStage("GAME");
-        setBusy(false);
-      });
-      startSpinRef.current();
-    })();
+    /* Клик-саунд запускаем мгновенно, без ожидания — экран барабана открывается сразу по нажатию. */
+    void sound()?.play("wowStart", { stopBefore: true });
+    splashVideoRef.current?.pause();
+    onPauseBookHymn?.();
+    flushSync(() => {
+      setStage("GAME");
+      setBusy(false);
+    });
+    startSpinRef.current();
   }, [busy, onPauseBookHymn, sound]);
 
   const nextAction = useCallback(async () => {
