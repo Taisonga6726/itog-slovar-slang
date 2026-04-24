@@ -27,7 +27,7 @@ interface MagicBookProps {
 
 const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: MagicBookProps) => {
   /** Скрины в правой колонке (каталог) — ограничены рабочей областью страницы */
-  const CATALOG_IMAGE_MAX_HEIGHT = 160;
+  const CATALOG_IMAGE_MAX_HEIGHT = 120;
   const ENTRY_GRID_COLS = "minmax(4.75rem, 4.75rem) minmax(0, 1fr)";
   const requestMusicDuck = useCallback((holdMs = 1000) => {
     window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
@@ -487,11 +487,11 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
       <div
         className="absolute z-[15] font-handwriting no-scroll"
         style={{
-          left: "50.9%",
+          left: "51.42%",
           top: "20.35%",
-          width: "26.1%",
+          width: "25.2%",
           height: "54.9%",
-          padding: "10px 6px 22px 0px",
+          padding: "10px 10px 22px 0px",
           boxSizing: "border-box",
           overflow: "hidden", overflowWrap: "break-word", wordBreak: "break-word",
         }}

@@ -403,12 +403,10 @@ const Index = () => {
   }, [searchParams]);
 
   const handleOpenFormFromIntro = useCallback(() => {
-    pauseHymn();
     setMode("form");
-  }, [pauseHymn]);
+  }, []);
 
   const handleAddWord = () => {
-    pauseHymn();
     setMode("form");
   };
 
@@ -479,14 +477,12 @@ const Index = () => {
 
   useEffect(() => {
     if (mode !== "form") return;
-    // Экран «Ввести слово» всегда отдельной сценой: без скролла и фоновых аудио.
+    // Экран «Ввести слово»: без скролла; фоновый гимн (один источник) не останавливаем.
     document.body.style.overflow = "hidden";
-    pauseHymn();
-    pauseBackgroundHymnSoft();
     return () => {
       document.body.style.overflow = "";
     };
-  }, [mode, pauseBackgroundHymnSoft, pauseHymn]);
+  }, [mode]);
 
   return (
     <div className="fixed inset-0 w-full h-[100dvh] max-h-[100dvh] min-h-0 overflow-hidden bg-black">
