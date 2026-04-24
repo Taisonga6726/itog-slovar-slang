@@ -603,35 +603,48 @@
         clearCoverReadyUi();
         storage.setAccessGranted();
 
-        /** Гимн: жест клика по книге во iframe — всегда play() здесь; родителю — опционально (у него autoplay часто режется). */
+        /**
+         * Гимн: один источник — в родительском React-приложении.
+         * Во встроенном iframe не вызывать play() на #hymnAudio (дублирование + шум). Только postMessage.
+         * В автономном открытии страницы — play() в iframe, как раньше.
+         */
         const inIframe = window.parent && window.parent !== window;
         const audio = document.getElementById("hymnAudio");
         if (audio) {
-          try {
-            audio.muted = false;
-            audio.volume = 1;
-          } catch (_) {
-            /* ignore */
-          }
-          try {
-            audio.currentTime = 0;
-          } catch (_) {
-            /* ignore */
-          }
-          const tryPlay = () => {
-            const p = audio.play();
-            if (p && typeof p.catch === "function") {
-              p.catch(() => {
-                try {
-                  audio.load();
-                } catch (_) {
-                  /* ignore */
-                }
-                audio.play().catch(() => {});
-              });
+          if (inIframe) {
+            try {
+              audio.pause();
+              audio.currentTime = 0;
+            } catch (_) {
+              /* ignore */
             }
-          };
-          tryPlay();
+          } else {
+            try {
+              audio.muted = false;
+              audio.volume = 1;
+            } catch (_) {
+              /* ignore */
+            }
+            try {
+              audio.currentTime = 0;
+            } catch (_) {
+              /* ignore */
+            }
+            const tryPlay = () => {
+              const p = audio.play();
+              if (p && typeof p.catch === "function") {
+                p.catch(() => {
+                  try {
+                    audio.load();
+                  } catch (_) {
+                    /* ignore */
+                  }
+                  audio.play().catch(() => {});
+                });
+              }
+            };
+            tryPlay();
+          }
         }
         if (inIframe) {
           try {
