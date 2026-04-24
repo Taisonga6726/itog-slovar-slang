@@ -758,6 +758,47 @@
 }
 
 /* /luck-test SPLASH: цифровой «туман» и кромка видео — только для глубины и сглаживания, без затемнения центра */
+/* Баннер логотипа SPLASH: на 2 шага уже и ниже, чем у обложки (stack + mb-ai-logo-hotspot). */
+.tz-vibe-ai-brand.tz-vibe-ai-brand--luck-splash .tz-vibe-ai-brand__stack {
+  width: min(84vw, 400px);
+  min-height: min(12vh, 100px);
+}
+.tz-vibe-ai-brand--luck-splash .mb-ai-logo-hotspot {
+  width: min(23vw, 300px);
+  height: min(15vh, 150px);
+}
+
+/* «Код» в полосах по бокам — без центра (сетка/строки в маске слабее в середине) */
+.pole-chudes-splash-bg-sides {
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 16%, #0000 25%, #0000 75%, #000 84%, #000 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 16%, #0000 25%, #0000 75%, #000 84%, #000 100%);
+}
+
+.pole-chudes-splash-code-side {
+  position: absolute;
+  top: 8%;
+  z-index: 1;
+  font-size: clamp(3px, 0.4vw, 6px);
+  line-height: 1.1;
+  letter-spacing: 0.5px;
+  color: rgba(129, 230, 255, 0.14);
+  opacity: 0.4;
+  pointer-events: none;
+  height: 84%;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  animation: tzCodeDrift 4.2s linear infinite;
+}
+.pole-chudes-splash-code-side--l {
+  left: 0.2rem;
+}
+.pole-chudes-splash-code-side--r {
+  right: 0.2rem;
+  color: rgba(196, 180, 255, 0.12);
+  animation-delay: 1.1s;
+  animation-duration: 4.5s;
+}
+
 .pole-chudes-splash-digital {
   position: absolute;
   inset: 0;
@@ -809,11 +850,41 @@
   animation-duration: 5.1s;
 }
 
-.pole-chudes-splash-video-feather {
-  -webkit-backdrop-filter: blur(2.5px) saturate(1.04);
-  backdrop-filter: blur(2.5px) saturate(1.04);
-  -webkit-mask-image: radial-gradient(ellipse 64% 62% at 50% 50%, #0000 0%, #0000 40%, #000a 100%);
-  mask-image: radial-gradient(ellipse 64% 62% at 50% 50%, #0000 0%, #0000 40%, #000a 100%);
+/* Только углы: скруглённый «пятно» + размытие фона, центр площади <video> не трогаем. */
+.pole-chudes-splash-corner {
+  position: absolute;
+  width: min(20vw, 6.25rem);
+  height: min(20vw, 6.25rem);
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  pointer-events: none;
+  border-radius: 16px;
+  -webkit-backdrop-filter: blur(2.2px) saturate(1.03);
+  backdrop-filter: blur(2.2px) saturate(1.03);
+}
+.pole-chudes-splash-corner--tl {
+  left: 0;
+  top: 0;
+  -webkit-mask-image: radial-gradient(ellipse 100% 100% at 0% 0%, #000, transparent 74%);
+  mask-image: radial-gradient(ellipse 100% 100% at 0% 0%, #000, transparent 74%);
+}
+.pole-chudes-splash-corner--tr {
+  right: 0;
+  top: 0;
+  -webkit-mask-image: radial-gradient(ellipse 100% 100% at 100% 0%, #000, transparent 74%);
+  mask-image: radial-gradient(ellipse 100% 100% at 100% 0%, #000, transparent 74%);
+}
+.pole-chudes-splash-corner--bl {
+  left: 0;
+  bottom: 0;
+  -webkit-mask-image: radial-gradient(ellipse 100% 100% at 0% 100%, #000, transparent 74%);
+  mask-image: radial-gradient(ellipse 100% 100% at 0% 100%, #000, transparent 74%);
+}
+.pole-chudes-splash-corner--br {
+  right: 0;
+  bottom: 0;
+  -webkit-mask-image: radial-gradient(ellipse 100% 100% at 100% 100%, #000, transparent 74%);
+  mask-image: radial-gradient(ellipse 100% 100% at 100% 100%, #000, transparent 74%);
 }
 
 .pole-chudes-splash-words-clip {
@@ -823,7 +894,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .pole-chudes-splash-code-stream,
-  .pole-chudes-splash-code-stream--2 {
+  .pole-chudes-splash-code-stream--2,
+  .pole-chudes-splash-code-side {
     animation: none;
   }
 }

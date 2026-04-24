@@ -326,7 +326,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       )}
 
       {stage !== "SPLASH" && <GlobalFXLayer />}
-      {stage === "SPLASH" && <GlobalVibeShell banner={false} showLogo />}
+      {stage === "SPLASH" && <GlobalVibeShell banner={false} showLogo compactBrand />}
 
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
         {(stage === "GAME" || stage === "RESULT") && (
@@ -345,8 +345,14 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               exit={{ opacity: 0 }}
               className="relative flex min-h-0 flex-1 flex-col items-center justify-start px-2 pt-[34px] sm:px-3 sm:pt-[28px]"
             >
-              <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
+              <div className="pole-chudes-splash-bg-sides absolute inset-0 z-0 overflow-hidden" aria-hidden>
                 <div className="pole-chudes-splash-digital" />
+                <pre className="pole-chudes-splash-code-side pole-chudes-splash-code-side--l" aria-hidden>
+                  {`0x1F\n$env\n!OK\n#bit\n%cpu\n$run\n#go\n!OK\n%net\n#io`}
+                </pre>
+                <pre className="pole-chudes-splash-code-side pole-chudes-splash-code-side--r" aria-hidden>
+                  {`1010\n0xff\n#cf\n$OK\n!run\n#now\n%mem\n#ai\n!OK\n#io`}
+                </pre>
                 <pre className="pole-chudes-splash-code-stream" aria-hidden>
                   {`01001\n11010\n0x0f\n#ai\n$run\n&flow\n%code\n!vibe\n=>OK\n0..1\n|||\n/\\\\/`}
                 </pre>
@@ -374,9 +380,14 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   className="absolute left-1/2 top-1/2 h-[92%] w-[92%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2 object-contain select-none"
                 />
                 <div
-                  className="pole-chudes-splash-video-feather pointer-events-none absolute left-1/2 top-1/2 z-[1] h-[92%] w-[92%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2"
+                  className="pointer-events-none absolute left-1/2 top-1/2 z-[1] h-[92%] w-[92%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2"
                   aria-hidden
-                />
+                >
+                  <div className="pole-chudes-splash-corner pole-chudes-splash-corner--tl" />
+                  <div className="pole-chudes-splash-corner pole-chudes-splash-corner--tr" />
+                  <div className="pole-chudes-splash-corner pole-chudes-splash-corner--bl" />
+                  <div className="pole-chudes-splash-corner pole-chudes-splash-corner--br" />
+                </div>
               </div>
               <div
                 className="pole-chudes-splash-words-clip pointer-events-none fixed inset-0 overflow-hidden"

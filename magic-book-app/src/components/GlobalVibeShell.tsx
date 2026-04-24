@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { cn } from "@/lib/utils";
 import MagicRingsGlobal from "@/components/MagicRingsGlobal";
 import VibeAiBrand from "@/components/VibeAiBrand";
 
@@ -10,10 +11,13 @@ import VibeAiBrand from "@/components/VibeAiBrand";
 export default function GlobalVibeShell({
   banner,
   showLogo = true,
+  compactBrand = false,
 }: {
   banner: boolean;
   /** Intro (iframe), финал (постер), панель гимна — без дубля логотипа. */
   showLogo?: boolean;
+  /** /luck-test SPLASH: баннер логотипа на 2 шага компактнее. */
+  compactBrand?: boolean;
 }) {
   const [target, setTarget] = useState<Element | null>(null);
 
@@ -33,7 +37,10 @@ export default function GlobalVibeShell({
         >
           <VibeAiBrand
             banner={banner}
-            className="!relative !inset-x-auto !left-auto !right-auto !top-0 !mx-auto !w-full !max-w-none !justify-center"
+            className={cn(
+              "!relative !inset-x-auto !left-auto !right-auto !top-0 !mx-auto !w-full !max-w-none !justify-center",
+              compactBrand && "tz-vibe-ai-brand--luck-splash",
+            )}
           />
         </div>
       )}
