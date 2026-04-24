@@ -329,7 +329,14 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       )}
 
       {stage !== "SPLASH" && <GlobalFXLayer />}
-      {stage === "SPLASH" && <GlobalVibeShell banner={false} showLogo compactBrand />}
+      {stage === "SPLASH" && (
+        <GlobalVibeShell
+          banner={false}
+          showLogo
+          compactBrand
+          magicRingsClassName="magic-rings-fx--luck-final"
+        />
+      )}
 
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
         {(stage === "GAME" || stage === "RESULT") && (
@@ -375,7 +382,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 <HeroWave />
               </div>
               <div className="pointer-events-none fixed inset-0" style={{ zIndex: 100 }}>
-                <div className="pole-chudes-splash-video-clip absolute left-1/2 top-1/2 h-[92%] w-[92%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2">
+                <div className="pole-chudes-splash-video-clip absolute left-1/2 top-1/2 h-[95%] w-[95%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2">
                   <video
                     ref={splashVideoRef}
                     src={SPLASH_VIDEO_SRC}
