@@ -90,6 +90,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [busy, setBusy] = useState(false);
   const [gameWordBase] = useState<GameWordBase>(() => WORD_BASE_FROM_TXT);
   const spinResolveRef = useRef<(() => void) | null>(null);
+  const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const soundManagerRef = useRef<SoundManager | null>(null);
 
   useEffect(() => {
@@ -256,8 +257,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   const handleStartFromSplash = useCallback(() => {
     if (busy) return;
-    const v = document.getElementById("pole-chudes-splash-video");
-    if (v instanceof HTMLVideoElement) v.pause();
+    splashVideoRef.current?.pause();
     onPauseBookHymn?.();
     flushSync(() => {
       setStage("GAME");
@@ -361,7 +361,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               </div>
               <div className="fixed inset-0 w-full h-full" style={{ zIndex: 50 }}>
                 <video
-                  id="pole-chudes-splash-video"
+                  ref={splashVideoRef}
                   src={SPLASH_VIDEO_SRC}
                   autoPlay
                   loop
