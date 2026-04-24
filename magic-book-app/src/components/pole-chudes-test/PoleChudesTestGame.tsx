@@ -32,8 +32,14 @@ const EMPTY_WORD_BASE: GameWordBase = CATEGORIES.reduce<GameWordBase>((acc, cat)
   return acc;
 }, {});
 
+function publicFile(path: string): string {
+  const b = import.meta.env.BASE_URL || "/";
+  const p = b.endsWith("/") ? b : `${b}/`;
+  return `${p}${path.replace(/^\//, "")}`;
+}
+
 function toAudioSrc(fileName: string) {
-  return `/audio/${encodeURIComponent(fileName)}`;
+  return publicFile(`audio/${encodeURIComponent(fileName)}`);
 }
 
 const SOUND_CONFIG = {
@@ -45,12 +51,6 @@ const SOUND_CONFIG = {
   laughMan: { src: toAudioSrc("смех мужчина 1.MP3"), volume: 0.95 },
   laughBoy: { src: toAudioSrc("смех мальчик 1 .MP3"), volume: 0.95 },
 } as const;
-
-function publicFile(path: string): string {
-  const b = import.meta.env.BASE_URL || "/";
-  const p = b.endsWith("/") ? b : `${b}/`;
-  return `${p}${path.replace(/^\//, "")}`;
-}
 
 const SPLASH_VIDEO_PATH = "videos/заставка перед игрой/заставка перед игрой.mp4";
 const SPLASH_VIDEO_SRC = publicFile(SPLASH_VIDEO_PATH);
@@ -257,14 +257,24 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   const handleStartFromSplash = useCallback(() => {
     if (busy) return;
-    splashVideoRef.current?.pause();
-    onPauseBookHymn?.();
-    flushSync(() => {
-      setStage("GAME");
-      setBusy(false);
-    });
-    startSpinRef.current();
-  }, [busy, onPauseBookHymn]);
+    setBusy(true);
+    void (async () => {
+      try {
+        const wow = sound()?.play("wowStart", { waitForEnd: true, stopBefore: true });
+        /* Длинный файл не должен вечно держать экран: не более ~2,5 c ожидания. */
+        await Promise.race([wow ?? Promise.resolve(), new Promise<void>((r) => setTimeout(r, 2500))]);
+      } catch {
+        /* ignore */
+      }
+      splashVideoRef.current?.pause();
+      onPauseBookHymn?.();
+      flushSync(() => {
+        setStage("GAME");
+        setBusy(false);
+      });
+      startSpinRef.current();
+    })();
+  }, [busy, onPauseBookHymn, sound]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady) return;
@@ -382,7 +392,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 <HeroWave />
               </div>
               <div className="pointer-events-none fixed inset-0" style={{ zIndex: 100 }}>
-                <div className="pole-chudes-splash-video-clip absolute left-1/2 top-1/2 h-[95%] w-[95%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2">
+                <div className="pole-chudes-splash-video-clip absolute left-1/2 top-1/2 h-[86%] w-[86%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2">
                   <video
                     ref={splashVideoRef}
                     src={SPLASH_VIDEO_SRC}
