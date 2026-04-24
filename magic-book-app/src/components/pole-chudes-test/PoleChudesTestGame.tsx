@@ -309,8 +309,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   return (
     <div
       id="pole-chudes-test-root"
+      data-splash={stage === "SPLASH" ? "true" : undefined}
       className={cn(
-        "pole-chudes-scene relative flex min-h-0 w-full flex-col overflow-hidden font-book text-[#faf6f0] selection:bg-purple-500/30",
+        "pole-chudes-scene relative flex min-h-0 w-full flex-col font-book text-[#faf6f0] selection:bg-purple-500/30",
+        /** SPLASH: CTA в потоке, не фикс к viewport; не клипать нижний край */
+        stage === "SPLASH" ? "overflow-x-hidden overflow-y-auto" : "overflow-hidden",
         isPanelLayout ? "h-full max-h-full flex-1" : "h-[100dvh] max-h-[100dvh]",
       )}
     >
@@ -343,9 +346,9 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="relative flex min-h-0 flex-1 flex-col items-center justify-start px-2 pt-[34px] sm:px-3 sm:pt-[28px]"
+              className="relative flex w-full min-h-[100dvh] flex-1 flex-col items-stretch justify-start px-2 pt-[34px] sm:px-3 sm:pt-[28px]"
             >
-              <div className="pole-chudes-splash-bg-sides absolute inset-0 z-0 overflow-hidden" aria-hidden>
+              <div className="pole-chudes-splash-bg-sides pointer-events-none absolute inset-0 z-0 overflow-hidden" aria-hidden>
                 <div className="pole-chudes-splash-digital" />
                 <pre className="pole-chudes-splash-code-side pole-chudes-splash-code-side--l" aria-hidden>
                   {`0x1F\n$env\n!OK\n#bit\n%cpu\n$run\n#go\n!OK\n%net\n#io`}
@@ -360,33 +363,33 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   {`1010\n$PATH\n+bit\n#cf\n..+\n$env\n!run\n#now\n%cpu\n$OK\n#go\n!OK`}
                 </pre>
               </div>
-              <div className="absolute inset-0 z-[1]">
-                <HeroWave />
-              </div>
+              {/** Как в Index: книга → затемнение → волна поверх */}
               <img
                 src="/images/open-book.png"
                 alt=""
-                className="pointer-events-none absolute inset-0 z-[2] h-full w-full select-none object-cover blur-2xl opacity-40 scale-110"
+                className="pointer-events-none absolute inset-0 z-[1] h-full w-full select-none object-cover blur-2xl opacity-40 scale-110"
                 draggable={false}
               />
-              <div className="absolute inset-0 z-[3] bg-black/55 backdrop-blur-sm" />
-              <div className="fixed inset-0" style={{ zIndex: 100 }}>
-                <video
-                  ref={splashVideoRef}
-                  src={SPLASH_VIDEO_SRC}
-                  autoPlay
-                  loop
-                  playsInline
-                  className="absolute left-1/2 top-1/2 h-[92%] w-[92%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2 object-contain select-none"
-                />
-                <div
-                  className="pointer-events-none absolute left-1/2 top-1/2 z-[1] h-[92%] w-[92%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2"
-                  aria-hidden
-                >
-                  <div className="pole-chudes-splash-corner pole-chudes-splash-corner--tl" />
-                  <div className="pole-chudes-splash-corner pole-chudes-splash-corner--tr" />
-                  <div className="pole-chudes-splash-corner pole-chudes-splash-corner--bl" />
-                  <div className="pole-chudes-splash-corner pole-chudes-splash-corner--br" />
+              <div className="pointer-events-none absolute inset-0 z-[2] bg-black/40 backdrop-blur-sm" />
+              <div className="absolute inset-0 z-[3]">
+                <HeroWave />
+              </div>
+              <div className="pointer-events-none fixed inset-0" style={{ zIndex: 100 }}>
+                <div className="pole-chudes-splash-video-clip absolute left-1/2 top-1/2 h-[92%] w-[92%] max-h-full max-w-full -translate-x-1/2 -translate-y-1/2">
+                  <video
+                    ref={splashVideoRef}
+                    src={SPLASH_VIDEO_SRC}
+                    autoPlay
+                    loop
+                    playsInline
+                    className="absolute inset-0 h-full w-full object-contain object-center select-none"
+                  />
+                  <div className="pointer-events-none absolute inset-0" aria-hidden>
+                    <div className="pole-chudes-splash-corner pole-chudes-splash-corner--tl" />
+                    <div className="pole-chudes-splash-corner pole-chudes-splash-corner--tr" />
+                    <div className="pole-chudes-splash-corner pole-chudes-splash-corner--bl" />
+                    <div className="pole-chudes-splash-corner pole-chudes-splash-corner--br" />
+                  </div>
                 </div>
               </div>
               <div
@@ -396,9 +399,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               >
                 <FloatingWords />
               </div>
+              <div
+                className="pointer-events-none relative z-0 min-h-0 w-full min-h-[1px] max-w-full flex-1"
+                aria-hidden
+              />
               <NeonGlassButton
                 accent
-                className="splash-button pointer-events-auto fixed bottom-[10%] left-1/2 z-[320] -translate-x-1/2 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
+                className="splash-button pointer-events-auto relative z-[500] mx-auto mt-auto !mb-8 !shrink-0 !px-8 !py-2.5 !text-sm sm:!px-10 sm:!py-3 sm:!text-base"
                 disabled={busy}
                 onClick={handleStartFromSplash}
               >

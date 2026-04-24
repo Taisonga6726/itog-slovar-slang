@@ -768,10 +768,24 @@
   height: min(15vh, 150px);
 }
 
-/* «Код» в полосах по бокам — без центра (сетка/строки в маске слабее в середине) */
+/* «Код» по бокам: мягче вырез центра, чтобы фон читался, видео не перекрыт */
 .pole-chudes-splash-bg-sides {
-  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 16%, #0000 25%, #0000 75%, #000 84%, #000 100%);
-  mask-image: linear-gradient(90deg, #000 0%, #000 16%, #0000 25%, #0000 75%, #000 84%, #000 100%);
+  -webkit-mask-image: linear-gradient(90deg, #000 0%, #000 22%, #0000 35%, #0000 65%, #000 78%, #000 100%);
+  mask-image: linear-gradient(90deg, #000 0%, #000 22%, #0000 35%, #0000 65%, #000 78%, #000 100%);
+}
+
+/* Скруглённая «маска» вокруг ролика: letterbox не чёрный, а фон сцены (как Index) */
+.pole-chudes-splash-video-clip {
+  overflow: hidden;
+  border-radius: min(3.2vw, 1.35rem);
+  background: transparent;
+  isolation: isolate;
+  box-shadow: 0 0 0 1px rgba(120, 200, 255, 0.08);
+}
+
+#pole-chudes-test-root[data-splash="true"] .pole-chudes-splash-video-clip video {
+  /* иначе object-contain даёт чёрные поля вместо фона книги/волны */
+  background-color: transparent;
 }
 
 .pole-chudes-splash-code-side {
@@ -824,7 +838,7 @@
       #0000 25px,
       #0000 36px
     );
-  opacity: 0.22;
+  opacity: 0.32;
 }
 
 .pole-chudes-splash-code-stream {
