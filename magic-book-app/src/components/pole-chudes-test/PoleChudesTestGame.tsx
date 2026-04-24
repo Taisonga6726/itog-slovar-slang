@@ -90,16 +90,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [busy, setBusy] = useState(false);
   const [gameWordBase] = useState<GameWordBase>(() => WORD_BASE_FROM_TXT);
   const spinResolveRef = useRef<(() => void) | null>(null);
-  const splashVideoRef = useRef<HTMLVideoElement | null>(null);
   const soundManagerRef = useRef<SoundManager | null>(null);
 
   useEffect(() => {
-    // Внутри Game гимн всегда должен быть принудительно выключен.
-    onPauseBookHymn?.();
-  }, [onPauseBookHymn]);
-
-  useEffect(() => {
-    // Дублируем на смене этапа, чтобы гимн не возвращался при переходах.
+    // На смене этапа и при смене колбэка: глушим гимн книги (без второго дубля на mount).
     onPauseBookHymn?.();
   }, [stage, onPauseBookHymn]);
 
@@ -262,7 +256,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   const handleStartFromSplash = useCallback(() => {
     if (busy) return;
-    splashVideoRef.current?.pause();
+    const v = document.getElementById("pole-chudes-splash-video");
+    if (v instanceof HTMLVideoElement) v.pause();
     onPauseBookHymn?.();
     flushSync(() => {
       setStage("GAME");
@@ -366,7 +361,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               </div>
               <div className="fixed inset-0 w-full h-full" style={{ zIndex: 50 }}>
                 <video
-                  ref={splashVideoRef}
+                  id="pole-chudes-splash-video"
                   src={SPLASH_VIDEO_SRC}
                   autoPlay
                   loop
