@@ -2595,21 +2595,8 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   display: none !important;
 }
 
-/* Подпись © 2026: в потоке скрывали; абсолют внизу #mainScene, без ввода в поток (без прокрутки). */
 .site-footer-signature {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 32;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  padding-bottom: max(4px, env(safe-area-inset-bottom, 0px));
-  pointer-events: none;
+  display: none !important;
 }
 
 
