@@ -1804,10 +1804,7 @@
         const burstImpulse = typeof opts.burstImpulse === "number" ? opts.burstImpulse : 1;
         if (!container || !canvas || (!stage && !globalViewport)) return function noop() {};
 
-        if (prefersReducedMotion()) {
-          container.setAttribute("hidden", "");
-          return function noop() {};
-        }
+        // Круги курсора должны работать и на step2: не отключаем по prefers-reduced-motion.
 
         const gl = canvas.getContext("webgl2", {
           alpha: true,
