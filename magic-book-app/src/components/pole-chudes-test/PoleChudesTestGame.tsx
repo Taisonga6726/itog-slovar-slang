@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { CATEGORIES } from "./constants";
 import GlobalFXLayer from "./GlobalFXLayer";
 import FloatingWords from "@/components/FloatingWords";
+import DigitalCodeBackdrop from "@/components/DigitalCodeBackdrop";
 import GlobalVibeShell from "@/components/GlobalVibeShell";
 import HeroWave from "@/components/ui/dynamic-wave-canvas-background";
 import { SoundManager } from "./SoundManager";
@@ -76,7 +77,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     },
     [navigate, onClosePanel],
   );
-  const [stage, setStage] = useState<GameStage>("SPLASH");
+  const [stage, setStage] = useState<GameStage>("GAME");
   const [results, setResults] = useState<SpinResult[]>([]);
   const [currentResult, setCurrentResult] = useState<SpinResult | null>(null);
   const [usedPhrases, setUsedPhrases] = useState<Record<string, Set<string>>>({});
@@ -252,9 +253,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     });
   }, [isSpinning, handleSpin]);
 
-  const startSpinRef = useRef(startSpin);
-  startSpinRef.current = startSpin;
-
   const handleStartFromSplash = useCallback(() => {
     if (busy) return;
     /* Клик-саунд запускаем мгновенно, без ожидания — экран барабана открывается сразу по нажатию. */
@@ -265,7 +263,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       setStage("GAME");
       setBusy(false);
     });
-    startSpinRef.current();
   }, [busy, onPauseBookHymn, sound]);
 
   const nextAction = useCallback(async () => {
@@ -308,6 +305,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   if (stage === "RESULT" && !currentResult) {
     return null;
   }
+  const usedAttempts = Math.min(results.length + (stage === "GAME" && isSpinning ? 1 : 0), MAX_SPINS);
+  const attemptsLeft = Math.max(MAX_SPINS - usedAttempts, 0);
   return (
     <div
       id="pole-chudes-test-root"
@@ -330,22 +329,44 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         </div>
       )}
 
-      {stage !== "SPLASH" && <GlobalFXLayer />}
-      {stage === "SPLASH" && (
-        <GlobalVibeShell
-          banner={false}
-          showLogo
-          compactBrand
-          magicRingsClassName="magic-rings-fx--luck-final"
-        />
+      {(stage === "GAME" || stage === "RESULT" || stage === "SUMMARY") && (
+        <DigitalCodeBackdrop opacity={0.55} variant="sides" sidesInsetPercent={0} zIndex={2} />
       )}
+      {stage !== "SPLASH" && <GlobalFXLayer />}
+      <GlobalVibeShell
+        banner={false}
+        showLogo={stage === "SPLASH"}
+        showRings={!isPanelLayout}
+        compactBrand={stage === "SPLASH"}
+        magicRingsClassName="magic-rings-fx--luck-final"
+      />
 
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
         {(stage === "GAME" || stage === "RESULT") && (
-          <div className="pointer-events-none absolute left-1/2 top-[clamp(1rem,4dvh,2.2rem)] z-20 -translate-x-1/2">
-            <div className="rounded-full border border-cyan-300/35 bg-[#06020c]/65 px-3 py-1 text-[11px] font-semibold tracking-[0.16em] text-[#e9f4ff] sm:text-xs">
-              {`ПОПЫТКА ${Math.min(stage === "GAME" ? results.length + 1 : Math.max(results.length, 1), MAX_SPINS)} / ${MAX_SPINS}`}
-            </div>
+          <div className="pointer-events-none absolute left-1/2 top-[clamp(8.6rem,21dvh,11.8rem)] z-20 -translate-x-1/2">
+            <motion.div
+              key={`attempt-pop-${stage}-${attemptsLeft}`}
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.28, ease: "easeOut" }}
+              className="rounded-full border border-cyan-200/60 bg-[linear-gradient(180deg,rgba(58,48,132,0.92)_0%,rgba(44,86,166,0.9)_52%,rgba(34,120,196,0.86)_100%)] px-4 py-1.5 text-center shadow-[0_0_14px_rgba(96,165,250,0.5),0_0_28px_rgba(168,85,247,0.26),inset_0_1px_0_rgba(255,255,255,0.24)] sm:px-5 sm:py-2"
+              style={{ animation: "global-circle-breathe 2s ease-in-out infinite" }}
+            >
+              <span
+                className="bg-[linear-gradient(145deg,#77f7ff_0%,#8bb8ff_36%,#b88cff_66%,#62f2c9_100%)] bg-clip-text text-[32px] font-black tracking-[0.12em] text-transparent sm:text-[40px]"
+                style={{
+                  WebkitTextStroke: "1px rgba(30,16,66,0.66)",
+                  textShadow:
+                    "0 1px 0 rgba(255,255,255,0.52), 0 4px 0 rgba(44,24,92,0.62), 0 10px 16px rgba(20,10,46,0.58), 0 0 18px rgba(115,200,255,0.68)",
+                }}
+              >
+                {attemptsLeft}
+              </span>
+              <span className="text-[10px] font-semibold tracking-[0.09em] text-[#e9f5ff] sm:text-[11px]">
+                {" "}
+                {attemptsLeft === 1 ? "ПОПЫТКА" : attemptsLeft >= 2 && attemptsLeft <= 4 ? "ПОПЫТКИ" : "ПОПЫТОК"}
+              </span>
+            </motion.div>
           </div>
         )}
         <AnimatePresence mode="wait">
@@ -418,7 +439,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 disabled={busy}
                 onClick={handleStartFromSplash}
               >
-                Крутим удачу?
+                Запустить игру?
               </NeonGlassButton>
             </motion.div>
           )}
@@ -452,7 +473,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 </div>
               </div>
 
-              <div className="-mt-2 flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center sm:-mt-1 sm:gap-1.5">
+              <div className="-mt-5 flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center sm:-mt-4 sm:gap-1.5">
                 <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/")}>
                   Назад к книге
                 </NeonGlassButton>
@@ -510,7 +531,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                     disabled={!resultReady}
                     onClick={() => void nextAction()}
                   >
-                    {results.length >= MAX_SPINS ? "Посмотреть итоги" : "Продолжить"}
+                    {results.length >= MAX_SPINS ? "Показать результаты" : "Продолжить"}
                   </NeonGlassButton>
                 </div>
               </div>

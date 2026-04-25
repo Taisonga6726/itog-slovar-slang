@@ -36,7 +36,10 @@ export const Wheel: React.FC<WheelProps> = ({
         }}
         className="relative z-10 h-[min(min(72vw,56vmin),42svh,320px)] w-[min(min(72vw,56vmin),42svh,320px)] sm:h-[min(min(66vw,52vmin),46svh,380px)] sm:w-[min(min(66vw,52vmin),46svh,380px)] md:h-[min(46vmin,44svh,460px)] md:w-[min(46vmin,44svh,460px)] lg:h-[min(44vmin,520px)] lg:w-[min(44vmin,520px)]"
       >
-        <svg viewBox="-10 -10 120 120" className="h-full w-full -rotate-90 transform drop-shadow-[0_0_30px_rgba(147,51,234,0.3)]">
+        <svg
+          viewBox="-14 -14 128 128"
+          className="h-full w-full -rotate-90 transform overflow-visible drop-shadow-[0_0_30px_rgba(147,51,234,0.3)]"
+        >
           <defs>
             <linearGradient id="goldGradientTest" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#bf953f" />
@@ -100,6 +103,17 @@ export const Wheel: React.FC<WheelProps> = ({
               Z
             `;
 
+            const label = String(category.label).trim();
+            const labelParts =
+              label.includes(" ") && label.length > 8
+                ? [label.split(/\s+/)[0], label.split(/\s+/).slice(1).join(" ")]
+                : [label];
+            const outerX = label.length > 8 ? "88" : label.length >= 5 ? "87" : "85";
+            const fontClass =
+              label.length > 8
+                ? "pointer-events-none text-[6.2px] font-black uppercase tracking-[0.16em] sm:text-[6.8px]"
+                : "pointer-events-none text-[6.6px] font-black uppercase tracking-[0.12em] sm:text-[7.2px]";
+
             return (
               <g
                 key={category.id}
@@ -129,16 +143,29 @@ export const Wheel: React.FC<WheelProps> = ({
                   strokeWidth="0.2"
                 />
                 <text
-                  x="82"
+                  x={outerX}
                   y="50"
-                  transform={`rotate(${midAngle}, 50, 50) rotate(90, 82, 50)`}
+                  transform={`rotate(${midAngle}, 50, 50) rotate(90, ${outerX}, 50)`}
                   fill="url(#goldGradientTest)"
-                  className="pointer-events-none text-[7.8px] font-black uppercase tracking-tight sm:text-[8.6px]"
+                  className={fontClass}
                   textAnchor="middle"
                   filter="url(#textShadow3DTest)"
                   style={{ stroke: "#4a3710", strokeWidth: "0.08px", paintOrder: "stroke fill" }}
+                  textLength={label.length > 8 ? 20 : undefined}
+                  lengthAdjust={label.length > 8 ? "spacingAndGlyphs" : undefined}
                 >
-                  {category.label}
+                  {labelParts.length === 2 ? (
+                    <>
+                      <tspan x={outerX} dy="-0.55em">
+                        {labelParts[0]}
+                      </tspan>
+                      <tspan x={outerX} dy="1.15em">
+                        {labelParts[1]}
+                      </tspan>
+                    </>
+                  ) : (
+                    label
+                  )}
                 </text>
               </g>
             );

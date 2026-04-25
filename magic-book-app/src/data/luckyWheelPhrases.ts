@@ -56,8 +56,8 @@ export const LUCKY_CATEGORIES: LuckyCategory[] = [
   },
   {
     id: "study",
-    wheelLabel: "УЧЕБА",
-    title: "УЧЕБА",
+    wheelLabel: "УЧЁБА",
+    title: "УЧЁБА",
     phrases: [
       "Сдашь всё в последний момент",
       "Ночь будет продуктивной",

@@ -1,7 +1,7 @@
 export const CATEGORIES = [
   { id: "CODE", label: "КОД", color: "#ff00ff" },
   { id: "WHO_AMI", label: "КТО Я СЕГОДНЯ", color: "#00ffff" },
-  { id: "STUDY", label: "УЧЕБА", color: "#00ff00" },
+  { id: "STUDY", label: "УЧЁБА", color: "#00ff00" },
   { id: "FATE", label: "СУДЬБА", color: "#ffff00" },
   { id: "SERVICE", label: "СЕРВИС ДНЯ", color: "#ff6600" },
 ] as const;

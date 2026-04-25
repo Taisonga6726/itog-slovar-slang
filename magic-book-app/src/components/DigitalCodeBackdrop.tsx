@@ -35,9 +35,23 @@ const CODE_TEXT = [
 interface DigitalCodeBackdropProps {
   opacity?: number;
   variant?: "sides" | "full";
+  sidesInsetPercent?: number;
+  zIndex?: number;
 }
 
-export default function DigitalCodeBackdrop({ opacity = 0.9, variant = "sides" }: DigitalCodeBackdropProps) {
+export default function DigitalCodeBackdrop({
+  opacity = 0.9,
+  variant = "sides",
+  sidesInsetPercent = 0,
+  zIndex = 18,
+}: DigitalCodeBackdropProps) {
+  const inset = Math.max(0, Math.min(sidesInsetPercent, 20));
+  const sideColumns = CODE_COLUMNS.map((col) => {
+    const parsed = Number.parseFloat(col.left);
+    if (Number.isNaN(parsed)) return col;
+    const shifted = parsed < 50 ? parsed + inset : parsed - inset;
+    return { ...col, left: `${shifted.toFixed(2)}%` };
+  });
   const fullColumnsPrimary = Array.from({ length: 62 }, (_, i) => ({
     left: `${(0.6 + i * 1.6).toFixed(2)}%`,
     duration: 10.8 + (i % 6) * 0.6,
@@ -51,12 +65,12 @@ export default function DigitalCodeBackdrop({ opacity = 0.9, variant = "sides" }
     color: CODE_COLORS[(i + 1) % CODE_COLORS.length],
   }));
 
-  const layers = variant === "full" ? [fullColumnsPrimary, fullColumnsSecondary] : [CODE_COLUMNS];
+  const layers = variant === "full" ? [fullColumnsPrimary, fullColumnsSecondary] : [sideColumns];
 
   return (
     <div
       className="pointer-events-none absolute inset-0 overflow-hidden"
-      style={{ zIndex: 18, opacity, mixBlendMode: "screen" }}
+      style={{ zIndex, opacity, mixBlendMode: "screen" }}
       aria-hidden
     >
       <div
