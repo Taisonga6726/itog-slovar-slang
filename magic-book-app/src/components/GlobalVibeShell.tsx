@@ -11,12 +11,15 @@ import VibeAiBrand from "@/components/VibeAiBrand";
 export default function GlobalVibeShell({
   banner,
   showLogo = true,
+  showRings = true,
   compactBrand = false,
   magicRingsClassName,
 }: {
   banner: boolean;
   /** Intro (iframe), финал (постер), панель гимна — без дубля логотипа. */
   showLogo?: boolean;
+  /** Позволяет точечно отключать кольца курсора на отдельных экранах. */
+  showRings?: boolean;
   /** /luck-test SPLASH: баннер логотипа на 2 шага компактнее. */
   compactBrand?: boolean;
   /** Напр. `magic-rings-fx--luck-final` — кольца поверх fixed-слоёв страницы, ниже логотипа (z-300). */
@@ -32,7 +35,7 @@ export default function GlobalVibeShell({
 
   return createPortal(
     <>
-      <MagicRingsGlobal className={magicRingsClassName} />
+      {showRings && <MagicRingsGlobal className={magicRingsClassName} />}
       {showLogo && (
         <div
           className="pointer-events-none fixed inset-x-0 top-0 z-[300] flex justify-center pt-[max(0.35rem,env(safe-area-inset-top))]"

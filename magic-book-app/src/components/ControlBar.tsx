@@ -15,9 +15,10 @@ interface ControlBarProps {
   onReadBook: () => void;
   onShare: () => void;
   pageNav?: PageNav | null;
+  entriesCount: number;
 }
 
-const ControlBar: React.FC<ControlBarProps> = ({ mode, setMode, onAddWord, onReadBook, onShare, pageNav }) => {
+const ControlBar: React.FC<ControlBarProps> = ({ mode, setMode, onAddWord, onReadBook, onShare, pageNav, entriesCount }) => {
   return (
     <div
       style={{
@@ -38,6 +39,9 @@ const ControlBar: React.FC<ControlBarProps> = ({ mode, setMode, onAddWord, onRea
     >
       {mode === "form" && (
         <>
+          <span style={{ color: "rgba(255,255,255,0.92)", fontSize: "0.92rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+            Всего слов: {entriesCount}
+          </span>
           <NeonGlassButton accent onClick={onAddWord}>✏️ внести слово</NeonGlassButton>
           {pageNav?.hasPrev && (
             <NeonGlassButton accent onClick={pageNav.onPrev}>← назад</NeonGlassButton>
@@ -51,6 +55,9 @@ const ControlBar: React.FC<ControlBarProps> = ({ mode, setMode, onAddWord, onRea
 
       {mode === "reading" && (
         <>
+          <span style={{ color: "rgba(255,255,255,0.92)", fontSize: "0.92rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+            Всего слов: {entriesCount}
+          </span>
           <NeonGlassButton accent onClick={() => setMode("form")}>✏️ внести слово</NeonGlassButton>
           {pageNav?.hasPrev && (
             <NeonGlassButton accent onClick={pageNav.onPrev}>← назад</NeonGlassButton>

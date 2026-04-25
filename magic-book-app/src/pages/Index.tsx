@@ -324,67 +324,43 @@ const Index = () => {
     if (entriesSerializedRef.current === nextSerialized) return;
     entriesSerializedRef.current = nextSerialized;
 
-    if (entries.length > 0) {
-      localStorage.setItem("magic-book-entries", nextSerialized);
-      return;
+    try {
+      if (entries.length > 0) {
+        localStorage.setItem("magic-book-entries", nextSerialized);
+        return;
+      }
+      if (!seedHydrationDoneRef.current) return;
+      localStorage.setItem("magic-book-entries", "[]");
+    } catch (error) {
+      // Не даём эффекту уронить UI при переполнении localStorage (большие скрины/base64).
+      console.error("Не удалось сохранить magic-book-entries в localStorage", error);
     }
-    if (!seedHydrationDoneRef.current) return;
-    localStorage.setItem("magic-book-entries", "[]");
   }, [entries]);
 
   useEffect(() => {
-    if (localStorage.getItem(SEED_STORAGE_KEY) === "1") {
-      seedHydrationDoneRef.current = true;
-      return;
-    }
-
-    let cancelled = false;
-    void fetch(SEED_ENTRIES_URL)
-      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
-      .then((data) => {
-        if (cancelled) return;
-        const seed = removeTestEntries(parseSeedBackupEntries(data));
-        if (!seed.length) return;
-
-        const seedKeySet = new Set(seed.map((e) => wordKey(e.word)));
-
-        const readSaved = (): Entry[] => {
-          const raw = localStorage.getItem("magic-book-entries");
-          if (!raw) return [];
-          try {
-            const parsed = JSON.parse(raw) as unknown;
-            return Array.isArray(parsed) ? (parsed as Entry[]) : [];
-          } catch {
-            return [];
-          }
-        };
-
-        const saved = removeTestEntries(readSaved());
-        const extras = saved.filter((e) => !seedKeySet.has(wordKey(e.word)));
-        const extrasDeduped = dedupeIdenticalImages(extras);
-        const legacy = parseLegacyVibeWords();
-        const merged = removeTestEntries(mergeUniqueByWord(seed, mergeUniqueByWord(extrasDeduped, legacy)));
-        setEntries(merged);
-        localStorage.setItem(SEED_STORAGE_KEY, "1");
-      })
-      .catch(() => {
-        /* ignore */
-      })
-      .finally(() => {
-        if (cancelled) return;
-        seedHydrationDoneRef.current = true;
-      });
-
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- однократная миграция/гидратация из экспорта
+    // Режим накопления: никаких автоподмешиваний «базы 46».
+    // Счётчик и книга всегда работают от фактического накопленного списка.
+    seedHydrationDoneRef.current = true;
   }, []);
 
   /** Р’С…РѕРґ РёР· SLOVAR_02: РґРµС‚РµСЂРјРёРЅРёСЂРѕРІР°РЅРЅРѕ РѕС‚РєСЂС‹РІР°РµРј С„РѕСЂРјСѓ РІРЅРµСЃРµРЅРёСЏ СЃР»РѕРІ (Р±РµР· РїСЂРѕРјРµР¶СѓС‚РѕС‡РЅРѕРіРѕ preview). */
   useEffect(() => {
     const entry = searchParams.get("entry");
     const screen = searchParams.get("screen");
+
+    // Локально фиксируем единый origin для словаря (5501), чтобы не терять накопление
+    // из-за разных localStorage на 8080 и 5501.
+    if (entry === "slovar" && typeof window !== "undefined") {
+      const host = window.location.hostname;
+      const isLocal = host === "localhost" || host === "127.0.0.1";
+      if (isLocal && window.location.port !== "5501") {
+        const target = new URL(window.location.href);
+        target.port = "5501";
+        window.location.replace(target.toString());
+        return;
+      }
+    }
+
     if (entry === "slovar" && screen === "form") {
       setMode("form");
       return;
@@ -614,6 +590,7 @@ const Index = () => {
       {/* Кольца курсора — на всех экранах; логотип AI: форма и чтение, не intro/final/оживление/руки/панель гимна */}
       <GlobalVibeShell
         banner={false}
+        showRings={mode !== "form"}
         showLogo={
           mode !== "intro" &&
           mode !== "final" &&
@@ -641,6 +618,7 @@ const Index = () => {
           onReadBook={handleStartReadFlow}
           onShare={handleShare}
           pageNav={pageNav}
+          entriesCount={entries.length}
         />
       )}
     </div>

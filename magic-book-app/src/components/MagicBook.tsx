@@ -27,7 +27,7 @@ interface MagicBookProps {
 
 const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: MagicBookProps) => {
   /** Скрины в правой колонке (каталог) — ограничены рабочей областью страницы */
-  const CATALOG_IMAGE_MAX_HEIGHT = 120;
+  const CATALOG_IMAGE_MAX_HEIGHT = 320;
   const ENTRY_GRID_COLS = "minmax(4.75rem, 4.75rem) minmax(0, 1fr)";
   const requestMusicDuck = useCallback((holdMs = 1000) => {
     window.dispatchEvent(new CustomEvent("magicbook:duck-audio", { detail: { holdMs } }));
@@ -157,7 +157,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
         const numCell = document.createElement("div");
         numCell.style.cssText =
-          "font-size:1.25rem;font-weight:700;line-height:1.18;font-style:italic;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif;color:#120c34";
+          "font-size:1.4rem;font-weight:800;line-height:1.2;font-style:italic;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif;color:#120c34";
         numCell.textContent = `${i + 1}.`;
         wrap.appendChild(numCell);
 
@@ -166,13 +166,13 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
         const title = document.createElement("div");
         title.style.cssText =
-          "font-size:1.25rem;font-weight:700;line-height:1.18;text-align:left;font-style:italic;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
+          "font-size:1.4rem;font-weight:800;line-height:1.2;text-align:left;font-style:italic;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
         title.textContent = entries[i].word;
         body.appendChild(title);
 
         if (entries[i].description) {
           const desc = document.createElement("div");
-          desc.style.cssText = "font-size:1rem;line-height:1.18;text-align:left;overflow-wrap:anywhere;word-break:break-word";
+          desc.style.cssText = "font-size:1.1rem;line-height:1.26;text-align:left;overflow-wrap:anywhere;word-break:break-word";
           desc.textContent = `— ${entries[i].description.replace(/^[—-]\s*/, "").replace(/\s+/g, " ").trim()}`;
           body.appendChild(desc);
         }
@@ -234,32 +234,57 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
   }, [entries, playFlipSound]);
 
   const handleSave = useCallback(() => {
-    if (!word.trim()) return;
+    const normalizedInputWord = word.trim();
+    if (!normalizedInputWord) return;
+    const normalizedDesc = description.trim().replace(/^[—-]\s*/, "");
+    const normalizeKey = (s: string) => s.trim().toLowerCase().replace(/[^a-zа-яё0-9]/gi, "");
 
-    // Duplicate check (only for new entries)
-    if (editIdx === null) {
-      const normalize = (s: string) => s.trim().toLowerCase().replace(/[^a-zР°-СЏС‘0-9]/gi, "");
-      const isDuplicate = entriesRef.current.some(
-        (e) => normalize(e.word) === normalize(word)
-      );
-      if (isDuplicate) {
-        setShowDuplicateOverlay(true);
-        setTimeout(() => setShowDuplicateOverlay(false), 1500);
-        return;
-      }
+    // Duplicate check:
+    // - when creating: against all entries
+    // - when editing: against all entries except the edited one
+    const isDuplicate = entriesRef.current.some((e, idx) => {
+      if (editIdx !== null && idx === editIdx) return false;
+      return normalizeKey(e.word) === normalizeKey(normalizedInputWord);
+    });
+    if (isDuplicate) {
+      setShowDuplicateOverlay(true);
+      setTimeout(() => setShowDuplicateOverlay(false), 1500);
+      return;
     }
 
+    // In edit mode:
+    // - if key unchanged -> update existing entry
+    // - if key changed   -> add as NEW entry (to avoid silent overwrite and lost count)
     if (editIdx !== null) {
-      setEntries((prev) => {
-        const copy = [...prev];
-        copy[editIdx] = { ...copy[editIdx], word: word.trim(), description: description.trim().replace(/^[—-]\s*/, ""), images: pastedImages };
-        return copy;
-      });
-      setEditIdx(null);
+      const original = entriesRef.current[editIdx];
+      const sameKey = original && normalizeKey(original.word) === normalizeKey(normalizedInputWord);
+      if (sameKey) {
+        setEntries((prev) => {
+          const copy = [...prev];
+          copy[editIdx] = { ...copy[editIdx], word: normalizedInputWord, description: normalizedDesc, images: pastedImages };
+          return copy;
+        });
+        setEditIdx(null);
+      } else {
+        setEntries((prev) => [
+          ...prev,
+          {
+            word: normalizedInputWord,
+            description: normalizedDesc,
+            reactions: { fire: 0, love: 0, rocket: 0, laugh: 0, like: 0 },
+            images: pastedImages,
+          },
+        ]);
+      }
     } else {
       setEntries((prev) => [
         ...prev,
-        { word: word.trim(), description: description.trim().replace(/^[—-]\s*/, ""), reactions: { fire: 0, love: 0, rocket: 0, laugh: 0, like: 0 }, images: pastedImages },
+        {
+          word: normalizedInputWord,
+          description: normalizedDesc,
+          reactions: { fire: 0, love: 0, rocket: 0, laugh: 0, like: 0 },
+          images: pastedImages,
+        },
       ]);
     }
 
@@ -348,11 +373,11 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
       <div
         className="absolute z-[25] font-handwriting no-scroll"
         style={{
-          left: "18.4%",
+          left: "22.2%",
           top: "20.35%",
-          width: "26.7%",
+          width: "24.9%",
           height: "54.9%",
-          padding: "10px 6px 22px 2px",
+          padding: "10px 6px 22px 14px",
           boxSizing: "border-box",
           overflow: "hidden",
           display: "flex",
@@ -407,10 +432,33 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
         </div>
 
         {pastedImages.length > 0 && (
-          <div style={{ marginTop: 6, display: "flex", flexWrap: "wrap", gap: 6, maxHeight: 70, overflow: "hidden" }}>
+          <div
+            style={{
+              marginTop: 8,
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 8,
+              maxHeight: 260,
+              overflowY: "auto",
+              overflowX: "hidden",
+              alignContent: "flex-start",
+            }}
+          >
             {pastedImages.map((src, k) => (
               <div key={k} style={{ position: "relative" }}>
-                <img src={src} alt="" style={{ display: "block", maxHeight: 64, width: "auto", borderRadius: 4 }} />
+                <img
+                  src={src}
+                  alt=""
+                  style={{
+                    display: "block",
+                    maxHeight: 220,
+                    maxWidth: 240,
+                    width: "auto",
+                    height: "auto",
+                    objectFit: "contain",
+                    borderRadius: 4,
+                  }}
+                />
                 <button
                   type="button"
                   onClick={() => setPastedImages((prev) => prev.filter((_, idx) => idx !== k))}
@@ -487,9 +535,9 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
       <div
         className="absolute z-[15] font-handwriting no-scroll"
         style={{
-          left: "51.42%",
+          left: "49.9%",
           top: "20.35%",
-          width: "25.2%",
+          width: "23.7%",
           height: "54.9%",
           padding: "10px 10px 22px 0px",
           boxSizing: "border-box",
@@ -523,7 +571,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                       }}
                     >
                       <div
-                        className="text-xl tabular-nums leading-tight whitespace-nowrap box-border min-w-0 w-full"
+                        className="text-2xl tabular-nums leading-tight whitespace-nowrap box-border min-w-0 w-full"
                         style={{
                           fontFamily: "'Cormorant Garamond', serif",
                           fontStyle: "italic",
@@ -539,7 +587,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                       </div>
                       <div style={{ minWidth: 0, direction: "ltr", unicodeBidi: "plaintext" }}>
                         <div
-                          className="text-xl leading-tight"
+                          className="text-2xl leading-tight"
                           style={{
                             fontFamily: "'Cormorant Garamond', serif",
                             fontStyle: "italic",
@@ -557,7 +605,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                         </div>
                         {entry.description && (
                           <div
-                            className="font-handwriting text-base"
+                            className="font-handwriting text-lg"
                             style={{
                               color: "#1a103a",
                               textAlign: "left",
@@ -594,7 +642,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                     }}
                   >
                     <div
-                      className="text-xl tabular-nums leading-tight whitespace-nowrap box-border min-w-0 w-full ink-fresh"
+                      className="text-2xl tabular-nums leading-tight whitespace-nowrap box-border min-w-0 w-full ink-fresh"
                       style={{
                         fontFamily: "'Cormorant Garamond', serif",
                         fontStyle: "italic",
@@ -610,7 +658,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                     </div>
                     <div style={{ minWidth: 0, direction: "ltr", unicodeBidi: "plaintext" }}>
                       <div
-                        className="text-xl leading-tight"
+                        className="text-2xl leading-tight"
                         style={{
                           fontFamily: "'Cormorant Garamond', serif",
                           fontStyle: "italic",
@@ -628,7 +676,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
                       </div>
                       {description && (
                         <div
-                          className="font-handwriting text-base ink-fresh"
+                          className="font-handwriting text-lg ink-fresh"
                           style={{
                             color: "#1a103a",
                             textAlign: "left",

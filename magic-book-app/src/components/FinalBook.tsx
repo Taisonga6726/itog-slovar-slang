@@ -31,7 +31,7 @@ interface FinalBookProps {
 }
 
 const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) => {
-  const ENTRY_IMAGE_MAX_HEIGHT = 112;
+  const ENTRY_IMAGE_MAX_HEIGHT = 320;
   /** Жёсткая колонка номера (minmax фиксирует ширину трека) + tabular-nums — одна вертикаль для начала слов */
   const ENTRY_GRID_COLS = "minmax(4.75rem, 4.75rem) minmax(0, 1fr)";
   const requestMusicDuck = useCallback((holdMs = 1000) => {
@@ -93,7 +93,7 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
 
         const numCell = document.createElement("div");
         numCell.style.cssText =
-          "font-size:1.25rem;font-weight:700;line-height:1.14;font-style:italic;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif;color:#120c34";
+          "font-size:1.4rem;font-weight:800;line-height:1.22;font-style:italic;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;font-family:'Cormorant Garamond',serif;color:#120c34";
         numCell.textContent = `${entryIndex + 1}.`;
         wrap.appendChild(numCell);
 
@@ -102,13 +102,13 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
 
         const title = document.createElement("div");
         title.style.cssText =
-          "font-size:1.25rem;font-weight:700;line-height:1.14;font-style:italic;text-align:left;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
+          "font-size:1.4rem;font-weight:800;line-height:1.22;font-style:italic;text-align:left;overflow-wrap:anywhere;word-break:break-word;font-family:'Cormorant Garamond',serif;color:#120c34";
         title.textContent = entries[entryIndex].word;
         body.appendChild(title);
 
         if (entries[entryIndex].description) {
           const desc = document.createElement("div");
-          desc.style.cssText = "font-size:1rem;line-height:1.14;text-align:left;overflow-wrap:anywhere;word-break:break-word";
+          desc.style.cssText = "font-size:1.1rem;line-height:1.24;text-align:left;overflow-wrap:anywhere;word-break:break-word;font-weight:600;color:#1a103a";
           desc.textContent = `— ${entries[entryIndex].description.replace(/^[—-]\s*/, "").replace(/\s+/g, " ").trim()}`;
           body.appendChild(desc);
         }
@@ -227,12 +227,12 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
       }}
     >
       <div
-        className="text-xl tabular-nums whitespace-nowrap box-border min-w-0 w-full"
+        className="text-2xl tabular-nums whitespace-nowrap box-border min-w-0 w-full"
         style={{
           color: "#120c34",
           fontFamily: "'Cormorant Garamond', serif",
           fontStyle: "italic",
-          lineHeight: "1.12",
+          lineHeight: "1.22",
           fontWeight: 800,
           textAlign: "right",
           fontVariantNumeric: "tabular-nums",
@@ -243,12 +243,12 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
       </div>
       <div style={{ minWidth: 0, direction: "ltr", unicodeBidi: "plaintext" }}>
         <div
-          className="text-xl w-full"
+          className="text-2xl w-full"
           style={{
             color: "#120c34",
             fontFamily: "'Cormorant Garamond', serif",
             fontStyle: "italic",
-            lineHeight: "1.12",
+            lineHeight: "1.22",
             textAlign: "left",
             fontWeight: 800,
             overflowWrap: "anywhere",
@@ -261,11 +261,11 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
         </div>
         {entry.description && (
           <div
-            className="text-base font-handwriting w-full"
+            className="text-lg font-handwriting w-full"
             style={{
               color: "#1a103a",
               textAlign: "left",
-              lineHeight: "1.14",
+              lineHeight: "1.24",
               fontWeight: 600,
               overflowWrap: "anywhere",
               wordBreak: "break-word",
