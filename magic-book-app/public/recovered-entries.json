@@ -1,0 +1,674 @@
+[
+  {
+    "word": "ВайБКОДчанин",
+    "description": "это человек, который проходит курс в школе SMM Ксении Барановой",
+    "reactions": {
+      "fire": 0,
+      "love": 1,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "КУРСОРчик",
+    "description": "друг ВайБКОДчанина, который помогает им создать свои проекты и осуществить свои идеи",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 1
+    },
+    "images": []
+  },
+  {
+    "word": "GITхабчик",
+    "description": "камера хранения проектов ВайБКОДчанина.",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Время кодить",
+    "description": "момент, когда кофе налит, мысли собрались, и мир подождёт, потому что сейчас рождается магия кода.",
+    "reactions": {
+      "fire": 1,
+      "love": 1,
+      "rocket": 1,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Коммит",
+    "description": "это когда ты нажал кнопку и такой: «ну всё, теперь либо гений, либо чинить до ночи».",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Запрос кинул в Claude",
+    "description": "священный ритуал вайбкодера: задал вопрос и ждёшь, как будто откроется портал знаний.",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "ЛовелАб в строю, всё на мази !",
+    "description": "значит проект жив, кнопки кликаются, и можно делать вид, что ты всё это контролируешь.",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Баги ловятся",
+    "description": "процесс, в котором ты сначала радуешься, что нашёл баг, а потом понимаешь, что он не один.",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Фреймворк шепчет",
+    "description": "когда всё работает так гладко, что кажется, будто код сам себя пишет.",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Код компилится",
+    "description": "редкий и прекрасный момент, когда ничего не сломалось (и ты немного в шоке).",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "API стучит",
+    "description": "это когда запросы летят туда-сюда, и ты надеешься, что сервер в хорошем настроении.",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Docker-контейнер",
+    "description": "магическая коробка, где всё работает… пока ты её не трогаешь.",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 1,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "CI/CD pipeline",
+    "description": "невидимый конвейер, который либо герой, либо причина ночных правок",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "АвтодеплОй",
+    "description": "когда ты нажал «запушить» и молишься, чтобы прод не загорелся",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 1,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Шлифуем код",
+    "description": "этап, где ты делаешь «красиво», хотя вчера и так «работало».",
+    "reactions": {
+      "fire": 1,
+      "love": 1,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "От багов избавим — и в прод идёт!",
+    "description": "боевой клич перед релизом, после которого начинается самое интересное.",
+    "reactions": {
+      "fire": 4,
+      "love": 1,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Пулл-реквест летит",
+    "description": "ты отправил код на суд, и теперь ждёшь приговора.",
+    "reactions": {
+      "fire": 1,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Ревью пройдено",
+    "description": "официальное разрешение считать себя молодцом (до следующего бага).",
+    "reactions": {
+      "fire": 0,
+      "love": 1,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Agile-спринт",
+    "description": "короткий забег, который почему-то всегда превращается в марафон.",
+    "reactions": {
+      "fire": 0,
+      "love": 1,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Продуктовый бэклог",
+    "description": "список «сделаем потом», который почему-то никогда не заканчивается.",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Комитит!!!",
+    "description": "состояние, когда ты уже не пишешь код, а просто фиксируешь реальность.",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "ПОП-АП!",
+    "description": "внезапное окно, которое появляется именно тогда, когда ты не готов.",
+    "reactions": {
+      "fire": 1,
+      "love": 1,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Изменения запушились",
+    "description": "опубликовали комит в гитХАб! — тот самый момент, когда назад дороги уже нет.",
+    "reactions": {
+      "fire": 2,
+      "love": 1,
+      "rocket": 1,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "В прод случайно — и оно работает\"",
+    "description": "= значит архитектура уже нормальная 💪",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Домен со своими ХОСТАМИ!",
+    "description": "просто домен с Хостами 😄",
+    "reactions": {
+      "fire": 1,
+      "love": 1,
+      "rocket": 1,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "APPROVE",
+    "description": "магическое действие, после которого всё внезапно «работает как надо», хотя ты до конца не понял, почему именно  побочный эффект:\nиногда ломает что-то другое… но это уже следующий APPROVE 😄",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "ПАГИНАЦИЯ",
+    "description": "искусство делить хаос на страницы,\nчтобы пользователь не сошёл с ума от одного длинного списка  в мире вайбкодера:\nесли страниц стало много — значит ты сделал что-то серьёзное !",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "👉 Кэш",
+    "description": "это временные файлы (картинки, куски сайтов), которые браузер сохраняет, чтобы страницы открывались быстрее.",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Задеплоил на авось",
+    "description": "момент, когда нажал deploy и пошёл пить чай, надеясь, что всё не упадёт",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Рефакторинг по настроению",
+    "description": "когда код работает… но тебе не нравится, как он чувствуется 😄",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Костыльчик",
+    "description": "временное решение, которое живёт дольше, чем весь проект",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Перезапусти и попробуй снова",
+    "description": "универсальное заклинание, которое иногда действительно работает 🧙‍♂️",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Из чата ChatGPT(🐿 Бурундучок)",
+    "description": "Когда сказал «сделаем одну маленькую фичу без багов» — и реально сделал 😏 без дополнительных ИТЕРАЦИЙ!",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 1,
+      "like": 4
+    },
+    "images": []
+  },
+  {
+    "word": "ИТЕРАЦИЯ",
+    "description": "бесконечный цикл «давай ещё чуть-чуть поправим». Иногда длится дольше, чем сама разработка 😄",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Из чата от Светочки!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 1,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "От ДЕНА БОНДА",
+    "description": "Пердечный Сристут можно словить😁 .- Захожу на сайт,а там...СЕМЁН ЭДИКОВИЧ и тд...и сообщение от неизвестного, , возможно сбой, попробуйте перезайти",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "От любимой ФЕИ Галюси!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "От Машеньки!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "От Оксанки!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "После зума!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "УЧИМ СЛОВА!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "ДОБРОЕ УТРО ВАЙБКОДЧАНЕ!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Ваньку валять!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Борьба с джи пи ти!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "В берлогу Вайбкодинга!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "От Светочки бабушки",
+    "description": "утро доброе!",
+    "reactions": {
+      "fire": 0,
+      "love": 1,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Любимый ГУРУ всегда снами!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Промпт танцы",
+    "description": "когда меняешь формулировку запроса, пока результат не станет нормальным.",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Фича или баг?",
+    "description": "философский вопрос разработки.",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "ПОСЛЕ ЗУМОВ!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "СЛЭНГ НАДО ПОНИМАТЬ!",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "вот вот",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Ночка веселая",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "А что так можно было?",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "ЧУМАЧЕЧИЕ КОДЕРЫ!😄",
+    "description": "",
+    "reactions": {
+      "fire": 0,
+      "love": 0,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  },
+  {
+    "word": "Работа кипит с БУРУНДУЧКОМ😄",
+    "description": "Бурундучок-это гениальное творение нашей  АНАСТАСИИ!✨",
+    "reactions": {
+      "fire": 0,
+      "love": 6,
+      "rocket": 0,
+      "laugh": 0,
+      "like": 0
+    },
+    "images": []
+  }
+]

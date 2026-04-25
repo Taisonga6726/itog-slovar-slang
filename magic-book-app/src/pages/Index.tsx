@@ -62,9 +62,13 @@ const Index = () => {
   const [luckyWheelOpen, setLuckyWheelOpen] = useState(false);
   const navigate = useNavigate();
   const SEED_ENTRIES_URL = "/tanya-vibecoder-backup-2026-04-18.json";
+  const RECOVERED_ENTRIES_URL = "/recovered-entries.json";
   /** v2: экспорт всегда подмешивается к сохранённому списку (слова из файла перекрывают старые), плюс срез дублей с одинаковыми картинками. */
   const SEED_STORAGE_KEY = "magic-book-seed-v2-applied";
   const HYMN_MUTED_STORAGE_KEY = "magic-book-hymn-muted";
+  const ENTRIES_STORAGE_KEY = "magic-book-entries";
+  const ENTRIES_LITE_BACKUP_KEY = "magic-book-entries-lite-backup";
+  const ENTRIES_MAX_COUNT_KEY = "magic-book-entries-max-count";
 
   const TEST_WORDS_TO_DROP = new Set(["мама"]);
 
@@ -170,21 +174,29 @@ const Index = () => {
     return out;
   };
 
+  const parseSavedEntries = (raw: string | null): Entry[] => {
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw) as unknown;
+      return Array.isArray(parsed) ? (parsed as Entry[]) : [];
+    } catch {
+      return [];
+    }
+  };
+
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<"intro" | "form" | "awakening" | "hands" | "reading" | "final">("intro");
   const [entries, setEntries] = useState<Entry[]>(() => {
-    const legacy = parseLegacyVibeWords();
-    const savedRaw = localStorage.getItem("magic-book-entries");
-    if (savedRaw) {
-      try {
-        const parsed = JSON.parse(savedRaw);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return removeTestEntries(mergeUniqueByWord(parsed as Entry[], legacy));
-        }
-      } catch {
-        // РЅРёР¶Рµ вЂ” РјРёРіСЂР°С†РёСЏ РёР· СЃР»РѕРІР°СЂСЏ
-      }
+    // Приоритет: существующая база пользователя (main) -> компактный backup -> legacy.
+    // Правило: не возвращаться к началу, если база уже была сохранена.
+    const savedMain = parseSavedEntries(localStorage.getItem(ENTRIES_STORAGE_KEY));
+    const savedLite = parseSavedEntries(localStorage.getItem(ENTRIES_LITE_BACKUP_KEY));
+    const preferredSaved = savedMain.length >= savedLite.length ? savedMain : savedLite;
+    if (preferredSaved.length > 0) {
+      return removeTestEntries(preferredSaved);
     }
+
+    const legacy = parseLegacyVibeWords();
     return removeTestEntries(legacy);
   });
 
@@ -326,21 +338,76 @@ const Index = () => {
 
     try {
       if (entries.length > 0) {
-        localStorage.setItem("magic-book-entries", nextSerialized);
+        // Основная база слов: только добавляем/обновляем текущее состояние.
+        localStorage.setItem(ENTRIES_STORAGE_KEY, nextSerialized);
+
+        // Компактный backup без base64-картинок (защита от переполнения localStorage).
+        const liteBackup = entries.map((entry) => ({
+          ...entry,
+          images: [],
+        }));
+        localStorage.setItem(ENTRIES_LITE_BACKUP_KEY, JSON.stringify(liteBackup));
+
+        const prevMax = Number(localStorage.getItem(ENTRIES_MAX_COUNT_KEY) || "0");
+        if (entries.length > prevMax) {
+          localStorage.setItem(ENTRIES_MAX_COUNT_KEY, String(entries.length));
+        }
         return;
       }
-      if (!seedHydrationDoneRef.current) return;
-      localStorage.setItem("magic-book-entries", "[]");
     } catch (error) {
       // Не даём эффекту уронить UI при переполнении localStorage (большие скрины/base64).
       console.error("Не удалось сохранить magic-book-entries в localStorage", error);
     }
-  }, [entries]);
+  }, [entries, ENTRIES_LITE_BACKUP_KEY, ENTRIES_MAX_COUNT_KEY, ENTRIES_STORAGE_KEY]);
 
   useEffect(() => {
-    // Режим накопления: никаких автоподмешиваний «базы 46».
-    // Счётчик и книга всегда работают от фактического накопленного списка.
-    seedHydrationDoneRef.current = true;
+    // Если база пустая, аварийно поднимаем seed, чтобы словарь не был "0 слов".
+    if (entries.length > 0) {
+      seedHydrationDoneRef.current = true;
+      return;
+    }
+
+    let cancelled = false;
+    void fetch(SEED_ENTRIES_URL)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then((data) => {
+        if (cancelled) return;
+        const seed = removeTestEntries(parseSeedBackupEntries(data));
+        if (!seed.length) return;
+        setEntries(seed);
+      })
+      .catch(() => {
+        /* ignore */
+      })
+      .finally(() => {
+        if (cancelled) return;
+        seedHydrationDoneRef.current = true;
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [entries.length]);
+
+  useEffect(() => {
+    // Восстановление из офлайн-дампа браузера (если он полнее текущего состояния).
+    let cancelled = false;
+    void fetch(RECOVERED_ENTRIES_URL)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then((data) => {
+        if (cancelled) return;
+        const recovered = removeTestEntries(parseSeedBackupEntries(data));
+        if (!recovered.length) return;
+        if (recovered.length <= entries.length) return;
+        setEntries((prev) => removeTestEntries(mergeUniqueByWord(recovered, prev)));
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /** Р’С…РѕРґ РёР· SLOVAR_02: РґРµС‚РµСЂРјРёРЅРёСЂРѕРІР°РЅРЅРѕ РѕС‚РєСЂС‹РІР°РµРј С„РѕСЂРјСѓ РІРЅРµСЃРµРЅРёСЏ СЃР»РѕРІ (Р±РµР· РїСЂРѕРјРµР¶СѓС‚РѕС‡РЅРѕРіРѕ preview). */
