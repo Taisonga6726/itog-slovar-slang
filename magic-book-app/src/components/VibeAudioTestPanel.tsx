@@ -4,6 +4,7 @@ import { Download, Play, Pause, X } from "lucide-react";
 import { HYMN_TRACKS, type HymnTrack } from "@/data/hymnTracks";
 import NeonGlassButton from "@/components/NeonGlassButton";
 import MagicRingsGlobal from "@/components/MagicRingsGlobal";
+import DigitalCodeBackdrop from "@/components/DigitalCodeBackdrop";
 import VibeAiLogoMark, { VIBE_AI_LOGO_SRC } from "@/components/VibeAiLogoMark";
 import { cn } from "@/lib/utils";
 
@@ -392,6 +393,11 @@ export default function VibeAudioTestPanel({
           className="h-auto max-h-[100dvh] w-full max-w-[min(1600px,100vw)] select-none object-contain object-bottom"
           draggable={false}
         />
+      </div>
+
+      {/* Экран 8: матрица равномерно по всему экрану, мягкий темп */}
+      <div className="pointer-events-none fixed inset-0 z-[1]">
+        <DigitalCodeBackdrop opacity={0.55} variant="full" />
       </div>
 
       {/* Неоновые кольца у курсора — как на 1-м экране; глобальный слой ниже z панели, поэтому дубль только здесь */}
