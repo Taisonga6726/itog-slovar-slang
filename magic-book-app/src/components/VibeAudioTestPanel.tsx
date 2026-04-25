@@ -448,6 +448,47 @@ export default function VibeAudioTestPanel({
             </div>
           </div>
 
+          {/* Авторская подпись/метка в золотом свечении (десктоп) */}
+          <div
+            className="pointer-events-none hidden lg:block"
+            style={{
+              position: "absolute",
+              left: "2.8rem",
+              bottom: "3.9rem",
+              width: "18.2rem",
+              zIndex: 275,
+            }}
+          >
+            <div
+              style={{
+                borderRadius: "14px",
+                border: "1px solid rgba(255, 220, 130, 0.62)",
+                background:
+                  "linear-gradient(135deg, rgba(42, 22, 84, 0.78) 0%, rgba(32, 14, 66, 0.72) 55%, rgba(21, 10, 48, 0.68) 100%)",
+                boxShadow:
+                  "0 0 22px rgba(176,117,255,0.42), 0 0 34px rgba(95,244,255,0.28), inset 0 0 18px rgba(255, 214, 102, 0.2)",
+                minHeight: "6.2rem",
+                padding: "10px 12px",
+                color: "#f7d778",
+                textShadow:
+                  "0 0 6px rgba(255, 214, 102, 0.8), 0 0 14px rgba(244, 180, 70, 0.55), 0 0 24px rgba(216, 140, 35, 0.32)",
+                fontFamily: "'Cormorant Garamond', serif",
+                fontStyle: "italic",
+                lineHeight: 1.12,
+                backdropFilter: "blur(2px)",
+                textAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+              }}
+            >
+              <p style={{ margin: 0, fontSize: "0.98rem", fontWeight: 700 }}>Слова, вокал (реальный живой голос)</p>
+              <p style={{ margin: "2px 0 0", fontSize: "1.22rem", fontWeight: 700 }}>Таня Гайдук</p>
+              <p style={{ margin: "4px 0 0", fontSize: "0.94rem", fontWeight: 600 }}>Аранжировка - SUNO 5</p>
+              <p style={{ margin: "2px 0 0", fontSize: "0.9rem", fontWeight: 600 }}>Дата создания альбома - 11.04.2026 г.</p>
+            </div>
+          </div>
+
           {(onBackToBook || onPlayGame || onEnterWord) && (
             <div className="mt-2 flex shrink-0 flex-wrap items-center justify-center gap-2 pt-2 sm:mt-3 sm:gap-3 sm:pt-3 lg:-mt-[6rem] lg:w-[min(35vw,430px)] lg:self-center lg:flex-nowrap lg:justify-between lg:gap-2 lg:pt-0">
               {onBackToBook && (

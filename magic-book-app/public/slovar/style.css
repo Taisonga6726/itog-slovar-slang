@@ -1931,6 +1931,62 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   background: transparent !important;
 }
 
+/* Screen 2 only: matrix background layer under the book */
+.scene-stage.scene--step2-visual::before,
+.scene-stage.scene--step2-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.scene-stage.scene--step2-visual::before {
+  z-index: 0;
+  background:
+    linear-gradient(180deg, rgba(10, 6, 26, 0.34) 0%, rgba(8, 4, 22, 0.14) 50%, rgba(10, 6, 26, 0.32) 100%),
+    repeating-linear-gradient(
+      90deg,
+      rgba(108, 248, 255, 0.2) 0 1px,
+      rgba(0, 0, 0, 0) 1px 11px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      rgba(122, 255, 178, 0.16) 0 1px,
+      rgba(0, 0, 0, 0) 1px 14px
+    );
+  animation: step2-matrix-columns 9s linear infinite;
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+.scene-stage.scene--step2-visual::after {
+  z-index: 0;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      rgba(196, 136, 255, 0.28) 0 2px,
+      rgba(0, 0, 0, 0) 2px 16px
+    ),
+    repeating-linear-gradient(
+      180deg,
+      rgba(108, 248, 255, 0.22) 0 2px,
+      rgba(0, 0, 0, 0) 2px 22px
+    );
+  animation: step2-matrix-rain 7.2s linear infinite;
+  mix-blend-mode: screen;
+  opacity: 0.58;
+}
+
+@keyframes step2-matrix-columns {
+  0% { background-position: 0 0, 0 0, 0 0; }
+  100% { background-position: 0 0, 120px 0, -160px 0; }
+}
+
+@keyframes step2-matrix-rain {
+  0% { background-position: 0 0, 0 0; }
+  100% { background-position: 0 200px, 0 260px; }
+}
+
 /* Экран 2: возвращаем центрированную геометрию разворота (без «пустого низа»). */
 .scene-stage.scene--step2-visual .book-slot {
   left: 50%;
