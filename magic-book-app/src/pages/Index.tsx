@@ -2,6 +2,7 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Volume2, VolumeX } from "lucide-react";
 import FloatingWords from "@/components/FloatingWords";
+import DigitalCodeBackdrop from "@/components/DigitalCodeBackdrop";
 import MagicBook from "@/components/MagicBook";
 import FinalBook from "@/components/FinalBook";
 import FinalScreen from "@/components/FinalScreen";
@@ -47,6 +48,22 @@ interface SeedBackupEntry {
     like?: number;
   };
 }
+
+const stripDocxArtifacts = (value: string): string =>
+  value
+    .replace(/<[^>]*>/g, " ")
+    .replace(/&lt;[^&]*&gt;/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const isDocxTechnicalGarbage = (value: string): boolean =>
+  /(w:tab|w:pict|w14:|anchorid|_x0000|<\/?w:|<\/?v:|xmlns|style=|rsidrpr)/i.test(value);
+
+const sanitizeEntryText = (entry: Entry): Entry => ({
+  ...entry,
+  word: stripDocxArtifacts(String(entry.word || "")),
+  description: stripDocxArtifacts(String(entry.description || "")),
+});
 
 interface PageNav {
   hasPrev: boolean;
@@ -136,8 +153,12 @@ const Index = () => {
     if (!Array.isArray(raw)) return [];
     return raw
       .map((item: SeedBackupEntry) => {
-        const word = String(item?.word || "").trim();
-        const description = String(item?.description || "").trim();
+        const rawWord = String(item?.word || "").trim();
+        const rawDescription = String(item?.description || "").trim();
+        if (isDocxTechnicalGarbage(rawWord) || isDocxTechnicalGarbage(rawDescription)) return null;
+
+        const word = stripDocxArtifacts(rawWord);
+        const description = stripDocxArtifacts(rawDescription);
         if (!word) return null;
         const imgs = Array.isArray(item?.images) ? item.images : [];
         const images = imgs.filter((img): img is string => typeof img === "string" && img.trim().length > 0);
@@ -180,7 +201,11 @@ const Index = () => {
     if (!raw) return [];
     try {
       const parsed = JSON.parse(raw) as unknown;
-      return Array.isArray(parsed) ? (parsed as Entry[]) : [];
+      return Array.isArray(parsed)
+        ? (parsed as Entry[])
+            .filter((entry) => !isDocxTechnicalGarbage(String(entry?.word || "")) && !isDocxTechnicalGarbage(String(entry?.description || "")))
+            .map(sanitizeEntryText)
+        : [];
     } catch {
       return [];
     }
@@ -201,6 +226,17 @@ const Index = () => {
     const legacy = parseLegacyVibeWords();
     return removeTestEntries(legacy);
   });
+
+  useEffect(() => {
+    const cleaned = entries
+      .filter((entry) => !isDocxTechnicalGarbage(String(entry?.word || "")) && !isDocxTechnicalGarbage(String(entry?.description || "")))
+      .map(sanitizeEntryText);
+    const oldSerialized = JSON.stringify(entries);
+    const cleanedSerialized = JSON.stringify(cleaned);
+    if (oldSerialized !== cleanedSerialized) {
+      setEntries(cleaned);
+    }
+  }, [entries]);
 
   const entriesSerializedRef = useRef<string>(JSON.stringify(entries));
 
@@ -641,6 +677,13 @@ const Index = () => {
       )}
       {mode === "reading" && (
         <FinalBook entries={entries} setEntries={setEntries} onBack={() => setMode("form")} onPageNav={handlePageNav} />
+      )}
+
+      {(mode === "form" || mode === "reading") && (
+        <div className="fixed inset-0 pointer-events-none" style={{ zIndex: 90 }}>
+          <DigitalCodeBackdrop opacity={0.72} />
+          <FloatingWords />
+        </div>
       )}
 
       {mode === "final" && (
