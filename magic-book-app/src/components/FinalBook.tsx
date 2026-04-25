@@ -183,8 +183,14 @@ const FinalBook = ({ entries, setEntries, onBack, onPageNav }: FinalBookProps) =
     onPageNav?.({
       hasPrev: currentSpread > 0,
       hasNext: currentSpread < totalSpreads - 1,
-      onPrev: () => { playFlipSound(); setCurrentSpread(s => s - 1); },
-      onNext: () => { playFlipSound(); setCurrentSpread(s => s + 1); },
+      onPrev: () => {
+        playFlipSound();
+        setCurrentSpread((s) => Math.max(0, s - 1));
+      },
+      onNext: () => {
+        playFlipSound();
+        setCurrentSpread((s) => Math.min(totalSpreads - 1, s + 1));
+      },
     });
   }, [currentSpread, totalSpreads, onPageNav, playFlipSound]);
 

@@ -63,12 +63,14 @@ const Index = () => {
   const navigate = useNavigate();
   const SEED_ENTRIES_URL = "/tanya-vibecoder-backup-2026-04-18.json";
   const RECOVERED_ENTRIES_URL = "/recovered-entries.json";
+  const DOCX_RECOVERED_ENTRIES_URL = "/docx-catalog-recovered.json";
   /** v2: экспорт всегда подмешивается к сохранённому списку (слова из файла перекрывают старые), плюс срез дублей с одинаковыми картинками. */
   const SEED_STORAGE_KEY = "magic-book-seed-v2-applied";
   const HYMN_MUTED_STORAGE_KEY = "magic-book-hymn-muted";
   const ENTRIES_STORAGE_KEY = "magic-book-entries";
   const ENTRIES_LITE_BACKUP_KEY = "magic-book-entries-lite-backup";
   const ENTRIES_MAX_COUNT_KEY = "magic-book-entries-max-count";
+  const DOCX_IMPORT_APPLIED_KEY = "magic-book-docx-import-applied";
 
   const TEST_WORDS_TO_DROP = new Set(["мама"]);
 
@@ -400,6 +402,28 @@ const Index = () => {
         if (!recovered.length) return;
         if (recovered.length <= entries.length) return;
         setEntries((prev) => removeTestEntries(mergeUniqueByWord(recovered, prev)));
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // Одноразовый импорт слов+скринов из DOCX-каталога пользователя.
+    if (localStorage.getItem(DOCX_IMPORT_APPLIED_KEY) === "1") return;
+    let cancelled = false;
+    void fetch(DOCX_RECOVERED_ENTRIES_URL)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then((data) => {
+        if (cancelled) return;
+        const imported = removeTestEntries(parseSeedBackupEntries(data));
+        if (!imported.length) return;
+        setEntries((prev) => removeTestEntries(mergeUniqueByWord(prev, imported)));
+        localStorage.setItem(DOCX_IMPORT_APPLIED_KEY, "1");
       })
       .catch(() => {
         /* ignore */
