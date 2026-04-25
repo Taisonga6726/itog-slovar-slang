@@ -48,7 +48,6 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
   const [showFinishOverlay, setShowFinishOverlay] = useState(false);
   const [fadingOut, setFadingOut] = useState(false);
   const [pageBreaks, setPageBreaks] = useState<number[]>([0]);
-  const [editTarget, setEditTarget] = useState("");
 
   const penAudio = useRef<HTMLAudioElement | null>(null);
   const flipAudio = useRef<HTMLAudioElement | null>(null);
@@ -307,9 +306,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
 
   const handleEdit = useCallback(() => {
     if (entries.length === 0) return;
-    const parsed = Number.parseInt(editTarget.trim(), 10);
-    const hasTarget = Number.isFinite(parsed) && parsed >= 1 && parsed <= entries.length;
-    const targetIdx = hasTarget ? parsed - 1 : entries.length - 1;
+    const targetIdx = entries.length - 1;
     const entry = entries[targetIdx];
     if (!entry) return;
     setWord(entry.word);
@@ -317,7 +314,7 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
     setPastedImages(entry.images ?? []);
     setEditIdx(targetIdx);
     setTimeout(() => descRef.current?.focus(), 50);
-  }, [entries, editTarget]);
+  }, [entries]);
 
   const handleDescPaste = useCallback((e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     const items = e.clipboardData?.items;
@@ -482,17 +479,6 @@ const MagicBook = ({ entries, setEntries, onOpenCatalog, onFinish, onPageNav }: 
         )}
 
         <div style={{ marginTop: "auto", width: "100%" }} className="pt-1 pb-1 flex justify-end items-center gap-2 pr-2">
-          <input
-            type="number"
-            min={1}
-            max={Math.max(1, entries.length)}
-            value={editTarget}
-            onChange={(e) => setEditTarget(e.target.value)}
-            placeholder={`№ (1-${Math.max(1, entries.length)})`}
-            aria-label="Номер записи для редактирования"
-            className="magic-input font-handwriting text-sm"
-            style={{ width: 92, padding: "2px 6px", height: 26 }}
-          />
           <span className="action-text cursor-pointer font-handwriting text-base font-medium" onClick={handleSave}>сохранить</span>
           <span className="font-handwriting text-base font-medium" style={{ color: "hsl(var(--ink) / 0.3)" }}>|</span>
           <span className="action-text cursor-pointer font-handwriting text-base font-medium" onClick={handleEdit}>редактировать</span>
