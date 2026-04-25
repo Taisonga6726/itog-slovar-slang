@@ -2521,6 +2521,7 @@ void main() {
 
         const hymnAudioEl = document.getElementById("hymnAudio");
         const btnHymnToggle = document.getElementById("btnHymnToggle");
+        const hymnToggleEnabled = !(window.parent && window.parent !== window);
 
         function syncHymnToggleUi() {
           if (!hymnAudioEl || !btnHymnToggle) return;
@@ -2533,7 +2534,8 @@ void main() {
         function updateHymnToggleForScreen(screenId) {
           if (!btnHymnToggle) return;
           const show =
-            screenId === "screen3" || screenId === "screen4" || screenId === "screen5";
+            hymnToggleEnabled &&
+            (screenId === "screen3" || screenId === "screen4" || screenId === "screen5");
           btnHymnToggle.hidden = !show;
           btnHymnToggle.setAttribute("aria-hidden", show ? "false" : "true");
           if (show) syncHymnToggleUi();
@@ -2602,6 +2604,7 @@ void main() {
 
         if (hymnAudioEl && btnHymnToggle) {
           btnHymnToggle.addEventListener("click", () => {
+            if (!hymnToggleEnabled) return;
             if (hymnAudioEl.paused) {
               hymnAudioEl.play().catch(() => {});
             } else {
@@ -2840,6 +2843,15 @@ void main() {
               /* ignore */
             }
           }
+        }
+        // Быстрый просмотр шага 2: /slovar/index.html?preview=step2
+        try {
+          const qs = new URLSearchParams(window.location.search || "");
+          if (qs.get("preview") === "step2") {
+            showBookInstantly();
+          }
+        } catch (_) {
+          /* ignore */
         }
         // Первый экран всегда статичный: без автоперехода в раскрытую книгу при открытии файла.
         // Переход в книгу только после явного ввода кода и клика по зоне книги.

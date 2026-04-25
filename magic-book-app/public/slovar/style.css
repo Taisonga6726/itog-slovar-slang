@@ -23,17 +23,11 @@
 }
 
 /* РўРѕР»СЊРєРѕ С€Р°Рі В«РєР°СЂС‚РёРЅРєР° + Р’Р’Р•РЎРўР РЎР›РћР’РћВ»: Р±РµР· СЌР»РµРєС‚СЂРёРєРё/С‡Р°СЃС‚РёС† РЅР°Рґ СЂР°Р·РІРѕСЂРѕС‚РѕРј вЂ” С‚РёС…Р°СЏ Р·РѕРЅР° AI */
-.scene-stage.scene--book-open.scene--step2-visual #bookElectricFxCanvas,
-.scene-stage.scene--book-open.scene--step2-visual .book-electric-fx-canvas,
-.scene-stage.scene--book-open.scene--step2-visual .magic-overlay,
-.scene-stage.scene--book-open.scene--step2-visual #particles,
 .scene-stage.scene--book-open.scene--step2-visual .book-open-ai-logo-rays,
 .scene-stage.scene--book-open.scene--step2-visual .book-open-ai-logo-rays__mask,
 .scene-stage.scene--book-open.scene--step2-visual .book-open-ai-logo-rays__sweep,
 .scene-stage.scene--book-open.scene--step2-visual .ai-logo-hotspot--book,
-.scene-stage.scene--book-open.scene--step2-visual #pageLightBurst,
-.scene-stage.scene--book-open.scene--step2-visual #bookFxFlash,
-.scene-stage.scene--book-open.scene--step2-visual .magic-float-words--book {
+.scene-stage.scene--book-open.scene--step2-visual #tzVibeAiBrand {
   display: none !important;
   opacity: 0 !important;
   visibility: hidden !important;
@@ -91,6 +85,7 @@
   --dur-book-in: 0.9s;
   --dur-page-turn: 0.85s;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --cover-fit-gap: clamp(24px, 4vh, 52px);
   --book-drop:
     0 32px 64px rgba(0, 0, 0, 0.62),
     0 14px 28px rgba(0, 0, 0, 0.295),
@@ -191,17 +186,17 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   width: 100%;
   max-width: 100vw;
 }
 
 .scene-stage {
-  width: min(100vw, calc(100dvh * 16 / 9));
+  width: min(100vw, calc((100dvh - var(--safe-bottom) - var(--cover-fit-gap)) * 16 / 9));
   max-width: none;
   aspect-ratio: 16 / 9;
   height: auto;
-  max-height: 100dvh;
+  max-height: calc(100dvh - var(--safe-bottom) - var(--cover-fit-gap));
   position: relative;
   border-radius: 0;
   overflow: visible;
@@ -1917,6 +1912,48 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   pointer-events: none;
 }
 
+/* Экран 2: геометрия 1-в-1 как у экрана 1 (полный scene-stage + contain). */
+.scene-stage.scene--step2-visual .book-slot {
+  left: 0;
+  top: 0;
+  bottom: auto;
+  transform: none;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  aspect-ratio: auto;
+}
+
+.scene-stage.scene--step2-visual .book-open-layer {
+  inset: 0;
+}
+
+.scene-stage.scene--step2-visual .book-image-wrap {
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.scene-stage.scene--step2-visual .book-image-wrap > .book-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+}
+
+/* Важно: ниже в файле есть правило с #bookImageWrap ... height:auto; для step2 перебиваем его более точечно. */
+#sceneStage.scene--step2-visual #bookImageWrap.book-ui > .book-image {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  background: transparent !important;
+  object-fit: contain;
+  object-position: center center;
+}
+
 /* Р’Р°СЂРёР°РЅС‚ B: РЅРµРѕРЅРѕРІС‹Рµ Р»СѓС‡Рё/РёСЃРєСЂС‹ РїРѕРІРµСЂС… РєР°СЂС‚РёРЅРєРё 2 */
 .book-electric-fx-canvas {
   position: absolute;
@@ -3559,6 +3596,8 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .tz-screen {

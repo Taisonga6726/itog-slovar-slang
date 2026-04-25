@@ -39,13 +39,14 @@ export default function IntroSlovarEmbed({ onOpenForm, onBookHymnStart, onResetH
   }, [onOpenForm, onBookHymnStart, onResetHymn]);
 
   return (
-    <div className="fixed inset-0 bg-black">
+    <div className="fixed inset-0 overflow-hidden bg-black">
       <iframe
         ref={iframeRef}
         title="SLOVAR Intro"
         src="/slovar/index.html"
-        className="w-full h-full border-0"
+        className="block h-full w-full border-0"
         allow="autoplay"
+        scrolling="no"
       />
     </div>
   );
