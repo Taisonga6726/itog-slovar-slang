@@ -979,13 +979,17 @@ body {
     visibility 0.4s ease;
 }
 
-body[data-active-screen="screen3"] .magic-rings-fx--global,
 body[data-active-screen="screen4"] .magic-rings-fx--global,
 body[data-active-screen="screen5"] .magic-rings-fx--global,
 /* РћС‚РєСЂС‹С‚Р°СЏ РєРЅРёРіР° РЅР° РїРµСЂРІРѕРј СЌРєСЂР°РЅРµ вЂ” С‚Рµ Р¶Рµ РєРѕР»СЊС†Р°, С‡С‚Рѕ РЅР° РѕР±Р»РѕР¶РєРµ */
 body[data-active-screen="screen1"]:has(#sceneStage.scene--book-open) .magic-rings-fx--global {
   opacity: 0.72;
   visibility: visible;
+}
+
+body[data-active-screen="screen3"] .magic-rings-fx--global {
+  opacity: 0 !important;
+  visibility: hidden !important;
 }
 
 .magic-rings-fx--global.magic-rings-fx--global--visible {
@@ -4713,10 +4717,10 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 /* Р›РµРІР°СЏ СЃС‚СЂР°РЅРёС†Р°: РїРѕ С†РµРЅС‚СЂСѓ Р»РµРІРѕР№ РїРѕР»РѕРІРёРЅС‹ СЂР°Р·РІРѕСЂРѕС‚Р°, РІРЅСѓС‚СЂРё РѕСЂРЅР°РјРµРЅС‚Р° */
 .tz-forma-book-layer .tz-forma-form {
   position: absolute;
-  left: 27%;
+  left: 36.5%;
   top: 26%;
-  width: 24.5%;
-  max-width: 268px;
+  width: 28%;
+  max-width: 314px;
   transform: translateX(-50%);
   max-height: 48%;
   z-index: 5;
@@ -4725,6 +4729,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   align-items: stretch;
   min-height: 0;
   box-sizing: border-box;
+  padding-left: clamp(20px, 2.1vw, 28px);
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -4760,7 +4765,8 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 #screen3 .tz-input--spellbook,
 #screen3 .tz-textarea--spellbook {
   width: 100%;
-  padding: 6px 2px;
+  max-width: 100%;
+  padding: 6px 2px 6px 8px;
   margin: 0;
   border: none;
   border-radius: 0;
@@ -4953,10 +4959,10 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 
 .tz-forma-book-layer .tz-ink-preview {
   position: absolute;
-  right: 12.2%;
+  right: 18%;
   top: 26%;
-  width: 28.5%;
-  max-width: 272px;
+  width: 28%;
+  max-width: 314px;
   max-height: 48%;
   min-height: 100px;
   z-index: 5;
@@ -4979,6 +4985,8 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   color: #2a2458;
   text-shadow: 0 0 8px rgba(80, 70, 150, 0.22);
   opacity: 0.92;
+  max-inline-size: 100%;
+  overflow-wrap: anywhere;
 }
 
 .tz-live-preview--spellbook {
@@ -5047,6 +5055,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 .tz-ink-ol--spellbook-page .tz-ink-spellbook-li {
   margin: 0 0 0.6em;
   padding-left: 0.25em;
+  max-inline-size: 100%;
   font-family: "Caveat", "Marck Script", cursive;
   font-size: clamp(1.05rem, 2.55vw, 1.38rem);
   line-height: 1.45;
@@ -5054,6 +5063,7 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
   text-align: left;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  word-break: break-word;
   text-shadow:
     0 0 6px rgba(90, 70, 160, 0.2),
     0 0 14px rgba(120, 100, 200, 0.12);
