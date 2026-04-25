@@ -26,6 +26,10 @@ const TRACKS_LEFT = HYMN_TRACKS.filter((_, i) => i % 2 === 0);
 const TRACKS_RIGHT = HYMN_TRACKS.filter((_, i) => i % 2 === 1);
 
 type ReactionKey = "fire" | "love" | "rocket" | "clap" | "headphone";
+const HYMN_REACTIONS_STORAGE_KEY = "magic-book-hymn-reactions-v1";
+const HYMN_REACTIONS_BACKUP_KEY = "magic-book-hymn-reactions-backup-v1";
+const HYMN_REACTIONS_MAX_TOTAL_KEY = "magic-book-hymn-reactions-max-total-v1";
+const HYMN_REACTIONS_MAX_SNAPSHOT_KEY = "magic-book-hymn-reactions-max-snapshot-v1";
 
 const REACTIONS: { key: ReactionKey; emoji: string }[] = [
   { key: "fire", emoji: "🔥" },
@@ -41,6 +45,52 @@ function emptyReactions(): Record<ReactionKey, number> {
 
 function sumReactions(r: Record<ReactionKey, number>): number {
   return REACTIONS.reduce((acc, { key }) => acc + (r[key] ?? 0), 0);
+}
+
+function totalReactionsByTracks(data: Record<TrackId, Record<ReactionKey, number>>): number {
+  return TRACKS.reduce((acc, tr) => acc + sumReactions(data[tr.id] ?? emptyReactions()), 0);
+}
+
+function pickMaxReactions(
+  ...variants: Array<Record<TrackId, Record<ReactionKey, number>> | null>
+): Record<TrackId, Record<ReactionKey, number>> | null {
+  let best: Record<TrackId, Record<ReactionKey, number>> | null = null;
+  let bestTotal = -1;
+  for (const item of variants) {
+    if (!item) continue;
+    const total = totalReactionsByTracks(item);
+    if (total > bestTotal) {
+      best = item;
+      bestTotal = total;
+    }
+  }
+  return best;
+}
+
+function isReactionKey(value: string): value is ReactionKey {
+  return REACTIONS.some((r) => r.key === value);
+}
+
+function parseSavedReactions(raw: string | null): Record<TrackId, Record<ReactionKey, number>> | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as unknown;
+    if (!parsed || typeof parsed !== "object") return null;
+    const data = parsed as Record<string, Record<string, unknown>>;
+    const out: Record<TrackId, Record<ReactionKey, number>> = {};
+    for (const tr of TRACKS) {
+      const src = data[tr.id] ?? {};
+      const clean = emptyReactions();
+      for (const [k, v] of Object.entries(src)) {
+        if (!isReactionKey(k)) continue;
+        clean[k] = Number(v || 0);
+      }
+      out[tr.id] = clean;
+    }
+    return out;
+  } catch {
+    return null;
+  }
 }
 
 interface VibeAudioTestPanelProps {
@@ -66,9 +116,15 @@ export default function VibeAudioTestPanel({
 }: VibeAudioTestPanelProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [playingId, setPlayingId] = useState<TrackId | null>(null);
-  const [reactions, setReactions] = useState<Record<TrackId, Record<ReactionKey, number>>>(() =>
-    Object.fromEntries(TRACKS.map((t) => [t.id, emptyReactions()])) as Record<TrackId, Record<ReactionKey, number>>,
-  );
+  const [lastReactedTrackId, setLastReactedTrackId] = useState<TrackId | null>(null);
+  const [reactions, setReactions] = useState<Record<TrackId, Record<ReactionKey, number>>>(() => {
+    const savedMain = parseSavedReactions(localStorage.getItem(HYMN_REACTIONS_STORAGE_KEY));
+    const savedBackup = parseSavedReactions(localStorage.getItem(HYMN_REACTIONS_BACKUP_KEY));
+    const savedMaxSnapshot = parseSavedReactions(localStorage.getItem(HYMN_REACTIONS_MAX_SNAPSHOT_KEY));
+    const best = pickMaxReactions(savedMain, savedBackup, savedMaxSnapshot);
+    if (best) return best;
+    return Object.fromEntries(TRACKS.map((t) => [t.id, emptyReactions()])) as Record<TrackId, Record<ReactionKey, number>>;
+  });
 
   const { popularTrack, popularR, popularScore } = useMemo(() => {
     let bestId = TRACKS[0].id;
@@ -76,7 +132,7 @@ export default function VibeAudioTestPanel({
     for (const tr of TRACKS) {
       const r = reactions[tr.id];
       const s = sumReactions(r);
-      if (s > bestScore) {
+      if (s > bestScore || (s === bestScore && tr.id === lastReactedTrackId)) {
         bestScore = s;
         bestId = tr.id;
       }
@@ -85,7 +141,7 @@ export default function VibeAudioTestPanel({
     const popularR = reactions[bestId] ?? emptyReactions();
     const popularScore = sumReactions(popularR);
     return { popularTrack, popularR, popularScore };
-  }, [reactions]);
+  }, [reactions, lastReactedTrackId]);
 
   const grandTotals = useMemo(() => {
     const acc = emptyReactions();
@@ -132,7 +188,34 @@ export default function VibeAudioTestPanel({
     }
   }, [open]);
 
+  useEffect(() => {
+    try {
+      const total = totalReactionsByTracks(reactions);
+      const prevMax = Number(localStorage.getItem(HYMN_REACTIONS_MAX_TOTAL_KEY) || "0");
+      const maxSnapshot = parseSavedReactions(localStorage.getItem(HYMN_REACTIONS_MAX_SNAPSHOT_KEY));
+      const best = pickMaxReactions(reactions, maxSnapshot);
+      const bestSerialized = JSON.stringify(best ?? reactions);
+      const bestTotal = best ? totalReactionsByTracks(best) : total;
+
+      // Жесткое правило: только накопление, не допускаем запись меньшего состояния.
+      localStorage.setItem(HYMN_REACTIONS_STORAGE_KEY, bestSerialized);
+      localStorage.setItem(HYMN_REACTIONS_BACKUP_KEY, bestSerialized);
+
+      if (bestTotal >= prevMax) {
+        localStorage.setItem(HYMN_REACTIONS_MAX_TOTAL_KEY, String(bestTotal));
+        localStorage.setItem(HYMN_REACTIONS_MAX_SNAPSHOT_KEY, bestSerialized);
+      }
+
+      if (best && bestTotal > total) {
+        setReactions(best);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [reactions]);
+
   const bumpReaction = (trackId: TrackId, key: ReactionKey) => {
+    setLastReactedTrackId(trackId);
     setReactions((prev) => ({
       ...prev,
       [trackId]: { ...prev[trackId], [key]: (prev[trackId]?.[key] ?? 0) + 1 },
