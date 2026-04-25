@@ -4713,10 +4713,10 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 /* Р›РµРІР°СЏ СЃС‚СЂР°РЅРёС†Р°: РїРѕ С†РµРЅС‚СЂСѓ Р»РµРІРѕР№ РїРѕР»РѕРІРёРЅС‹ СЂР°Р·РІРѕСЂРѕС‚Р°, РІРЅСѓС‚СЂРё РѕСЂРЅР°РјРµРЅС‚Р° */
 .tz-forma-book-layer .tz-forma-form {
   position: absolute;
-  left: 25%;
+  left: 27%;
   top: 26%;
-  width: 26%;
-  max-width: 280px;
+  width: 24.5%;
+  max-width: 268px;
   transform: translateX(-50%);
   max-height: 48%;
   z-index: 5;
@@ -4953,10 +4953,10 @@ body[data-active-screen="screen5"] .tz-vibe-ai-brand {
 
 .tz-forma-book-layer .tz-ink-preview {
   position: absolute;
-  right: 11%;
+  right: 12.2%;
   top: 26%;
-  width: 30%;
-  max-width: 280px;
+  width: 28.5%;
+  max-width: 272px;
   max-height: 48%;
   min-height: 100px;
   z-index: 5;
