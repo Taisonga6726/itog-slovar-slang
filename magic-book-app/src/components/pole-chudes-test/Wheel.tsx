@@ -34,7 +34,7 @@ export const Wheel: React.FC<WheelProps> = ({
         onAnimationComplete={() => {
           if (isSpinning) onSpinAnimationComplete();
         }}
-        className="relative z-10 h-[min(min(72vw,56vmin),42svh,320px)] w-[min(min(72vw,56vmin),42svh,320px)] sm:h-[min(min(66vw,52vmin),46svh,380px)] sm:w-[min(min(66vw,52vmin),46svh,380px)] md:h-[min(46vmin,44svh,460px)] md:w-[min(46vmin,44svh,460px)] lg:h-[min(44vmin,520px)] lg:w-[min(44vmin,520px)]"
+        className="relative z-10 h-[min(min(80vw,62vmin),50svh,380px)] w-[min(min(80vw,62vmin),50svh,380px)] sm:h-[min(min(74vw,58vmin),54svh,430px)] sm:w-[min(min(74vw,58vmin),54svh,430px)] md:h-[min(54vmin,52svh,520px)] md:w-[min(54vmin,52svh,520px)] lg:h-[min(52vmin,580px)] lg:w-[min(52vmin,580px)]"
       >
         <svg
           viewBox="-14 -14 128 128"
@@ -108,11 +108,11 @@ export const Wheel: React.FC<WheelProps> = ({
               label.includes(" ") && label.length > 8
                 ? [label.split(/\s+/)[0], label.split(/\s+/).slice(1).join(" ")]
                 : [label];
-            const outerX = label.length > 8 ? "88" : label.length >= 5 ? "87" : "85";
+            const outerX = label.length > 8 ? "86" : label.length >= 5 ? "85" : "84";
             const fontClass =
               label.length > 8
-                ? "pointer-events-none text-[6.2px] font-black uppercase tracking-[0.16em] sm:text-[6.8px]"
-                : "pointer-events-none text-[6.6px] font-black uppercase tracking-[0.12em] sm:text-[7.2px]";
+                ? "pointer-events-none text-[6.8px] font-black uppercase tracking-[0.12em] sm:text-[7.6px]"
+                : "pointer-events-none text-[8.2px] font-black uppercase tracking-[0.08em] sm:text-[9.1px]";
 
             return (
               <g
@@ -151,8 +151,6 @@ export const Wheel: React.FC<WheelProps> = ({
                   textAnchor="middle"
                   filter="url(#textShadow3DTest)"
                   style={{ stroke: "#4a3710", strokeWidth: "0.08px", paintOrder: "stroke fill" }}
-                  textLength={label.length > 8 ? 20 : undefined}
-                  lengthAdjust={label.length > 8 ? "spacingAndGlyphs" : undefined}
                 >
                   {labelParts.length === 2 ? (
                     <>

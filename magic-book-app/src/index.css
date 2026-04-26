@@ -1013,14 +1013,14 @@
 .pole-chudes-result-panel {
   border-radius: 1.75rem;
   border: 2px solid rgba(34, 211, 238, 0.72);
-  background: linear-gradient(165deg, rgba(18, 12, 36, 0.88) 0%, rgba(8, 6, 18, 0.94) 100%);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: linear-gradient(165deg, rgba(45, 62, 159, 0.56) 0%, rgba(37, 56, 135, 0.5) 55%, rgba(80, 40, 160, 0.45) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   box-shadow:
-    0 0 0 1px rgba(103, 232, 249, 0.15),
-    0 0 48px rgba(34, 211, 238, 0.22),
-    0 0 80px rgba(168, 85, 247, 0.18),
-    inset 0 0 72px rgba(0, 0, 0, 0.42);
+    0 0 0 1px rgba(103, 232, 249, 0.22),
+    0 0 34px rgba(34, 211, 238, 0.3),
+    0 0 56px rgba(168, 85, 247, 0.24),
+    inset 0 0 44px rgba(24, 33, 88, 0.18);
 }
 
 .pole-chudes-result-panel .pole-chudes-result-panel__category {

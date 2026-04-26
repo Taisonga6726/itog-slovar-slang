@@ -43,6 +43,17 @@ function toAudioSrc(fileName: string) {
   return publicFile(`audio/${encodeURIComponent(fileName)}`);
 }
 
+function hexToRgba(hex: string, alpha: number): string {
+  const normalized = hex.replace("#", "");
+  const full = normalized.length === 3 ? normalized.split("").map((c) => c + c).join("") : normalized;
+  const int = Number.parseInt(full, 16);
+  if (Number.isNaN(int)) return `rgba(168,85,247,${alpha})`;
+  const r = (int >> 16) & 255;
+  const g = (int >> 8) & 255;
+  const b = int & 255;
+  return `rgba(${r},${g},${b},${alpha})`;
+}
+
 const SOUND_CONFIG = {
   wowStart: { src: toAudioSrc("КЛИК вау начало.MP3"), volume: 0.95 },
   spin: { src: toAudioSrc("прокрутка колеса 02.MP3"), volume: 1 },
@@ -69,6 +80,15 @@ export interface PoleChudesTestGameProps {
 }
 
 export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPauseBookHymn }: PoleChudesTestGameProps = {}) {
+  const USE_BOOK_RESULT_TEST = true;
+  const RESULT_BOOK_BOX_STYLE = {
+    left: "50%",
+    top: "57%",
+    width: "min(56vw, 37rem)",
+    minHeight: "min(45dvh, 18rem)",
+    transform: "translate(-50%, -50%)",
+  } as const;
+
   const navigate = useNavigate();
   const closeAndNavigate = useCallback(
     (to: string) => {
@@ -307,6 +327,31 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   }
   const usedAttempts = Math.min(results.length + (stage === "GAME" && isSpinning ? 1 : 0), MAX_SPINS);
   const attemptsLeft = Math.max(MAX_SPINS - usedAttempts, 0);
+  const attemptDisplay = Math.min(results.length + (stage === "GAME" ? 1 : 0), MAX_SPINS);
+  const attemptChipThemes: Record<number, { border: string; bg: string; glow: string }> = {
+    1: {
+      border: "rgba(100,160,255,0.5)",
+      bg: "rgba(80, 40, 160, 0.35)",
+      glow: "0 0 15px rgba(100,160,255,0.4),0 0 30px rgba(138,92,246,0.2),inset 0 0 20px rgba(100,160,255,0.1)",
+    },
+    2: {
+      border: "rgba(56,189,248,0.55)",
+      bg: "rgba(24, 86, 170, 0.34)",
+      glow: "0 0 15px rgba(56,189,248,0.42),0 0 30px rgba(80,160,255,0.2),inset 0 0 20px rgba(56,189,248,0.1)",
+    },
+    3: {
+      border: "rgba(34,197,94,0.56)",
+      bg: "rgba(26, 118, 74, 0.34)",
+      glow: "0 0 15px rgba(34,197,94,0.38),0 0 30px rgba(52,211,153,0.2),inset 0 0 20px rgba(34,197,94,0.1)",
+    },
+    4: {
+      border: "rgba(236,72,153,0.56)",
+      bg: "rgba(139, 36, 105, 0.34)",
+      glow: "0 0 15px rgba(236,72,153,0.38),0 0 30px rgba(244,114,182,0.2),inset 0 0 20px rgba(236,72,153,0.1)",
+    },
+  };
+  const attemptTheme = attemptChipThemes[attemptDisplay] ?? attemptChipThemes[1];
+  const resultAccent = CATEGORIES.find((c) => c.id === currentResult?.category)?.color ?? "#8b5cf6";
   return (
     <div
       id="pole-chudes-test-root"
@@ -342,29 +387,24 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       />
 
       <div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
-        {(stage === "GAME" || stage === "RESULT") && (
+        {stage === "GAME" && (
           <div className="pointer-events-none absolute left-1/2 top-[clamp(8.6rem,21dvh,11.8rem)] z-20 -translate-x-1/2">
             <motion.div
               key={`attempt-pop-${stage}-${attemptsLeft}`}
               initial={{ opacity: 0, y: 8, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               transition={{ duration: 0.28, ease: "easeOut" }}
-              className="rounded-full border border-cyan-200/60 bg-[linear-gradient(180deg,rgba(58,48,132,0.92)_0%,rgba(44,86,166,0.9)_52%,rgba(34,120,196,0.86)_100%)] px-4 py-1.5 text-center shadow-[0_0_14px_rgba(96,165,250,0.5),0_0_28px_rgba(168,85,247,0.26),inset_0_1px_0_rgba(255,255,255,0.24)] sm:px-5 sm:py-2"
-              style={{ animation: "global-circle-breathe 2s ease-in-out infinite" }}
+              className="neon-btn-glow animate-neon-pulse rounded-full border-2 px-5 py-2 text-center sm:px-6 sm:py-2.5"
+              style={{
+                borderColor: attemptTheme.border,
+                background: attemptTheme.bg,
+                boxShadow: attemptTheme.glow,
+                backdropFilter: "blur(12px)",
+                WebkitBackdropFilter: "blur(12px)",
+              }}
             >
-              <span
-                className="bg-[linear-gradient(145deg,#77f7ff_0%,#8bb8ff_36%,#b88cff_66%,#62f2c9_100%)] bg-clip-text text-[32px] font-black tracking-[0.12em] text-transparent sm:text-[40px]"
-                style={{
-                  WebkitTextStroke: "1px rgba(30,16,66,0.66)",
-                  textShadow:
-                    "0 1px 0 rgba(255,255,255,0.52), 0 4px 0 rgba(44,24,92,0.62), 0 10px 16px rgba(20,10,46,0.58), 0 0 18px rgba(115,200,255,0.68)",
-                }}
-              >
-                {attemptsLeft}
-              </span>
-              <span className="text-[10px] font-semibold tracking-[0.09em] text-[#e9f5ff] sm:text-[11px]">
-                {" "}
-                {attemptsLeft === 1 ? "ПОПЫТКА" : attemptsLeft >= 2 && attemptsLeft <= 4 ? "ПОПЫТКИ" : "ПОПЫТОК"}
+              <span className="text-[14px] font-bold tracking-[0.03em] text-white sm:text-[16px]">
+                {attemptDisplay}/{MAX_SPINS} попытки
               </span>
             </motion.div>
           </div>
@@ -473,7 +513,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 </div>
               </div>
 
-              <div className="-mt-5 flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center sm:-mt-4 sm:gap-1.5">
+              <div className="-mt-16 flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center sm:-mt-14 sm:gap-1.5">
                 <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/")}>
                   Назад к книге
                 </NeonGlassButton>
@@ -494,40 +534,62 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
               className={cn(
-                "flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden p-2 text-center sm:p-4",
-                isPanelLayout ? "pt-[clamp(3.25rem,10dvh,4.5rem)]" : "pt-12 sm:pt-14",
+                "relative flex min-h-0 flex-1 flex-col items-center overflow-hidden p-2 text-center sm:p-4",
+                USE_BOOK_RESULT_TEST
+                  ? "justify-start"
+                  : isPanelLayout
+                    ? "justify-start pt-[clamp(4.2rem,10dvh,6rem)]"
+                    : "justify-start pt-[clamp(4rem,9.5dvh,5.8rem)]",
               )}
             >
-              <div className="pole-chudes-result-panel relative w-full max-w-[min(100%,28rem)] space-y-4 overflow-hidden p-6 sm:space-y-5 sm:p-8">
+              <div
+                className={cn(
+                  "pole-chudes-result-panel flex flex-col justify-center space-y-5 overflow-hidden rounded-[34px] border-[3px] p-8",
+                  USE_BOOK_RESULT_TEST ? "absolute" : "relative mx-auto w-full max-w-[31rem]",
+                )}
+                style={
+                  {
+                    ...(USE_BOOK_RESULT_TEST ? RESULT_BOOK_BOX_STYLE : { marginTop: "clamp(5rem, 12.2dvh, 7rem)" }),
+                    borderColor: "rgba(204,160,74,0.78)",
+                    background:
+                      "linear-gradient(155deg, rgba(32,112,224,0.42) 0%, rgba(126,72,210,0.34) 38%, rgba(58,178,242,0.38) 62%, rgba(196,76,118,0.22) 82%, rgba(30,106,214,0.4) 100%)",
+                    boxShadow:
+                      "0 0 0 1px rgba(120,220,255,0.24), 0 0 20px rgba(84,170,255,0.28), 0 0 32px rgba(168,85,247,0.2), inset 0 0 52px rgba(20,18,56,0.16)",
+                  }
+                }
+              >
                 <div
-                  className="absolute inset-0 animate-pulse opacity-20 blur-[100px]"
-                  style={{ backgroundColor: CATEGORIES.find((c) => c.id === currentResult.category)?.color }}
+                  className="absolute inset-0 opacity-100"
+                  style={{ background: "linear-gradient(180deg, rgba(154,230,255,0.14) 0%, rgba(34,74,188,0.1) 56%, rgba(178,86,224,0.08) 100%)" }}
                 />
                 <div
-                  className="relative z-10 mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-2xl border-2 sm:mb-4 sm:h-20 sm:w-20 sm:rounded-3xl"
+                  className="relative z-10 mx-auto mb-1 flex h-16 w-16 items-center justify-center rounded-2xl border-2"
                   style={{
-                    backgroundColor: `${CATEGORIES.find((c) => c.id === currentResult.category)?.color}11`,
-                    color: CATEGORIES.find((c) => c.id === currentResult.category)?.color,
-                    borderColor: CATEGORIES.find((c) => c.id === currentResult.category)?.color,
+                    background: "linear-gradient(145deg, rgba(28,102,210,0.42) 0%, rgba(84,56,176,0.34) 100%)",
+                    color: "#fff4cc",
+                    borderColor: "rgba(214,168,78,0.86)",
                   }}
                 >
-                  {React.cloneElement(getCategoryIcon(currentResult.category) as React.ReactElement, { className: "h-8 w-8 sm:h-9 sm:w-9" })}
+                  {React.cloneElement(getCategoryIcon(currentResult.category) as React.ReactElement, { className: "h-8 w-8" })}
                 </div>
-                <h3 className="pole-chudes-result-panel__category relative z-10 text-lg font-semibold uppercase sm:text-xl">
+                <h3
+                  className="pole-chudes-result-panel__category relative z-10 text-lg font-semibold uppercase"
+                  style={{ color: "#f5e2a5", textShadow: "0 0 12px rgba(191,149,63,0.34)" }}
+                >
                   {CATEGORIES.find((c) => c.id === currentResult.category)?.label}
                 </h3>
                 <motion.h2
                   initial={{ y: 20, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.2 }}
-                  className="pole-chudes-result-panel__phrase relative z-10 text-2xl font-bold uppercase leading-tight sm:text-3xl md:text-4xl"
+                  className="pole-chudes-result-panel__phrase relative z-10 text-3xl font-bold uppercase leading-tight md:text-4xl"
+                  style={{ color: "#fff9e6", textShadow: "0 0 16px rgba(191,149,63,0.28), 0 0 8px rgba(38,112,210,0.18)" }}
                 >
                   {currentResult.phrase}
                 </motion.h2>
-                <div className="relative z-10 pt-4 sm:pt-6">
+                <div className="relative z-10 pt-2">
                   <NeonGlassButton
-                    accent
-                    className="pole-chudes-result-cta !w-full !py-3 !text-base !font-semibold !text-white sm:!py-3.5 sm:!text-lg"
+                    className="pole-chudes-result-cta !w-full !rounded-3xl !py-4 !text-xl !font-black !text-white"
                     disabled={!resultReady}
                     onClick={() => void nextAction()}
                   >
