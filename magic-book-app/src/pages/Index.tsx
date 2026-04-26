@@ -261,6 +261,14 @@ const Index = () => {
     return changed ? next : current;
   };
 
+  const tailEntriesAfterBaseline = (baseline: Entry[], candidates: Entry[]): Entry[] => {
+    const baselineWords = new Set(baseline.map((e) => wordKey(e.word)).filter(Boolean));
+    return candidates.filter((e) => {
+      const k = wordKey(e.word);
+      return Boolean(k) && !baselineWords.has(k);
+    });
+  };
+
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<"intro" | "form" | "awakening" | "hands" | "reading" | "final">("intro");
   const [entries, setEntries] = useState<Entry[]>(() => {
@@ -516,6 +524,45 @@ const Index = () => {
       .catch(() => {
         /* ignore */
       });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // Восстановление хвоста слов начиная с 47-й записи (без изменения первых 46).
+    let cancelled = false;
+    void Promise.all([
+      fetch(SEED_ENTRIES_URL).then((res) => (res.ok ? res.json() : [])),
+      fetch(RECOVERED_ENTRIES_URL).then((res) => (res.ok ? res.json() : [])),
+      fetch(DOCX_RECOVERED_ENTRIES_URL).then((res) => (res.ok ? res.json() : [])),
+    ])
+      .then(([seedData, recoveredData, docxData]) => {
+        if (cancelled) return;
+
+        const seed = removeTestEntries(parseSeedBackupEntries(seedData));
+        const recovered = removeTestEntries(parseSeedBackupEntries(recoveredData));
+        const docx = removeTestEntries(parseSeedBackupEntries(docxData));
+        const legacy = removeTestEntries(parseLegacyVibeWords());
+        const fixedSnapshot = removeTestEntries(parseSavedEntries(localStorage.getItem("magic-book-fixed-56-snapshot")));
+
+        const tailPool = mergeUniqueByWord(
+          mergeUniqueByWord(recovered, docx),
+          mergeUniqueByWord(legacy, fixedSnapshot),
+        );
+        const tailOnly = tailEntriesAfterBaseline(seed, tailPool);
+        if (!tailOnly.length) return;
+
+        setEntries((prev) => {
+          const merged = removeTestEntries(mergeUniqueByWord(prev, tailOnly));
+          return restoreImagesByWord(merged, tailOnly);
+        });
+      })
+      .catch(() => {
+        /* ignore */
+      });
+
     return () => {
       cancelled = true;
     };
