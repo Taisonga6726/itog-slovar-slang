@@ -237,6 +237,30 @@ const Index = () => {
     }
   };
 
+  const restoreImagesByWord = (current: Entry[], sources: Entry[]): Entry[] => {
+    const sourceImagesByWord = new Map<string, string[]>();
+    for (const src of sources) {
+      const k = wordKey(src.word);
+      if (!k) continue;
+      const imgs = Array.isArray(src.images) ? src.images.filter((img): img is string => typeof img === "string" && img.trim().length > 0) : [];
+      if (!imgs.length) continue;
+      const prev = sourceImagesByWord.get(k) ?? [];
+      if (imgs.length > prev.length) sourceImagesByWord.set(k, imgs);
+    }
+
+    let changed = false;
+    const next = current.map((entry) => {
+      const currentImages = Array.isArray(entry.images) ? entry.images : [];
+      if (currentImages.length > 0) return entry;
+      const sourceImages = sourceImagesByWord.get(wordKey(entry.word)) ?? [];
+      if (!sourceImages.length) return entry;
+      changed = true;
+      return { ...entry, images: sourceImages };
+    });
+
+    return changed ? next : current;
+  };
+
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<"intro" | "form" | "awakening" | "hands" | "reading" | "final">("intro");
   const [entries, setEntries] = useState<Entry[]>(() => {
@@ -464,6 +488,30 @@ const Index = () => {
         const recovered = removeTestEntries(parseSeedBackupEntries(data));
         if (!recovered.length) return;
         setEntries((prev) => removeTestEntries(mergeUniqueByWord(prev, recovered)));
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    // Восстановление скринов для уже сохранённых записей (не трогаем тексты/реакции).
+    let cancelled = false;
+    void Promise.all([
+      fetch(SEED_ENTRIES_URL).then((res) => (res.ok ? res.json() : [])),
+      fetch(DOCX_RECOVERED_ENTRIES_URL).then((res) => (res.ok ? res.json() : [])),
+    ])
+      .then(([seedData, docxData]) => {
+        if (cancelled) return;
+        const seed = removeTestEntries(parseSeedBackupEntries(seedData));
+        const docx = removeTestEntries(parseSeedBackupEntries(docxData));
+        const imageSources = mergeUniqueByWord(seed, docx);
+        if (!imageSources.length) return;
+        setEntries((prev) => restoreImagesByWord(prev, imageSources));
       })
       .catch(() => {
         /* ignore */
