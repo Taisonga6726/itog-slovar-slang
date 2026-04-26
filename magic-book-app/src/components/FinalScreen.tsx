@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import NeonGlassButton from "@/components/NeonGlassButton";
 import VibeAudioTestPanel from "@/components/VibeAudioTestPanel";
 
@@ -44,6 +44,7 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
   openHymnOnMount = false,
 }) => {
   const [audioTestOpen, setAudioTestOpen] = useState(false);
+  const resumeAfterPanelCloseRef = useRef(true);
 
   useEffect(() => {
     onHymnPanelOpenChange?.(audioTestOpen);
@@ -52,7 +53,7 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
   useEffect(() => {
     // На финальном экране книги держим фоновый гимн включенным
     // (кроме состояния открытой панели выбора гимна, где он ставится на паузу).
-    if (!audioTestOpen) onResumeBackgroundHymn?.();
+    if (!audioTestOpen && resumeAfterPanelCloseRef.current) onResumeBackgroundHymn?.();
   }, [audioTestOpen, onResumeBackgroundHymn]);
 
   useEffect(() => {
@@ -95,6 +96,7 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
             className="pointer-events-auto !block w-full max-w-[min(90vw,22rem)] text-center !px-4 !py-2 !text-sm sm:!py-2.5 sm:!text-base"
             onClick={() => {
               onPauseBackgroundHymn?.();
+              resumeAfterPanelCloseRef.current = true;
               onGimn?.();
               setAudioTestOpen(true);
             }}
@@ -150,20 +152,23 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
       <VibeAudioTestPanel
         open={audioTestOpen}
         onClose={() => {
+          resumeAfterPanelCloseRef.current = true;
           setAudioTestOpen(false);
-          onResumeBackgroundHymn?.();
         }}
         onBackToBook={() => {
+          resumeAfterPanelCloseRef.current = true;
           setAudioTestOpen(false);
-          onResumeBackgroundHymn?.();
           onBack();
         }}
         onPlayGame={() => {
+          resumeAfterPanelCloseRef.current = false;
           setAudioTestOpen(false);
           /** Не вызываем onResumeBackgroundHymn: иначе гимн успевает запуститься до паузы в openLuckyWheel и смешивается с игрой. */
           onHymnPlayGame?.();
         }}
         onEnterWord={() => {
+          resumeAfterPanelCloseRef.current = false;
+          onPauseBackgroundHymn?.();
           setAudioTestOpen(false);
           onHymnEnterWord?.();
         }}
