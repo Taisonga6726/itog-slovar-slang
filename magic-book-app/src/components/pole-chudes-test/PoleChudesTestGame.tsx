@@ -163,35 +163,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     spinResolveRef.current = null;
   }, []);
 
-  useEffect(() => {
-    if (stage !== "SUMMARY") return;
-
-    const summaryIntroFx = new Audio(toAudioSrc("фейерверк фанфары аплодисменты.MP3"));
-    const summaryLoopFx = new Audio(toAudioSrc("фанфары аплодисменты .MP3"));
-    summaryIntroFx.preload = "auto";
-    summaryLoopFx.preload = "auto";
-    summaryIntroFx.volume = 0.95;
-    summaryLoopFx.volume = 0.9;
-    summaryLoopFx.loop = true;
-
-    let disposed = false;
-    const startLoop = () => {
-      if (disposed) return;
-      void summaryLoopFx.play().catch(() => {});
-    };
-
-    // После wowStart на кнопке "Показать результаты" сразу запускаем фейерверк, затем фоновые фанфары.
-    void summaryIntroFx.play().then(startLoop).catch(startLoop);
-
-    return () => {
-      disposed = true;
-      summaryIntroFx.pause();
-      summaryIntroFx.currentTime = 0;
-      summaryLoopFx.pause();
-      summaryLoopFx.currentTime = 0;
-    };
-  }, [stage]);
-
   const onSpinComplete = useCallback(
     async (spinResult: SpinResult, attempt: number, usedSnapshot: Record<string, Set<string>>) => {
       setCurrentResult(spinResult);
@@ -635,27 +606,23 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               initial={{ opacity: 0, scale: 0.97 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.02 }}
-              className="relative flex min-h-0 flex-1 flex-col items-center overflow-hidden px-3 pb-2 pt-[clamp(3.6rem,9dvh,5.4rem)] text-center sm:px-5 sm:pb-3 sm:pt-[clamp(4rem,10dvh,6rem)]"
+              className={cn(
+                "relative flex min-h-0 flex-1 flex-col items-center overflow-hidden p-3 text-center sm:p-5",
+                isPanelLayout ? "pt-[clamp(6.2rem,16dvh,8rem)]" : "pt-[clamp(6rem,15dvh,8rem)]",
+              )}
             >
-              <div className="pointer-events-none absolute inset-0 z-[1] flex items-center justify-center">
-                <img
-                  src="/images/финал аплодисменты игра.png"
-                  alt=""
-                  className="h-[86%] w-[86%] select-none object-contain object-center"
-                  draggable={false}
-                />
-              </div>
-              <div className="pointer-events-none absolute inset-0 z-[2] bg-black/22" />
-              <div className="relative z-10 flex h-full w-full max-w-[min(100%,58rem)] flex-1 flex-col">
-                <div className="absolute left-1/2 top-[clamp(0.35rem,1.8dvh,1rem)] z-20 w-full max-w-[34rem] -translate-x-1/2">
-                  <NeonGlassButton
-                    accent
-                    className="pointer-events-auto !block w-full !px-3 !py-1.5 !text-sm sm:!px-4 sm:!py-2 sm:!text-base"
-                  >
-                    Хотите также? свяжитесь с ТАНЕЙ !
-                  </NeonGlassButton>
-                </div>
-                <div className="mx-auto mt-28 grid w-full max-w-[54rem] flex-1 content-center grid-cols-1 gap-3 text-left md:mt-34 md:grid-cols-2">
+              <img
+                src="/images/финал аплодисменты игра.png"
+                alt=""
+                className="pointer-events-none absolute inset-0 z-[1] h-full w-full select-none object-cover object-center"
+                draggable={false}
+              />
+              <div className="pointer-events-none absolute inset-0 z-[2] bg-black/35" />
+              <div className="relative z-10 flex w-full max-w-[min(100%,58rem)] flex-1 flex-col">
+                <h3 className="text-center text-3xl font-bold uppercase tracking-[0.2em] text-[#f7edff] drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] sm:text-4xl">
+                  ИТОГИ
+                </h3>
+                <div className="mx-auto mt-[clamp(1.5rem,4.5dvh,3rem)] grid w-full max-w-[54rem] grid-cols-1 gap-3 overflow-auto pr-1 text-left md:grid-cols-2">
                   {results.map((item, idx) => {
                     const cat = CATEGORIES.find((c) => c.id === item.category);
                     return (
@@ -669,10 +636,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                     );
                   })}
                 </div>
-                <div className="mx-auto -mt-16 grid w-full max-w-[34rem] grid-cols-1 gap-2 pb-1 md:-mt-20 sm:grid-cols-2">
+                <div className="mt-auto grid grid-cols-1 gap-2 pb-1 pt-4 sm:mt-6 sm:grid-cols-2">
                   <NeonGlassButton
                     accent
-                    className="!px-3 !py-1.5 !text-sm sm:!px-4 sm:!py-2 sm:!text-base"
+                    className="!px-4 !py-2 !text-sm sm:!text-base"
                     onClick={() => {
                       setBusy(true);
                       setStage("SPLASH");
@@ -690,13 +657,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   >
                     Играть снова
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-3 !py-1.5 !text-sm sm:!px-4 sm:!py-2 sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=hymn")}>
+                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=hymn")}>
                     Выбрать гимн
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-3 !py-1.5 !text-sm sm:!px-4 sm:!py-2 sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=form")}>
+                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=form")}>
                     Внести слово
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-3 !py-1.5 !text-sm sm:!px-4 sm:!py-2 sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=reading")}>
+                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=reading")}>
                     Читать книгу
                   </NeonGlassButton>
                 </div>
