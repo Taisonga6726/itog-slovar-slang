@@ -97,7 +97,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     },
     [navigate, onClosePanel],
   );
-  const [stage, setStage] = useState<GameStage>("GAME");
+  const [stage, setStage] = useState<GameStage>("SPLASH");
   const [results, setResults] = useState<SpinResult[]>([]);
   const [currentResult, setCurrentResult] = useState<SpinResult | null>(null);
   const [usedPhrases, setUsedPhrases] = useState<Record<string, Set<string>>>({});
