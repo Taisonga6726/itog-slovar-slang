@@ -647,7 +647,15 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               </div>
               <div className="pointer-events-none absolute inset-0 z-[2] bg-black/22" />
               <div className="relative z-10 flex h-full w-full max-w-[min(100%,58rem)] flex-1 flex-col">
-                <div className="mx-auto grid w-full max-w-[54rem] flex-1 content-center grid-cols-1 gap-3 text-left md:grid-cols-2">
+                <div className="absolute left-1/2 top-[clamp(0.35rem,1.8dvh,1rem)] z-20 w-full max-w-[34rem] -translate-x-1/2">
+                  <NeonGlassButton
+                    accent
+                    className="pointer-events-auto !block w-full !px-3 !py-1.5 !text-sm sm:!px-4 sm:!py-2 sm:!text-base"
+                  >
+                    Хотите также? свяжитесь с ТАНЕЙ !
+                  </NeonGlassButton>
+                </div>
+                <div className="mx-auto mt-28 grid w-full max-w-[54rem] flex-1 content-center grid-cols-1 gap-3 text-left md:mt-34 md:grid-cols-2">
                   {results.map((item, idx) => {
                     const cat = CATEGORIES.find((c) => c.id === item.category);
                     return (
@@ -661,10 +669,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                     );
                   })}
                 </div>
-                <div className="mt-auto grid grid-cols-1 gap-2 pb-1 pt-4 sm:grid-cols-2">
+                <div className="mx-auto -mt-16 grid w-full max-w-[34rem] grid-cols-1 gap-2 pb-1 md:-mt-20 sm:grid-cols-2">
                   <NeonGlassButton
                     accent
-                    className="!px-4 !py-2 !text-sm sm:!text-base"
+                    className="!px-3 !py-1.5 !text-sm sm:!px-4 sm:!py-2 sm:!text-base"
                     onClick={() => {
                       setBusy(true);
                       setStage("SPLASH");
@@ -682,13 +690,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   >
                     Играть снова
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=hymn")}>
+                  <NeonGlassButton className="!px-3 !py-1.5 !text-sm sm:!px-4 sm:!py-2 sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=hymn")}>
                     Выбрать гимн
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=form")}>
+                  <NeonGlassButton className="!px-3 !py-1.5 !text-sm sm:!px-4 sm:!py-2 sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=form")}>
                     Внести слово
                   </NeonGlassButton>
-                  <NeonGlassButton className="!px-4 !py-2 !text-sm sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=reading")}>
+                  <NeonGlassButton className="!px-3 !py-1.5 !text-sm sm:!px-4 sm:!py-2 sm:!text-base" onClick={() => closeAndNavigate("/?entry=slovar&screen=reading")}>
                     Читать книгу
                   </NeonGlassButton>
                 </div>
