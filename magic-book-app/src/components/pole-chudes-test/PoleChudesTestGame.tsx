@@ -647,10 +647,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
               </div>
               <div className="pointer-events-none absolute inset-0 z-[2] bg-black/22" />
               <div className="relative z-10 flex h-full w-full max-w-[min(100%,58rem)] flex-1 flex-col">
-                <h3 className="text-center text-3xl font-bold uppercase tracking-[0.2em] text-[#f7edff] drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] sm:text-4xl">
-                  ИТОГИ
-                </h3>
-                <div className="mx-auto mt-[clamp(1.2rem,3.6dvh,2.4rem)] grid w-full max-w-[54rem] grid-cols-1 content-center gap-3 text-left md:grid-cols-2">
+                <div className="mx-auto grid w-full max-w-[54rem] flex-1 content-center grid-cols-1 gap-3 text-left md:grid-cols-2">
                   {results.map((item, idx) => {
                     const cat = CATEGORIES.find((c) => c.id === item.category);
                     return (
