@@ -218,28 +218,32 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         colors: [CATEGORIES.find((c) => c.id === spinResult.category)?.color || "#ffffff"],
       });
 
-      const drumHitDone = sound()?.play("drumHit", { waitForEnd: true }) ?? Promise.resolve();
-      const openSoundByAttempt: Record<number, "truba" | "wowStart" | "happyBoy"> = {
-        1: "truba",
-        2: "wowStart",
-        3: "truba",
-        4: "happyBoy",
-      };
-      const laughByAttempt: Partial<Record<number, "laughGirl" | "laughMan" | "laughBoy">> = {
-        1: "laughGirl",
-        2: "laughMan",
-        3: "laughBoy",
-      };
-      const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
-      const openSoundDone = sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve();
-      await Promise.all([drumHitDone, openSoundDone]);
-      const laughSound = laughByAttempt[attempt];
-      if (laughSound) {
-        await sound()?.play(laughSound, { waitForEnd: true });
-      }
-
+      // Кнопки результата не должны ждать окончания длинных аудиодорожек.
+      // Сами игровые эффекты сохраняем полностью, но воспроизводим асинхронно.
       setResultReady(true);
       setBusy(false);
+
+      void (async () => {
+        const drumHitDone = sound()?.play("drumHit", { waitForEnd: true }) ?? Promise.resolve();
+        const openSoundByAttempt: Record<number, "truba" | "wowStart" | "happyBoy"> = {
+          1: "truba",
+          2: "wowStart",
+          3: "truba",
+          4: "happyBoy",
+        };
+        const laughByAttempt: Partial<Record<number, "laughGirl" | "laughMan" | "laughBoy">> = {
+          1: "laughGirl",
+          2: "laughMan",
+          3: "laughBoy",
+        };
+        const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
+        const openSoundDone = sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve();
+        await Promise.all([drumHitDone, openSoundDone]);
+        const laughSound = laughByAttempt[attempt];
+        if (laughSound) {
+          await sound()?.play(laughSound, { waitForEnd: true });
+        }
+      })();
     },
     [sound],
   );
