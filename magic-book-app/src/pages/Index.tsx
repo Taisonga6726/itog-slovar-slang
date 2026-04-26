@@ -583,12 +583,15 @@ const Index = () => {
   }, [playFlipSound]);
 
   const openLuckyWheel = useCallback(() => {
+    // В игре фон должен звучать: если ранее был на паузе (например, после панели гимна),
+    // явно возобновляем перед открытием игрового экрана.
+    resumeBackgroundHymnAfterPanel();
     if (LUCKY_WHEEL_ENTRY === "route") {
       navigate("/luck");
     } else {
       setLuckyWheelOpen(true);
     }
-  }, [navigate]);
+  }, [navigate, resumeBackgroundHymnAfterPanel]);
 
   useEffect(() => {
     if (mode !== "form") return;
