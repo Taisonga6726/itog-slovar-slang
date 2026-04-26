@@ -46,6 +46,41 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
   const [audioTestOpen, setAudioTestOpen] = useState(false);
 
   useEffect(() => {
+    const base = import.meta.env.BASE_URL || "/";
+    const basePrefix = base.endsWith("/") ? base : `${base}/`;
+    const toAudioSrc = (fileName: string) => `${basePrefix}audio/${encodeURIComponent(fileName)}`;
+
+    const introFx = new Audio(toAudioSrc("фейерверк фанфары аплодисменты.MP3"));
+    const ambientFx = new Audio(toAudioSrc("фанфары аплодисменты .MP3"));
+
+    introFx.preload = "auto";
+    ambientFx.preload = "auto";
+    ambientFx.loop = true;
+    introFx.volume = 0.95;
+    ambientFx.volume = 0.9;
+
+    let disposed = false;
+    const startAmbient = () => {
+      if (disposed) return;
+      void ambientFx.play().catch(() => {});
+    };
+
+    introFx.addEventListener("ended", startAmbient);
+    void introFx.play().catch(() => {
+      startAmbient();
+    });
+
+    return () => {
+      disposed = true;
+      introFx.removeEventListener("ended", startAmbient);
+      introFx.pause();
+      introFx.currentTime = 0;
+      ambientFx.pause();
+      ambientFx.currentTime = 0;
+    };
+  }, []);
+
+  useEffect(() => {
     onHymnPanelOpenChange?.(audioTestOpen);
   }, [audioTestOpen, onHymnPanelOpenChange]);
 

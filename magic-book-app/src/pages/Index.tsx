@@ -136,10 +136,32 @@ const Index = () => {
 
   const mergeUniqueByWord = (primary: Entry[], extra: Entry[]): Entry[] => {
     const map = new Map<string, Entry>();
+    const mergeEntry = (a: Entry, b: Entry): Entry => {
+      const aImages = Array.isArray(a.images) ? a.images : [];
+      const bImages = Array.isArray(b.images) ? b.images : [];
+      return {
+        word: a.word || b.word,
+        description: a.description || b.description,
+        // На восстановлении базы сохраняем более полный набор скринов.
+        images: bImages.length > aImages.length ? bImages : aImages,
+        // Реакции только накапливаем: берём максимум по каждому счётчику.
+        reactions: {
+          fire: Math.max(Number(a.reactions?.fire || 0), Number(b.reactions?.fire || 0)),
+          love: Math.max(Number(a.reactions?.love || 0), Number(b.reactions?.love || 0)),
+          rocket: Math.max(Number(a.reactions?.rocket || 0), Number(b.reactions?.rocket || 0)),
+          laugh: Math.max(Number(a.reactions?.laugh || 0), Number(b.reactions?.laugh || 0)),
+          like: Math.max(Number(a.reactions?.like || 0), Number(b.reactions?.like || 0)),
+        },
+      };
+    };
     for (const e of primary) {
       const k = wordKey(e.word);
       if (!k) continue;
-      if (!map.has(k)) map.set(k, e);
+      if (!map.has(k)) {
+        map.set(k, e);
+      } else {
+        map.set(k, mergeEntry(map.get(k) as Entry, e));
+      }
     }
     for (const e of extra) {
       const k = wordKey(e.word);
@@ -694,7 +716,7 @@ const Index = () => {
           onPauseBackgroundHymn={pauseBackgroundHymnSoft}
           onResumeBackgroundHymn={resumeBackgroundHymnAfterPanel}
           onHymnPanelOpenChange={setHymnPanelOpen}
-          onHymnPlayGame={openLuckyWheel}
+          onHymnPlayGame={handleStartReadFlow}
           onHymnEnterWord={handleAddWord}
           openHymnOnMount={searchParams.get("entry") === "slovar" && searchParams.get("screen") === "hymn"}
         />
