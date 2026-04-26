@@ -285,6 +285,7 @@ const Index = () => {
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<"intro" | "form" | "awakening" | "hands" | "reading" | "final">("intro");
   const [entries, setEntries] = useState<Entry[]>([]);
+  const [entriesLoaded, setEntriesLoaded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -294,9 +295,10 @@ const Index = () => {
         if (cancelled) return;
         const finalEntries = removeTestEntries(parseSeedBackupEntries(data));
         setEntries(finalEntries);
+        setEntriesLoaded(true);
       })
       .catch(() => {
-        /* ignore */
+        if (!cancelled) setEntriesLoaded(true);
       });
     return () => {
       cancelled = true;
@@ -528,6 +530,7 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
+    if (!entriesLoaded) return;
     if (mode === "reading" && entries.length === 0) {
       setMode("form");
       toast({
@@ -535,7 +538,7 @@ const Index = () => {
         description: "РЎРЅР°С‡Р°Р»Р° РІРЅРµСЃРёС‚Рµ Рё СЃРѕС…СЂР°РЅРёС‚Рµ С…РѕС‚СЏ Р±С‹ РѕРґРЅРѕ СЃР»РѕРІРѕ.",
       });
     }
-  }, [mode, entries.length]);
+  }, [mode, entries.length, entriesLoaded]);
 
   /** По ТЗ: автоприглушение фона полностью отключено, громкость единая на всех экранах. */
 
