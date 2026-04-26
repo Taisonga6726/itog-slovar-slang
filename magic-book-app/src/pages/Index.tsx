@@ -77,6 +77,7 @@ const Index = () => {
   const [hymnPanelOpen, setHymnPanelOpen] = useState(false);
   /** Вариант A: игра «Поле чудес» в панели (см. LUCKY_WHEEL_ENTRY). */
   const [luckyWheelOpen, setLuckyWheelOpen] = useState(false);
+  const isGameActive = luckyWheelOpen;
   const navigate = useNavigate();
   const FINAL_DICTIONARY_URL = "/final-dictionary-61.json";
   /** v2: экспорт всегда подмешивается к сохранённому списку (слова из файла перекрывают старые), плюс срез дублей с одинаковыми картинками. */
@@ -423,21 +424,18 @@ const Index = () => {
   }, [pauseBackgroundHymnSoft]);
 
   const ensureHymnAudio = useCallback(() => {
-    if (gameAudioLockRef.current) return null;
+    if (gameAudioLockRef.current || isGameActive) return null;
     if (!hymnAudio.current) {
       hymnAudio.current = new Audio("/slovar/assets/sounds/versiya%205_hard-rok%20Tanya.mp3");
       hymnAudio.current.loop = true;
       hymnAudio.current.volume = bookSoundMuted ? 0 : HYMN_BASE_VOLUME;
     }
     return hymnAudio.current;
-  }, [bookSoundMuted]);
+  }, [bookSoundMuted, isGameActive]);
 
   /** После выхода из панели выбора аудио возвращаем фон (глобальная политика). */
   const resumeBackgroundHymnAfterPanel = useCallback(() => {
-    // Локальный стоп-кран: пока на странице активен экран игры (включая предсказание),
-    // фоновую музыку книги никогда не возобновляем.
-    if (typeof document !== "undefined" && document.getElementById("pole-chudes-test-root")) return;
-    if (gameAudioLockRef.current || luckyWheelOpen || hymnPanelOpen) return;
+    if (gameAudioLockRef.current || isGameActive || hymnPanelOpen) return;
     const audio = ensureHymnAudio();
     if (!audio) return;
     void audio
@@ -446,11 +444,11 @@ const Index = () => {
         hymnStartedRef.current = true;
       })
       .catch(() => {});
-  }, [ensureHymnAudio, luckyWheelOpen, hymnPanelOpen]);
+  }, [ensureHymnAudio, isGameActive, hymnPanelOpen]);
 
   /** Р“РёРјРЅ СЂРѕРґРёС‚РµР»СЏ: РїРѕ СЃРёРіРЅР°Р»Сѓ РёР· iframe; ref В«Р·Р°РїСѓС‰РµРЅВ» С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ play (РёРЅР°С‡Рµ РїРѕРІС‚РѕСЂРЅС‹Р№ РєР»РёРє РјРѕР»С‡РёС‚). */
   const startBookHymnFromIntro = useCallback(() => {
-    if (gameAudioLockRef.current) return;
+    if (gameAudioLockRef.current || isGameActive) return;
     const audio = ensureHymnAudio();
     if (!audio) return;
     if (hymnStartedRef.current) return;
@@ -462,16 +460,16 @@ const Index = () => {
       .catch(() => {
         hymnStartedRef.current = false;
       });
-  }, [ensureHymnAudio]);
+  }, [ensureHymnAudio, isGameActive]);
 
   useEffect(() => {
-    const inExceptionZone = hymnPanelOpen || luckyWheelOpen;
+    const inExceptionZone = hymnPanelOpen || isGameActive;
     if (inExceptionZone) {
       pauseBackgroundHymnSoft();
       return;
     }
     resumeBackgroundHymnAfterPanel();
-  }, [hymnPanelOpen, luckyWheelOpen, pauseBackgroundHymnSoft, resumeBackgroundHymnAfterPanel]);
+  }, [hymnPanelOpen, isGameActive, pauseBackgroundHymnSoft, resumeBackgroundHymnAfterPanel]);
 
   useEffect(() => {
     return () => {
