@@ -50,6 +50,12 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
   }, [audioTestOpen, onHymnPanelOpenChange]);
 
   useEffect(() => {
+    // На финальном экране книги держим фоновый гимн включенным
+    // (кроме состояния открытой панели выбора гимна, где он ставится на паузу).
+    if (!audioTestOpen) onResumeBackgroundHymn?.();
+  }, [audioTestOpen, onResumeBackgroundHymn]);
+
+  useEffect(() => {
     return () => {
       onHymnPanelOpenChange?.(false);
     };
