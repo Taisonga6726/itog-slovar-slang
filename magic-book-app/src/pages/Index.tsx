@@ -81,6 +81,8 @@ const Index = () => {
   const SEED_ENTRIES_URL = "/tanya-vibecoder-backup-2026-04-18.json";
   const RECOVERED_ENTRIES_URL = "/recovered-entries.json";
   const DOCX_RECOVERED_ENTRIES_URL = "/docx-catalog-recovered.json";
+  const STRICT_BASELINE_ENTRIES_URL = "/dictionary-baseline-1-60.json";
+  const USE_STRICT_DICTIONARY_BASELINE = true;
   /** v2: экспорт всегда подмешивается к сохранённому списку (слова из файла перекрывают старые), плюс срез дублей с одинаковыми картинками. */
   const SEED_STORAGE_KEY = "magic-book-seed-v2-applied";
   const HYMN_MUTED_STORAGE_KEY = "magic-book-hymn-muted";
@@ -287,6 +289,7 @@ const Index = () => {
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<"intro" | "form" | "awakening" | "hands" | "reading" | "final">("intro");
   const [entries, setEntries] = useState<Entry[]>(() => {
+    if (USE_STRICT_DICTIONARY_BASELINE) return [];
     // Приоритет: существующая база пользователя (main) -> компактный backup -> legacy.
     const savedMain = parseSavedEntries(localStorage.getItem(ENTRIES_STORAGE_KEY));
     const savedLite = parseSavedEntries(localStorage.getItem(ENTRIES_LITE_BACKUP_KEY));
@@ -300,6 +303,25 @@ const Index = () => {
     const legacy = parseLegacyVibeWords();
     return removeTestEntries(legacy);
   });
+
+  useEffect(() => {
+    if (!USE_STRICT_DICTIONARY_BASELINE) return;
+    let cancelled = false;
+    void fetch(STRICT_BASELINE_ENTRIES_URL)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
+      .then((data) => {
+        if (cancelled) return;
+        const baseline = removeTestEntries(parseSeedBackupEntries(data));
+        setEntries(baseline);
+      })
+      .catch(() => {
+        /* ignore */
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const cleaned = entries
@@ -473,6 +495,7 @@ const Index = () => {
   }, [entries, ENTRIES_LITE_BACKUP_KEY, ENTRIES_MAX_COUNT_KEY, ENTRIES_STORAGE_KEY]);
 
   useEffect(() => {
+    if (USE_STRICT_DICTIONARY_BASELINE) return;
     // Если база пустая, аварийно поднимаем seed, чтобы словарь не был "0 слов".
     if (entries.length > 0) {
       seedHydrationDoneRef.current = true;
@@ -502,6 +525,7 @@ const Index = () => {
   }, [entries.length]);
 
   useEffect(() => {
+    if (USE_STRICT_DICTIONARY_BASELINE) return;
     // Восстановление из офлайн-дампа браузера только как дополнение к текущей базе.
     let cancelled = false;
     void fetch(RECOVERED_ENTRIES_URL)
@@ -522,6 +546,7 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
+    if (USE_STRICT_DICTIONARY_BASELINE) return;
     // Восстановление скринов для уже сохранённых записей (не трогаем тексты/реакции).
     let cancelled = false;
     void Promise.all([
@@ -548,6 +573,7 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
+    if (USE_STRICT_DICTIONARY_BASELINE) return;
     // Восстановление хвоста слов начиная с 47-й записи (без изменения первых 46).
     let cancelled = false;
     void Promise.all([
@@ -586,6 +612,7 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
+    if (USE_STRICT_DICTIONARY_BASELINE) return;
     // Одноразовый импорт слов+скринов из DOCX-каталога пользователя.
     if (localStorage.getItem(DOCX_IMPORT_APPLIED_KEY) === "1") return;
     let cancelled = false;
