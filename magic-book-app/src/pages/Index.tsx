@@ -253,14 +253,27 @@ const Index = () => {
     let changed = false;
     const next = current.map((entry) => {
       const currentImages = Array.isArray(entry.images) ? entry.images : [];
-      if (currentImages.length > 0) return entry;
       const sourceImages = sourceImagesByWord.get(exactWordKey(entry.word)) ?? [];
       if (!sourceImages.length) return entry;
+      const sameImages = currentImages.length === sourceImages.length && currentImages.every((img, idx) => img === sourceImages[idx]);
+      if (sameImages) return entry;
       changed = true;
       return { ...entry, images: sourceImages };
     });
 
     return changed ? next : current;
+  };
+
+  const appendMissingByExactWord = (current: Entry[], candidates: Entry[]): Entry[] => {
+    const known = new Set(current.map((e) => exactWordKey(e.word)).filter(Boolean));
+    const additions = candidates.filter((e) => {
+      const k = exactWordKey(e.word);
+      if (!k || known.has(k)) return false;
+      known.add(k);
+      return true;
+    });
+    if (!additions.length) return current;
+    return [...current, ...additions];
   };
 
   const tailEntriesAfterBaseline = (baseline: Entry[], candidates: Entry[]): Entry[] => {
@@ -519,7 +532,9 @@ const Index = () => {
         if (cancelled) return;
         const seed = removeTestEntries(parseSeedBackupEntries(seedData));
         const docx = removeTestEntries(parseSeedBackupEntries(docxData));
-        const imageSources = [...seed, ...docx];
+        const legacy = removeTestEntries(parseLegacyVibeWords());
+        const fixedSnapshot = removeTestEntries(parseSavedEntries(localStorage.getItem("magic-book-fixed-56-snapshot")));
+        const imageSources = [...seed, ...docx, ...legacy, ...fixedSnapshot];
         if (!imageSources.length) return;
         setEntries((prev) => restoreImagesByWord(prev, imageSources));
       })
@@ -557,8 +572,7 @@ const Index = () => {
         if (!tailOnly.length) return;
 
         setEntries((prev) => {
-          const merged = removeTestEntries(mergeUniqueByWord(prev, tailOnly));
-          return restoreImagesByWord(merged, tailOnly);
+          return removeTestEntries(appendMissingByExactWord(prev, tailOnly));
         });
       })
       .catch(() => {
