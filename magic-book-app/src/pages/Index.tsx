@@ -434,6 +434,9 @@ const Index = () => {
 
   /** После выхода из панели выбора аудио возвращаем фон (глобальная политика). */
   const resumeBackgroundHymnAfterPanel = useCallback(() => {
+    // Локальный стоп-кран: пока на странице активен экран игры (включая предсказание),
+    // фоновую музыку книги никогда не возобновляем.
+    if (typeof document !== "undefined" && document.getElementById("pole-chudes-test-root")) return;
     if (gameAudioLockRef.current || luckyWheelOpen || hymnPanelOpen) return;
     const audio = ensureHymnAudio();
     if (!audio) return;
