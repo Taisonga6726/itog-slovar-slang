@@ -166,7 +166,11 @@ const Index = () => {
     for (const e of extra) {
       const k = wordKey(e.word);
       if (!k) continue;
-      if (!map.has(k)) map.set(k, e);
+      if (!map.has(k)) {
+        map.set(k, e);
+      } else {
+        map.set(k, mergeEntry(map.get(k) as Entry, e));
+      }
     }
     return Array.from(map.values());
   };
@@ -237,12 +241,13 @@ const Index = () => {
   const [mode, setMode] = useState<"intro" | "form" | "awakening" | "hands" | "reading" | "final">("intro");
   const [entries, setEntries] = useState<Entry[]>(() => {
     // Приоритет: существующая база пользователя (main) -> компактный backup -> legacy.
-    // Правило: не возвращаться к началу, если база уже была сохранена.
     const savedMain = parseSavedEntries(localStorage.getItem(ENTRIES_STORAGE_KEY));
     const savedLite = parseSavedEntries(localStorage.getItem(ENTRIES_LITE_BACKUP_KEY));
-    const preferredSaved = savedMain.length >= savedLite.length ? savedMain : savedLite;
-    if (preferredSaved.length > 0) {
-      return removeTestEntries(preferredSaved);
+    if (savedMain.length > 0) {
+      return removeTestEntries(savedMain);
+    }
+    if (savedLite.length > 0) {
+      return removeTestEntries(savedLite);
     }
 
     const legacy = parseLegacyVibeWords();
@@ -450,7 +455,7 @@ const Index = () => {
   }, [entries.length]);
 
   useEffect(() => {
-    // Восстановление из офлайн-дампа браузера (если он полнее текущего состояния).
+    // Восстановление из офлайн-дампа браузера только как дополнение к текущей базе.
     let cancelled = false;
     void fetch(RECOVERED_ENTRIES_URL)
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
@@ -458,8 +463,7 @@ const Index = () => {
         if (cancelled) return;
         const recovered = removeTestEntries(parseSeedBackupEntries(data));
         if (!recovered.length) return;
-        if (recovered.length <= entries.length) return;
-        setEntries((prev) => removeTestEntries(mergeUniqueByWord(recovered, prev)));
+        setEntries((prev) => removeTestEntries(mergeUniqueByWord(prev, recovered)));
       })
       .catch(() => {
         /* ignore */
