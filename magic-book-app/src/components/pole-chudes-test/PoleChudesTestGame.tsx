@@ -539,7 +539,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 </div>
               </div>
 
-              <div className="-mt-16 flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center sm:-mt-14 sm:gap-1.5">
+              <div className="-mt-16 relative z-20 pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center sm:-mt-14 sm:gap-1.5">
                 <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/")}>
                   Назад к книге
                 </NeonGlassButton>

@@ -412,6 +412,7 @@ const Index = () => {
   /** Игра «Поле чудес»: пауза + сброс позиции гимна, чтобы отложенный play() не накладывался на SFX при первом предсказании. */
   const pauseBookHymnForGame = useCallback(() => {
     pauseBackgroundHymnSoft();
+    hymnStartedRef.current = false;
     try {
       if (hymnAudio.current) hymnAudio.current.currentTime = 0;
     } catch {
@@ -430,6 +431,7 @@ const Index = () => {
 
   /** После выхода из панели выбора аудио возвращаем фон (глобальная политика). */
   const resumeBackgroundHymnAfterPanel = useCallback(() => {
+    if (luckyWheelOpen || hymnPanelOpen) return;
     const audio = ensureHymnAudio();
     void audio
       .play()
@@ -437,7 +439,7 @@ const Index = () => {
         hymnStartedRef.current = true;
       })
       .catch(() => {});
-  }, [ensureHymnAudio]);
+  }, [ensureHymnAudio, luckyWheelOpen, hymnPanelOpen]);
 
   /** Р“РёРјРЅ СЂРѕРґРёС‚РµР»СЏ: РїРѕ СЃРёРіРЅР°Р»Сѓ РёР· iframe; ref В«Р·Р°РїСѓС‰РµРЅВ» С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ play (РёРЅР°С‡Рµ РїРѕРІС‚РѕСЂРЅС‹Р№ РєР»РёРє РјРѕР»С‡РёС‚). */
   const startBookHymnFromIntro = useCallback(() => {
