@@ -419,21 +419,31 @@ const Index = () => {
     }
   }, [pauseBackgroundHymnSoft]);
 
-  /** После выхода из панели выбора аудио возвращаем фон, если он уже запускался. */
-  const resumeBackgroundHymnAfterPanel = useCallback(() => {
-    if (!hymnStartedRef.current || !hymnAudio.current) return;
-    void hymnAudio.current.play().catch(() => {});
-  }, []);
-
-  /** Р“РёРјРЅ СЂРѕРґРёС‚РµР»СЏ: РїРѕ СЃРёРіРЅР°Р»Сѓ РёР· iframe; ref В«Р·Р°РїСѓС‰РµРЅВ» С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ play (РёРЅР°С‡Рµ РїРѕРІС‚РѕСЂРЅС‹Р№ РєР»РёРє РјРѕР»С‡РёС‚). */
-  const startBookHymnFromIntro = useCallback(() => {
+  const ensureHymnAudio = useCallback(() => {
     if (!hymnAudio.current) {
       hymnAudio.current = new Audio("/slovar/assets/sounds/versiya%205_hard-rok%20Tanya.mp3");
       hymnAudio.current.loop = true;
       hymnAudio.current.volume = bookSoundMuted ? 0 : HYMN_BASE_VOLUME;
     }
+    return hymnAudio.current;
+  }, [bookSoundMuted]);
+
+  /** После выхода из панели выбора аудио возвращаем фон (глобальная политика). */
+  const resumeBackgroundHymnAfterPanel = useCallback(() => {
+    const audio = ensureHymnAudio();
+    void audio
+      .play()
+      .then(() => {
+        hymnStartedRef.current = true;
+      })
+      .catch(() => {});
+  }, [ensureHymnAudio]);
+
+  /** Р“РёРјРЅ СЂРѕРґРёС‚РµР»СЏ: РїРѕ СЃРёРіРЅР°Р»Сѓ РёР· iframe; ref В«Р·Р°РїСѓС‰РµРЅВ» С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ play (РёРЅР°С‡Рµ РїРѕРІС‚РѕСЂРЅС‹Р№ РєР»РёРє РјРѕР»С‡РёС‚). */
+  const startBookHymnFromIntro = useCallback(() => {
+    const audio = ensureHymnAudio();
     if (hymnStartedRef.current) return;
-    void hymnAudio.current
+    void audio
       .play()
       .then(() => {
         hymnStartedRef.current = true;
@@ -441,10 +451,18 @@ const Index = () => {
       .catch(() => {
         hymnStartedRef.current = false;
       });
-  }, [bookSoundMuted]);
+  }, [ensureHymnAudio]);
 
   useEffect(() => {
-    pauseHymn();
+    const inExceptionZone = hymnPanelOpen || luckyWheelOpen;
+    if (inExceptionZone) {
+      pauseBackgroundHymnSoft();
+      return;
+    }
+    resumeBackgroundHymnAfterPanel();
+  }, [hymnPanelOpen, luckyWheelOpen, pauseBackgroundHymnSoft, resumeBackgroundHymnAfterPanel]);
+
+  useEffect(() => {
     return () => {
       if (hymnAudio.current) {
         try {
@@ -456,7 +474,7 @@ const Index = () => {
       }
       hymnStartedRef.current = false;
     };
-  }, [pauseHymn]);
+  }, []);
 
   useEffect(() => {
     const nextSerialized = JSON.stringify(entries);
