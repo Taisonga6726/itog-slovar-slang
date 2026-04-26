@@ -127,6 +127,14 @@ export default function VibeAudioTestPanel({
     return Object.fromEntries(TRACKS.map((t) => [t.id, emptyReactions()])) as Record<TrackId, Record<ReactionKey, number>>;
   });
 
+  const stopPanelAudio = useCallback(() => {
+    const el = audioRef.current;
+    if (!el) return;
+    el.pause();
+    el.currentTime = 0;
+    setPlayingId(null);
+  }, []);
+
   const { popularTrack, popularR, popularScore } = useMemo(() => {
     let bestId = TRACKS[0].id;
     let bestScore = -1;
@@ -495,7 +503,10 @@ export default function VibeAudioTestPanel({
                 <NeonGlassButton
                   accent
                   className="pointer-events-auto !h-[2.65rem] !w-[8.4rem] !px-3 !py-2 !text-center !text-[11px] sm:!h-[2.75rem] sm:!w-[8.8rem] sm:!text-sm"
-                  onClick={onBackToBook}
+                  onClick={() => {
+                    stopPanelAudio();
+                    onBackToBook();
+                  }}
                 >
                   назад к книге
                 </NeonGlassButton>
@@ -504,7 +515,10 @@ export default function VibeAudioTestPanel({
                 <NeonGlassButton
                   accent
                   className="pointer-events-auto !h-[2.65rem] !w-[8.4rem] !px-3 !py-2 !text-center !text-[11px] sm:!h-[2.75rem] sm:!w-[8.8rem] sm:!text-sm"
-                  onClick={onPlayGame}
+                  onClick={() => {
+                    stopPanelAudio();
+                    onPlayGame();
+                  }}
                 >
                   Крутим удачу?
                 </NeonGlassButton>
@@ -513,7 +527,10 @@ export default function VibeAudioTestPanel({
                 <NeonGlassButton
                   accent
                   className="pointer-events-auto !h-[2.65rem] !w-[8.4rem] !px-3 !py-2 !text-center !text-[11px] sm:!h-[2.75rem] sm:!w-[8.8rem] sm:!text-sm"
-                  onClick={onEnterWord}
+                  onClick={() => {
+                    stopPanelAudio();
+                    onEnterWord();
+                  }}
                 >
                   ввести слово
                 </NeonGlassButton>
