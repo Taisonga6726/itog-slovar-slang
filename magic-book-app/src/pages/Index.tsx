@@ -583,15 +583,19 @@ const Index = () => {
   }, [playFlipSound]);
 
   const openLuckyWheel = useCallback(() => {
-    // В игре фон должен звучать: если ранее был на паузе (например, после панели гимна),
-    // явно возобновляем перед открытием игрового экрана.
-    resumeBackgroundHymnAfterPanel();
+    // По сценарию игры: вход в игру без фоновой музыки книги.
+    pauseBookHymnForGame();
     if (LUCKY_WHEEL_ENTRY === "route") {
       navigate("/luck");
     } else {
       setLuckyWheelOpen(true);
     }
-  }, [navigate, resumeBackgroundHymnAfterPanel]);
+  }, [navigate, pauseBookHymnForGame]);
+
+  /** Пока открыта игра, фон книги всегда на паузе. */
+  useEffect(() => {
+    if (luckyWheelOpen) pauseBookHymnForGame();
+  }, [luckyWheelOpen, pauseBookHymnForGame]);
 
   useEffect(() => {
     if (mode !== "form") return;
@@ -752,6 +756,7 @@ const Index = () => {
 
       <LuckyWheelPanel
         open={luckyWheelOpen}
+        onPauseBookHymn={pauseBookHymnForGame}
         onClose={() => {
           setLuckyWheelOpen(false);
           resumeBackgroundHymnAfterPanel();

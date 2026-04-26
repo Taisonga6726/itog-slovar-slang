@@ -161,13 +161,14 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
           onBack();
         }}
         onPlayGame={() => {
-          resumeAfterPanelCloseRef.current = true;
+          // По сценарию: переход в игру без фоновой музыки книги.
+          resumeAfterPanelCloseRef.current = false;
           setAudioTestOpen(false);
           onHymnPlayGame?.();
         }}
         onEnterWord={() => {
-          resumeAfterPanelCloseRef.current = false;
-          onPauseBackgroundHymn?.();
+          // Из экрана выбора гимна в форму — фоновая музыка книги возвращается.
+          resumeAfterPanelCloseRef.current = true;
           setAudioTestOpen(false);
           onHymnEnterWord?.();
         }}

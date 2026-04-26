@@ -12,7 +12,6 @@ import FloatingWords from "@/components/FloatingWords";
 import DigitalCodeBackdrop from "@/components/DigitalCodeBackdrop";
 import GlobalVibeShell from "@/components/GlobalVibeShell";
 import HeroWave from "@/components/ui/dynamic-wave-canvas-background";
-import { SoundManager } from "./SoundManager";
 import { Wheel } from "./Wheel";
 import { WORD_BASE_FROM_TXT } from "./wordBaseFromTxt";
 
@@ -53,16 +52,6 @@ function hexToRgba(hex: string, alpha: number): string {
   const b = int & 255;
   return `rgba(${r},${g},${b},${alpha})`;
 }
-
-const SOUND_CONFIG = {
-  wowStart: { src: toAudioSrc("КЛИК вау начало.MP3"), volume: 0.95 },
-  spin: { src: toAudioSrc("прокрутка колеса 02.MP3"), volume: 1 },
-  truba: { src: toAudioSrc("вау_труба.MP3"), volume: 0.95 },
-  happyBoy: { src: toAudioSrc("довольный мальчик.MP3"), volume: 0.95 },
-  laughGirl: { src: toAudioSrc("смех девочка1.MP3"), volume: 0.95 },
-  laughMan: { src: toAudioSrc("смех мужчина 1.MP3"), volume: 0.95 },
-  laughBoy: { src: toAudioSrc("смех мальчик 1 .MP3"), volume: 0.95 },
-} as const;
 
 const SPLASH_VIDEO_PATH = "videos/заставка перед игрой/заставка перед игрой.mp4";
 const SPLASH_VIDEO_SRC = publicFile(SPLASH_VIDEO_PATH);
@@ -112,22 +101,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [gameWordBase] = useState<GameWordBase>(() => WORD_BASE_FROM_TXT);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
-  const soundManagerRef = useRef<SoundManager | null>(null);
 
   useEffect(() => {
     // На смене этапа и при смене колбэка: глушим гимн книги (без второго дубля на mount).
     onPauseBookHymn?.();
   }, [stage, onPauseBookHymn]);
-
-  useEffect(() => {
-    soundManagerRef.current = new SoundManager(SOUND_CONFIG);
-    return () => {
-      soundManagerRef.current?.stopAll();
-      soundManagerRef.current = null;
-    };
-  }, []);
-
-  const sound = useCallback(() => soundManagerRef.current, []);
 
   const getCategoryByRotation = useCallback((rotationValue: number): string => {
     const sectorSize = 360 / CATEGORIES.length;
@@ -196,18 +174,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     async (spinResult: SpinResult, attempt: number, usedSnapshot: Record<string, Set<string>>) => {
       setCurrentResult(spinResult);
 
-      const openSoundByAttempt: Record<number, "truba" | "wowStart" | "happyBoy"> = {
-        1: "truba",
-        2: "wowStart",
-        3: "truba",
-        4: "happyBoy",
-      };
-      const laughByAttempt: Partial<Record<number, "laughGirl" | "laughMan" | "laughBoy">> = {
-        1: "laughGirl",
-        2: "laughMan",
-        3: "laughBoy",
-      };
-
       const categoryUsed = usedSnapshot[spinResult.category] || new Set();
       setUsedPhrases((prev) => ({
         ...prev,
@@ -230,18 +196,10 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         colors: [CATEGORIES.find((c) => c.id === spinResult.category)?.color || "#ffffff"],
       });
 
-      const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
-      const laughSound = laughByAttempt[attempt];
-      if (laughSound) {
-        await sound()?.play(laughSound, { waitForEnd: true });
-      } else {
-        await (sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve());
-      }
-
       setResultReady(true);
       setBusy(false);
     },
-    [sound],
+    [],
   );
 
   const handleSpin = useCallback(async () => {
@@ -262,8 +220,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     });
 
     onPauseBookHymn?.();
-    const spinAudioDone = sound()?.play("spin", { waitForEnd: true }) ?? Promise.resolve();
-    const totalSpinDuration = sound()?.getDuration("spin") ?? 2.8;
+    const spinAudioDone = Promise.resolve();
+    const totalSpinDuration = 2.8;
     const preRotation = rotation + 180;
     const fastRotation = rotation + 1080;
     setSpinDuration(totalSpinDuration);
@@ -290,7 +248,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
      * иначе на статичном экране слышны повторяющиеся эффекты.
      */
-  }, [busy, stage, usedPhrases, results.length, rotation, onPauseBookHymn, onSpinComplete, sound, getCategoryByRotation, getResultForCategory]);
+  }, [busy, stage, usedPhrases, results.length, rotation, onPauseBookHymn, onSpinComplete, getCategoryByRotation, getResultForCategory]);
 
   const startSpin = useCallback(() => {
     if (isSpinning) return;
@@ -304,20 +262,16 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   const handleStartFromSplash = useCallback(() => {
     if (busy) return;
-    /* Клик-саунд запускаем мгновенно, без ожидания — экран барабана открывается сразу по нажатию. */
-    void sound()?.play("wowStart", { stopBefore: true });
     splashVideoRef.current?.pause();
     onPauseBookHymn?.();
     flushSync(() => {
       setStage("GAME");
       setBusy(false);
     });
-  }, [busy, onPauseBookHymn, sound]);
+  }, [busy, onPauseBookHymn]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady) return;
-    sound()?.stopAll();
-    void sound()?.play("wowStart", { stopBefore: false });
     onPauseBookHymn?.();
     if (results.length >= MAX_SPINS) {
       setStage("SUMMARY");
@@ -327,7 +281,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setCurrentResult(null);
     setStage("GAME");
     setBusy(false);
-  }, [resultReady, results.length, sound, onPauseBookHymn]);
+  }, [resultReady, results.length, onPauseBookHymn]);
 
   const getCategoryIcon = (id: string) => {
     switch (id) {
