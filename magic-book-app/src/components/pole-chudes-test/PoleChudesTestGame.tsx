@@ -203,8 +203,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       }));
       setResults((prev) => [...prev, spinResult]);
 
-      // Тарелка — триггер открытия предсказания (не блокируем переход ожиданием конца звука).
-      void sound()?.play("drumHit");
+      // После завершения прокрутки и удара открываем предсказание.
+      await (sound()?.play("drumHit", { waitForEnd: true }) ?? Promise.resolve());
 
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
@@ -238,10 +238,11 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
           3: "laughBoy",
         };
         const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
-        await (sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve());
         const laughSound = laughByAttempt[attempt];
         if (laughSound) {
           await sound()?.play(laughSound, { waitForEnd: true });
+        } else {
+          await (sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve());
         }
       })();
     },
@@ -267,7 +268,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
     onPauseBookHymn?.();
     const spinAudioDone = sound()?.play("spin", { waitForEnd: true }) ?? Promise.resolve();
-    const totalSpinDuration = 2.8;
+    const totalSpinDuration = sound()?.getDuration("spin") ?? 2.8;
     const preRotation = rotation + 180;
     const fastRotation = rotation + 1080;
     setSpinDuration(totalSpinDuration);
@@ -319,6 +320,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
   const nextAction = useCallback(async () => {
     if (!resultReady) return;
+    sound()?.stopAll();
     onPauseBookHymn?.();
     if (results.length >= MAX_SPINS) {
       setStage("SUMMARY");
@@ -328,7 +330,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setCurrentResult(null);
     setStage("GAME");
     setBusy(false);
-  }, [resultReady, results.length, onPauseBookHymn]);
+  }, [resultReady, results.length, onPauseBookHymn, sound]);
 
   const getCategoryIcon = (id: string) => {
     switch (id) {
