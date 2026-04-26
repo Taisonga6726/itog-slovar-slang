@@ -342,7 +342,6 @@ const Index = () => {
   const flipAudio = useRef<HTMLAudioElement | null>(null);
   const hymnAudio = useRef<HTMLAudioElement | null>(null);
   const hymnStartedRef = useRef(false);
-  const gameAudioLockRef = useRef(false);
   const awakenTimerRef = useRef<number | null>(null);
   const duckTimerRef = useRef<number | null>(null);
   const duckRafRef = useRef<number | null>(null);
@@ -413,7 +412,6 @@ const Index = () => {
 
   /** Игра «Поле чудес»: пауза + сброс позиции гимна, чтобы отложенный play() не накладывался на SFX при первом предсказании. */
   const pauseBookHymnForGame = useCallback(() => {
-    gameAudioLockRef.current = true;
     pauseBackgroundHymnSoft();
     hymnStartedRef.current = false;
     try {
@@ -423,36 +421,21 @@ const Index = () => {
     }
   }, [pauseBackgroundHymnSoft]);
 
-  const ensureHymnAudio = useCallback(() => {
-    if (gameAudioLockRef.current || isGameActive) return null;
+  /** После выхода из панели выбора аудио возвращаем фон, если он уже запускался. */
+  const resumeBackgroundHymnAfterPanel = useCallback(() => {
+    if (!hymnStartedRef.current || !hymnAudio.current) return;
+    void hymnAudio.current.play().catch(() => {});
+  }, []);
+
+  /** Р“РёРјРЅ СЂРѕРґРёС‚РµР»СЏ: РїРѕ СЃРёРіРЅР°Р»Сѓ РёР· iframe; ref В«Р·Р°РїСѓС‰РµРЅВ» С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ play (РёРЅР°С‡Рµ РїРѕРІС‚РѕСЂРЅС‹Р№ РєР»РёРє РјРѕР»С‡РёС‚). */
+  const startBookHymnFromIntro = useCallback(() => {
     if (!hymnAudio.current) {
       hymnAudio.current = new Audio("/slovar/assets/sounds/versiya%205_hard-rok%20Tanya.mp3");
       hymnAudio.current.loop = true;
       hymnAudio.current.volume = bookSoundMuted ? 0 : HYMN_BASE_VOLUME;
     }
-    return hymnAudio.current;
-  }, [bookSoundMuted, isGameActive]);
-
-  /** После выхода из панели выбора аудио возвращаем фон (глобальная политика). */
-  const resumeBackgroundHymnAfterPanel = useCallback(() => {
-    if (gameAudioLockRef.current || isGameActive || hymnPanelOpen) return;
-    const audio = ensureHymnAudio();
-    if (!audio) return;
-    void audio
-      .play()
-      .then(() => {
-        hymnStartedRef.current = true;
-      })
-      .catch(() => {});
-  }, [ensureHymnAudio, isGameActive, hymnPanelOpen]);
-
-  /** Р“РёРјРЅ СЂРѕРґРёС‚РµР»СЏ: РїРѕ СЃРёРіРЅР°Р»Сѓ РёР· iframe; ref В«Р·Р°РїСѓС‰РµРЅВ» С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ play (РёРЅР°С‡Рµ РїРѕРІС‚РѕСЂРЅС‹Р№ РєР»РёРє РјРѕР»С‡РёС‚). */
-  const startBookHymnFromIntro = useCallback(() => {
-    if (gameAudioLockRef.current || isGameActive) return;
-    const audio = ensureHymnAudio();
-    if (!audio) return;
     if (hymnStartedRef.current) return;
-    void audio
+    void hymnAudio.current
       .play()
       .then(() => {
         hymnStartedRef.current = true;
@@ -460,18 +443,10 @@ const Index = () => {
       .catch(() => {
         hymnStartedRef.current = false;
       });
-  }, [ensureHymnAudio, isGameActive]);
+  }, [bookSoundMuted]);
 
   useEffect(() => {
-    const inExceptionZone = hymnPanelOpen || isGameActive;
-    if (inExceptionZone) {
-      pauseBackgroundHymnSoft();
-      return;
-    }
-    resumeBackgroundHymnAfterPanel();
-  }, [hymnPanelOpen, isGameActive, pauseBackgroundHymnSoft, resumeBackgroundHymnAfterPanel]);
-
-  useEffect(() => {
+    pauseHymn();
     return () => {
       if (hymnAudio.current) {
         try {
@@ -483,7 +458,7 @@ const Index = () => {
       }
       hymnStartedRef.current = false;
     };
-  }, []);
+  }, [pauseHymn]);
 
   useEffect(() => {
     const nextSerialized = JSON.stringify(entries);
@@ -785,7 +760,6 @@ const Index = () => {
         open={luckyWheelOpen}
         onPauseBookHymn={pauseBookHymnForGame}
         onClose={() => {
-          gameAudioLockRef.current = false;
           setLuckyWheelOpen(false);
           resumeBackgroundHymnAfterPanel();
         }}
