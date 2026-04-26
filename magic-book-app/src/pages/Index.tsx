@@ -237,10 +237,12 @@ const Index = () => {
     }
   };
 
+  const exactWordKey = (w: string): string => String(w ?? "");
+
   const restoreImagesByWord = (current: Entry[], sources: Entry[]): Entry[] => {
     const sourceImagesByWord = new Map<string, string[]>();
     for (const src of sources) {
-      const k = wordKey(src.word);
+      const k = exactWordKey(src.word);
       if (!k) continue;
       const imgs = Array.isArray(src.images) ? src.images.filter((img): img is string => typeof img === "string" && img.trim().length > 0) : [];
       if (!imgs.length) continue;
@@ -252,7 +254,7 @@ const Index = () => {
     const next = current.map((entry) => {
       const currentImages = Array.isArray(entry.images) ? entry.images : [];
       if (currentImages.length > 0) return entry;
-      const sourceImages = sourceImagesByWord.get(wordKey(entry.word)) ?? [];
+      const sourceImages = sourceImagesByWord.get(exactWordKey(entry.word)) ?? [];
       if (!sourceImages.length) return entry;
       changed = true;
       return { ...entry, images: sourceImages };
@@ -517,7 +519,7 @@ const Index = () => {
         if (cancelled) return;
         const seed = removeTestEntries(parseSeedBackupEntries(seedData));
         const docx = removeTestEntries(parseSeedBackupEntries(docxData));
-        const imageSources = mergeUniqueByWord(seed, docx);
+        const imageSources = [...seed, ...docx];
         if (!imageSources.length) return;
         setEntries((prev) => restoreImagesByWord(prev, imageSources));
       })
