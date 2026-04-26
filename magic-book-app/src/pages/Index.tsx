@@ -78,10 +78,7 @@ const Index = () => {
   /** Вариант A: игра «Поле чудес» в панели (см. LUCKY_WHEEL_ENTRY). */
   const [luckyWheelOpen, setLuckyWheelOpen] = useState(false);
   const navigate = useNavigate();
-  const SEED_ENTRIES_URL = "/tanya-vibecoder-backup-2026-04-18.json";
-  const RECOVERED_ENTRIES_URL = "/recovered-entries.json";
-  const DOCX_RECOVERED_ENTRIES_URL = "/docx-catalog-recovered.json";
-  const STRICT_BASELINE_ENTRIES_URL = "/dictionary-baseline-1-60.json";
+  const FINAL_DICTIONARY_URL = "/final-dictionary-61.json";
   /** v2: экспорт всегда подмешивается к сохранённому списку (слова из файла перекрывают старые), плюс срез дублей с одинаковыми картинками. */
   const SEED_STORAGE_KEY = "magic-book-seed-v2-applied";
   const HYMN_MUTED_STORAGE_KEY = "magic-book-hymn-muted";
@@ -290,40 +287,13 @@ const Index = () => {
   const [entries, setEntries] = useState<Entry[]>([]);
 
   useEffect(() => {
-    type SourceCandidate = { name: string; entries: Entry[] };
-    const countStats = (list: Entry[]) => {
-      let withDescription = 0;
-      let withImages = 0;
-      for (const e of list) {
-        if (String(e.description || "").trim().length > 0) withDescription += 1;
-        if (Array.isArray(e.images) && e.images.length > 0) withImages += 1;
-      }
-      return { total: list.length, withDescription, withImages };
-    };
-    const better = (a: SourceCandidate, b: SourceCandidate): SourceCandidate => {
-      const sa = countStats(a.entries);
-      const sb = countStats(b.entries);
-      if (sb.total !== sa.total) return sb.total > sa.total ? b : a;
-      if (sb.withDescription !== sa.withDescription) return sb.withDescription > sa.withDescription ? b : a;
-      if (sb.withImages !== sa.withImages) return sb.withImages > sa.withImages ? b : a;
-      return a;
-    };
-
     let cancelled = false;
-    void fetch(STRICT_BASELINE_ENTRIES_URL)
+    void fetch(FINAL_DICTIONARY_URL)
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
-      .then((baselineData) => {
+      .then((data) => {
         if (cancelled) return;
-        const candidates: SourceCandidate[] = [
-          { name: "local-main", entries: removeTestEntries(parseSavedEntries(localStorage.getItem(ENTRIES_STORAGE_KEY))) },
-          { name: "local-fixed-56", entries: removeTestEntries(parseSavedEntries(localStorage.getItem("magic-book-fixed-56-snapshot"))) },
-          { name: "legacy-vibe", entries: removeTestEntries(parseLegacyVibeWords()) },
-          { name: "local-lite", entries: removeTestEntries(parseSavedEntries(localStorage.getItem(ENTRIES_LITE_BACKUP_KEY))) },
-          { name: "json-baseline-1-60", entries: removeTestEntries(parseSeedBackupEntries(baselineData)) },
-        ].filter((c) => c.entries.length > 0);
-        if (!candidates.length) return;
-        const selected = candidates.reduce((best, next) => better(best, next));
-        setEntries(selected.entries);
+        const finalEntries = removeTestEntries(parseSeedBackupEntries(data));
+        setEntries(finalEntries);
       })
       .catch(() => {
         /* ignore */
