@@ -161,9 +161,8 @@ const FinalScreen: React.FC<FinalScreenProps> = ({
           onBack();
         }}
         onPlayGame={() => {
-          resumeAfterPanelCloseRef.current = false;
+          resumeAfterPanelCloseRef.current = true;
           setAudioTestOpen(false);
-          /** Не вызываем onResumeBackgroundHymn: иначе гимн успевает запуститься до паузы в openLuckyWheel и смешивается с игрой. */
           onHymnPlayGame?.();
         }}
         onEnterWord={() => {

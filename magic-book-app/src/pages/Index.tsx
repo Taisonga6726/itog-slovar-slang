@@ -583,19 +583,12 @@ const Index = () => {
   }, [playFlipSound]);
 
   const openLuckyWheel = useCallback(() => {
-    /** Глушим фоновый гимн книги, чтобы не накладывался на эффекты игры (и панель, и /luck). */
-    pauseBookHymnForGame();
     if (LUCKY_WHEEL_ENTRY === "route") {
       navigate("/luck");
     } else {
       setLuckyWheelOpen(true);
     }
-  }, [navigate, pauseBookHymnForGame]);
-
-  /** Пока открыта панель игры — держим гимн на паузе (страховка, если где-то вызвали play() асинхронно). */
-  useEffect(() => {
-    if (luckyWheelOpen) pauseBookHymnForGame();
-  }, [luckyWheelOpen, pauseBookHymnForGame]);
+  }, [navigate]);
 
   useEffect(() => {
     if (mode !== "form") return;
@@ -756,7 +749,6 @@ const Index = () => {
 
       <LuckyWheelPanel
         open={luckyWheelOpen}
-        onPauseBookHymn={pauseBookHymnForGame}
         onClose={() => {
           setLuckyWheelOpen(false);
           resumeBackgroundHymnAfterPanel();
