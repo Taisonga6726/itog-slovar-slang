@@ -284,10 +284,20 @@ const Index = () => {
 
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<"intro" | "form" | "awakening" | "hands" | "reading" | "final">("intro");
-  const [entries, setEntries] = useState<Entry[]>([]);
+  const [entries, setEntries] = useState<Entry[]>(() => {
+    const savedMain = removeTestEntries(parseSavedEntries(localStorage.getItem(ENTRIES_STORAGE_KEY)));
+    return savedMain.length > 0 ? savedMain : [];
+  });
   const [entriesLoaded, setEntriesLoaded] = useState(false);
 
   useEffect(() => {
+    const savedMain = removeTestEntries(parseSavedEntries(localStorage.getItem(ENTRIES_STORAGE_KEY)));
+    if (savedMain.length > 0) {
+      setEntries(savedMain);
+      setEntriesLoaded(true);
+      return;
+    }
+
     let cancelled = false;
     void fetch(FINAL_DICTIONARY_URL)
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error(String(res.status)))))
