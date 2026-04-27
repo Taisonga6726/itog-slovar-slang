@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index.tsx";
 import LuckyWheelPage from "./pages/LuckyWheelPage.tsx";
 import PoleChudesTestPage from "./pages/PoleChudesTestPage.tsx";
+import ContactPage from "./pages/ContactPage.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -18,6 +19,7 @@ const App = () => (
       <BrowserRouter basename={import.meta.env.BASE_URL}>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/contact" element={<ContactPage />} />
           <Route path="/luck" element={<LuckyWheelPage />} />
           <Route path="/luck-test" element={<PoleChudesTestPage />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

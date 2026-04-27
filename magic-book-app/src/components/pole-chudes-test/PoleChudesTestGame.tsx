@@ -649,6 +649,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                   <NeonGlassButton
                     accent
                     className="pointer-events-auto !block w-full !px-3 !py-1.5 !text-sm sm:!px-4 sm:!py-2 sm:!text-base"
+                    onClick={() => navigate("/contact")}
                   >
                     Хотите также? свяжитесь с ТАНЕЙ !
                   </NeonGlassButton>
