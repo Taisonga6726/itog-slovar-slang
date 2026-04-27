@@ -203,9 +203,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       }));
       setResults((prev) => [...prev, spinResult]);
 
-      // Критичный порядок: сначала глушим гимн, затем тарелка и мгновенный RESULT.
+      // Переход в RESULT строго в момент конца spin (тарелка в конце самого файла spin).
       onPauseBookHymn?.();
-      void sound()?.play("drumHit");
       flushSync(() => {
         setStage("RESULT");
         setIsSpinning(false);
@@ -260,7 +259,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     });
 
     onPauseBookHymn?.();
-    const spinAudioDone = sound()?.play("spin") ?? Promise.resolve();
+    const spinAudioDone = sound()?.play("spin", { waitForEnd: true, stopBefore: false }) ?? Promise.resolve();
     const totalSpinDuration = 2.8;
     const preRotation = rotation + 180;
     const fastRotation = rotation + 1080;
