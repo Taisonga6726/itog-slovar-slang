@@ -12,10 +12,21 @@ export class SoundManager {
   private readonly sounds: Record<string, HTMLAudioElement> = {};
 
   constructor(config: Record<string, SoundConfig>) {
+    const normalizeVolume = (name: string, rawVolume?: number): number => {
+      const base = typeof rawVolume === "number" ? rawVolume : 1;
+      const isBackground = /(bg|background|hymn|music|loop|ambient)/i.test(name);
+      if (isBackground) {
+        // Фон всегда тише эффектов: целевой диапазон 0.2–0.3.
+        return 0.25;
+      }
+      // Игровые эффекты делаем отчетливыми: целевой диапазон 0.8–1.0.
+      return Math.max(0.8, Math.min(1, base));
+    };
+
     Object.entries(config).forEach(([name, cfg]) => {
       const audio = new Audio(cfg.src);
       audio.preload = "auto";
-      audio.volume = cfg.volume ?? 1;
+      audio.volume = normalizeVolume(name, cfg.volume);
       this.sounds[name] = audio;
     });
   }
