@@ -713,7 +713,7 @@ const Index = () => {
           onPauseBackgroundHymn={pauseBackgroundHymnSoft}
           onResumeBackgroundHymn={resumeBackgroundHymnAfterPanel}
           onHymnPanelOpenChange={setHymnPanelOpen}
-          onHymnPlayGame={handleStartReadFlow}
+          onHymnPlayGame={openLuckyWheel}
           onHymnEnterWord={handleAddWord}
           openHymnOnMount={searchParams.get("entry") === "slovar" && searchParams.get("screen") === "hymn"}
         />
