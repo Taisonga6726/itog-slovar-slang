@@ -203,14 +203,13 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       }));
       setResults((prev) => [...prev, spinResult]);
 
-      // Одновременность по сценарию: тарелка и RESULT в один момент.
-      void sound()?.play("drumHit", { stopBefore: false });
+      // Критичный порядок: сначала глушим гимн, затем тарелка и мгновенный RESULT.
+      onPauseBookHymn?.();
+      void sound()?.play("drumHit");
       flushSync(() => {
         setStage("RESULT");
         setIsSpinning(false);
       });
-      // Сразу после открытия RESULT приглушаем фон книги.
-      onPauseBookHymn?.();
 
       confetti({
         particleCount: 50,
