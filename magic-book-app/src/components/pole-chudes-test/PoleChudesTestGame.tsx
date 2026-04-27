@@ -60,14 +60,14 @@ const SPLASH_VIDEO_SRC = publicFile(SPLASH_VIDEO_PATH);
 const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
 const SOUND_CONFIG = {
-  wowStart: { src: toAudioSrc("КЛИК вау начало.MP3"), volume: 0.95 },
-  spin: { src: toAudioSrc("прокрутка колеса 02.MP3"), volume: 1 },
-  drumHit: { src: toAudioSrc("ROCK_ ART BARABAN WOW.mp3"), volume: 0.95 },
-  truba: { src: toAudioSrc("вау_труба.MP3"), volume: 0.95 },
-  happyBoy: { src: toAudioSrc("довольный мальчик.MP3"), volume: 0.95 },
-  laughGirl: { src: toAudioSrc("смех девочка1.MP3"), volume: 0.95 },
-  laughMan: { src: toAudioSrc("смех мужчина 1.MP3"), volume: 0.95 },
-  laughBoy: { src: toAudioSrc("смех мальчик 1 .MP3"), volume: 0.95 },
+  wowStart: { src: toAudioSrc("КЛИК вау начало.MP3"), volume: 1.0 },
+  spin: { src: toAudioSrc("прокрутка колеса 02.MP3"), volume: 1.0 },
+  drumHit: { src: toAudioSrc("ROCK_ ART BARABAN WOW.mp3"), volume: 1.0 },
+  truba: { src: toAudioSrc("вау_труба.MP3"), volume: 1.0 },
+  happyBoy: { src: toAudioSrc("довольный мальчик.MP3"), volume: 1.0 },
+  laughGirl: { src: toAudioSrc("смех девочка1.MP3"), volume: 1.0 },
+  laughMan: { src: toAudioSrc("смех мужчина 1.MP3"), volume: 1.0 },
+  laughBoy: { src: toAudioSrc("смех мальчик 1 .MP3"), volume: 1.0 },
 } as const;
 
 export interface PoleChudesTestGameProps {
@@ -203,13 +203,14 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       }));
       setResults((prev) => [...prev, spinResult]);
 
-      // Последовательность по сценарию: тарелка -> сразу RESULT.
-      onPauseBookHymn?.();
+      // Одновременность по сценарию: тарелка и RESULT в один момент.
       void sound()?.play("drumHit", { stopBefore: false });
       flushSync(() => {
         setStage("RESULT");
         setIsSpinning(false);
       });
+      // Сразу после открытия RESULT приглушаем фон книги.
+      onPauseBookHymn?.();
 
       confetti({
         particleCount: 50,
