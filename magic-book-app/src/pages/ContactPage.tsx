@@ -9,7 +9,7 @@ export default function ContactPage() {
 
       <div className="relative z-10 w-[90vw] max-w-[900px]">
         <video
-          src="/videos/visitka.mp4"
+          src="/videos/visitka.webm"
           autoPlay
           playsInline
           className="w-full h-auto rounded-xl shadow-xl object-cover"
