@@ -284,7 +284,6 @@ const Index = () => {
 
   const [searchParams] = useSearchParams();
   const [mode, setMode] = useState<"intro" | "form" | "awakening" | "hands" | "reading" | "final">("intro");
-  const isGameActive = (mode as string) === "game" || luckyWheelOpen === true;
   const [entries, setEntries] = useState<Entry[]>(() => {
     const savedMain = removeTestEntries(parseSavedEntries(localStorage.getItem(ENTRIES_STORAGE_KEY)));
     return savedMain.length > 0 ? savedMain : [];
@@ -364,14 +363,13 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    if (isGameActive) return;
     if (!hymnAudio.current) return;
     try {
       hymnAudio.current.volume = bookSoundMuted ? 0 : HYMN_BASE_VOLUME;
     } catch {
       /* ignore */
     }
-  }, [bookSoundMuted, isGameActive]);
+  }, [bookSoundMuted]);
 
   useEffect(() => {
     flipAudio.current = new Audio("/page-flip.mp3");
@@ -414,7 +412,6 @@ const Index = () => {
   /** Игра «Поле чудес»: пауза + сброс позиции гимна, чтобы отложенный play() не накладывался на SFX при первом предсказании. */
   const pauseBookHymnForGame = useCallback(() => {
     pauseBackgroundHymnSoft();
-    hymnStartedRef.current = false;
     try {
       if (hymnAudio.current) hymnAudio.current.currentTime = 0;
     } catch {
@@ -424,14 +421,12 @@ const Index = () => {
 
   /** После выхода из панели выбора аудио возвращаем фон, если он уже запускался. */
   const resumeBackgroundHymnAfterPanel = useCallback(() => {
-    if (isGameActive) return;
     if (!hymnStartedRef.current || !hymnAudio.current) return;
     void hymnAudio.current.play().catch(() => {});
-  }, [isGameActive]);
+  }, []);
 
   /** Р“РёРјРЅ СЂРѕРґРёС‚РµР»СЏ: РїРѕ СЃРёРіРЅР°Р»Сѓ РёР· iframe; ref В«Р·Р°РїСѓС‰РµРЅВ» С‚РѕР»СЊРєРѕ РїРѕСЃР»Рµ СѓСЃРїРµС€РЅРѕРіРѕ play (РёРЅР°С‡Рµ РїРѕРІС‚РѕСЂРЅС‹Р№ РєР»РёРє РјРѕР»С‡РёС‚). */
   const startBookHymnFromIntro = useCallback(() => {
-    if (isGameActive) return;
     if (!hymnAudio.current) {
       hymnAudio.current = new Audio("/slovar/assets/sounds/versiya%205_hard-rok%20Tanya.mp3");
       hymnAudio.current.loop = true;
@@ -446,7 +441,7 @@ const Index = () => {
       .catch(() => {
         hymnStartedRef.current = false;
       });
-  }, [bookSoundMuted, isGameActive]);
+  }, [bookSoundMuted]);
 
   useEffect(() => {
     pauseHymn();
@@ -545,7 +540,6 @@ const Index = () => {
   }, []);
 
   useEffect(() => {
-    if (isGameActive) return;
     if (!entriesLoaded) return;
     if (mode === "reading" && entries.length === 0) {
       setMode("form");
@@ -554,7 +548,7 @@ const Index = () => {
         description: "РЎРЅР°С‡Р°Р»Р° РІРЅРµСЃРёС‚Рµ Рё СЃРѕС…СЂР°РЅРёС‚Рµ С…РѕС‚СЏ Р±С‹ РѕРґРЅРѕ СЃР»РѕРІРѕ.",
       });
     }
-  }, [mode, entries.length, entriesLoaded, isGameActive]);
+  }, [mode, entries.length, entriesLoaded]);
 
   /** По ТЗ: автоприглушение фона полностью отключено, громкость единая на всех экранах. */
 
@@ -719,7 +713,7 @@ const Index = () => {
           onPauseBackgroundHymn={pauseBackgroundHymnSoft}
           onResumeBackgroundHymn={resumeBackgroundHymnAfterPanel}
           onHymnPanelOpenChange={setHymnPanelOpen}
-          onHymnPlayGame={openLuckyWheel}
+          onHymnPlayGame={handleStartReadFlow}
           onHymnEnterWord={handleAddWord}
           openHymnOnMount={searchParams.get("entry") === "slovar" && searchParams.get("screen") === "hymn"}
         />

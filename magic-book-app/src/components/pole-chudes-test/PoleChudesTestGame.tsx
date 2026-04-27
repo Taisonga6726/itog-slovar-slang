@@ -13,7 +13,6 @@ import DigitalCodeBackdrop from "@/components/DigitalCodeBackdrop";
 import GlobalVibeShell from "@/components/GlobalVibeShell";
 import HeroWave from "@/components/ui/dynamic-wave-canvas-background";
 import { Wheel } from "./Wheel";
-import { SoundManager } from "./SoundManager";
 import { WORD_BASE_FROM_TXT } from "./wordBaseFromTxt";
 
 type GameStage = "SPLASH" | "GAME" | "RESULT" | "SUMMARY";
@@ -59,16 +58,6 @@ const SPLASH_VIDEO_SRC = publicFile(SPLASH_VIDEO_PATH);
 /** По ТЗ: GAME = магический круг, RESULT = книга с предсказанием. */
 const DRUM_BG_GAME_SRC = `/images/${encodeURIComponent("2 fon_baraban png.png")}`;
 const DRUM_BG_RESULT_SRC = `/images/${encodeURIComponent("1 fon_baraban png.png")}`;
-const SOUND_CONFIG = {
-  wowStart: { src: toAudioSrc("КЛИК вау начало.MP3"), volume: 0.95 },
-  spin: { src: toAudioSrc("прокрутка колеса 02.MP3"), volume: 1 },
-  drumHit: { src: toAudioSrc("ROCK_ ART BARABAN WOW.mp3"), volume: 0.95 },
-  truba: { src: toAudioSrc("вау_труба.MP3"), volume: 0.95 },
-  happyBoy: { src: toAudioSrc("довольный мальчик.MP3"), volume: 0.95 },
-  laughGirl: { src: toAudioSrc("смех девочка1.MP3"), volume: 0.95 },
-  laughMan: { src: toAudioSrc("смех мужчина 1.MP3"), volume: 0.95 },
-  laughBoy: { src: toAudioSrc("смех мальчик 1 .MP3"), volume: 0.95 },
-} as const;
 
 export interface PoleChudesTestGameProps {
   /** Если игра открыта панелью поверх книги — закрыть панель при переходе в другой раздел. */
@@ -112,17 +101,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
   const [gameWordBase] = useState<GameWordBase>(() => WORD_BASE_FROM_TXT);
   const spinResolveRef = useRef<(() => void) | null>(null);
   const splashVideoRef = useRef<HTMLVideoElement | null>(null);
-  const soundManagerRef = useRef<SoundManager | null>(null);
-
-  useEffect(() => {
-    soundManagerRef.current = new SoundManager(SOUND_CONFIG);
-    return () => {
-      soundManagerRef.current?.stopAll();
-      soundManagerRef.current = null;
-    };
-  }, []);
-
-  const sound = useCallback(() => soundManagerRef.current, []);
 
   useEffect(() => {
     // На смене этапа и при смене колбэка: глушим гимн книги (без второго дубля на mount).
@@ -203,9 +181,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       }));
       setResults((prev) => [...prev, spinResult]);
 
-      // После завершения прокрутки и удара открываем предсказание.
-      await (sound()?.play("drumHit", { waitForEnd: true }) ?? Promise.resolve());
-
       await new Promise<void>((resolve) => {
         requestAnimationFrame(() => {
           setStage("RESULT");
@@ -223,30 +198,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
 
       setResultReady(true);
       setBusy(false);
-
-      // Реакции после открытия предсказания — асинхронно, без блокировки UI.
-      void (async () => {
-        const openSoundByAttempt: Record<number, "truba" | "wowStart" | "happyBoy"> = {
-          1: "truba",
-          2: "wowStart",
-          3: "truba",
-          4: "happyBoy",
-        };
-        const laughByAttempt: Partial<Record<number, "laughGirl" | "laughMan" | "laughBoy">> = {
-          1: "laughGirl",
-          2: "laughMan",
-          3: "laughBoy",
-        };
-        const openSound = openSoundByAttempt[attempt] ?? "happyBoy";
-        const laughSound = laughByAttempt[attempt];
-        if (laughSound) {
-          await sound()?.play(laughSound, { waitForEnd: true });
-        } else {
-          await (sound()?.play(openSound, { waitForEnd: true, stopBefore: false }) ?? Promise.resolve());
-        }
-      })();
     },
-    [sound],
+    [],
   );
 
   const handleSpin = useCallback(async () => {
@@ -267,8 +220,8 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     });
 
     onPauseBookHymn?.();
-    const spinAudioDone = sound()?.play("spin", { waitForEnd: true }) ?? Promise.resolve();
-    const totalSpinDuration = sound()?.getDuration("spin") ?? 2.8;
+    const spinAudioDone = Promise.resolve();
+    const totalSpinDuration = 2.8;
     const preRotation = rotation + 180;
     const fastRotation = rotation + 1080;
     setSpinDuration(totalSpinDuration);
@@ -295,7 +248,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
      * По финальному сценарию: на карточке предсказания не запускаем автодорожки,
      * иначе на статичном экране слышны повторяющиеся эффекты.
      */
-  }, [busy, stage, usedPhrases, results.length, rotation, onPauseBookHymn, onSpinComplete, getCategoryByRotation, getResultForCategory, sound]);
+  }, [busy, stage, usedPhrases, results.length, rotation, onPauseBookHymn, onSpinComplete, getCategoryByRotation, getResultForCategory]);
 
   const startSpin = useCallback(() => {
     if (isSpinning) return;
@@ -311,16 +264,14 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     if (busy) return;
     splashVideoRef.current?.pause();
     onPauseBookHymn?.();
-    void sound()?.play("wowStart");
     flushSync(() => {
       setStage("GAME");
       setBusy(false);
     });
-  }, [busy, onPauseBookHymn, sound]);
+  }, [busy, onPauseBookHymn]);
 
   const nextAction = useCallback(async () => {
     if (!resultReady) return;
-    sound()?.stopAll();
     onPauseBookHymn?.();
     if (results.length >= MAX_SPINS) {
       setStage("SUMMARY");
@@ -330,7 +281,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
     setCurrentResult(null);
     setStage("GAME");
     setBusy(false);
-  }, [resultReady, results.length, onPauseBookHymn, sound]);
+  }, [resultReady, results.length, onPauseBookHymn]);
 
   const getCategoryIcon = (id: string) => {
     switch (id) {
@@ -545,7 +496,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                 </div>
               </div>
 
-              <div className="-mt-16 relative z-20 pointer-events-auto flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center sm:-mt-14 sm:gap-1.5">
+              <div className="-mt-16 flex max-w-full flex-wrap items-center justify-center gap-1 justify-self-center sm:-mt-14 sm:gap-1.5">
                 <NeonGlassButton className="!px-3 !py-1.5 !text-[10px] sm:!px-4 sm:!py-2 sm:!text-xs" onClick={() => closeAndNavigate("/")}>
                   Назад к книге
                 </NeonGlassButton>
@@ -677,7 +628,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
                     accent
                     className="!px-3 !py-1.5 !text-sm sm:!px-4 sm:!py-2 sm:!text-base"
                     onClick={() => {
-                      sound()?.stopAll();
                       setBusy(true);
                       setStage("SPLASH");
                       setResults([]);
