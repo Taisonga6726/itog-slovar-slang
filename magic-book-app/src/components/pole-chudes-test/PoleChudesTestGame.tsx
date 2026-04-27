@@ -203,12 +203,12 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       }));
       setResults((prev) => [...prev, spinResult]);
 
-      await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => {
-          setStage("RESULT");
-          setIsSpinning(false);
-          resolve();
-        });
+      // Последовательность по сценарию: тарелка -> сразу RESULT.
+      onPauseBookHymn?.();
+      void sound()?.play("drumHit", { stopBefore: false });
+      flushSync(() => {
+        setStage("RESULT");
+        setIsSpinning(false);
       });
 
       confetti({
@@ -218,7 +218,6 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
         colors: [CATEGORIES.find((c) => c.id === spinResult.category)?.color || "#ffffff"],
       });
 
-      void sound()?.play("drumHit", { stopBefore: false });
       const openSoundByAttempt: Record<number, "truba" | "wowStart" | "happyBoy"> = {
         1: "truba",
         2: "wowStart",
@@ -240,7 +239,7 @@ export default function PoleChudesTestGame({ onClosePanel, layout = "page", onPa
       setResultReady(true);
       setBusy(false);
     },
-    [sound],
+    [onPauseBookHymn, sound],
   );
 
   const handleSpin = useCallback(async () => {
