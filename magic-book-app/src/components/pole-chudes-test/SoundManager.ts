@@ -16,8 +16,8 @@ export class SoundManager {
       const base = typeof rawVolume === "number" ? rawVolume : 1;
       const isBackground = /(bg|background|hymn|music|loop|ambient)/i.test(name);
       if (isBackground) {
-        // Фон всегда тише эффектов: целевой диапазон 0.2–0.3.
-        return 0.25;
+        // Фон практически неслышен: целевой диапазон 0.05–0.1.
+        return 0.08;
       }
       // Игровые эффекты делаем отчетливыми: целевой диапазон 0.8–1.0.
       return Math.max(0.8, Math.min(1, base));
